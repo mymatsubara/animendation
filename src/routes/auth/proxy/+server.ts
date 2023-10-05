@@ -36,11 +36,12 @@ export const POST: RequestHandler = async (event) => {
 		userId,
 		username
 	};
-	const backendAccessToken = await Auth.signBackendAccessToken(user);
+	const backendAccessToken = await Auth.signBackendAccessToken(user, {
+		expiresIn: tokens.expires_in
+	});
 
 	const cookies = event.cookies;
-	AuthCookies.setRefreshTokenCookie(cookies, tokens.refresh_token);
-	AuthCookies.setBackendAccessTokenCookie(cookies, backendAccessToken);
+	AuthCookies.setCookies(cookies, backendAccessToken, tokens.refresh_token);
 
 	return new Response(
 		JSON.stringify({ ...tokens, backend_access_token: backendAccessToken, user })

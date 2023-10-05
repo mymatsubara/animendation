@@ -1,15 +1,23 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import { goto } from '$app/navigation';
+	import { PUBLIC_MAL_CLIENT_ID } from '$env/static/public';
+	import { MALOauth } from '$lib/clients/myanimelist/oauth';
+	import { user } from '$lib/stores/user';
 
-	export let data: PageData;
+	const oauth = MALOauth.getAuthUrl(PUBLIC_MAL_CLIENT_ID);
+
+	if ($user) {
+		const username = $user.data.username;
+		goto(`/user/${username}`);
+	}
 </script>
 
-<h1>In progress</h1>
-
-<pre>{JSON.stringify(data.animes, null, 4)}</pre>
-
-<style>
-	pre {
-		white-space: pre;
-	}
-</style>
+<a
+	href={oauth.url}
+	on:click={() => {
+		MALOauth.persistState({
+			codeVerifier: oauth.codeVerifier,
+			state: oauth.state
+		});
+	}}>Login</a
+>

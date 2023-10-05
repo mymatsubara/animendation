@@ -1,25 +1,31 @@
-import { env } from '$env/dynamic/private';
 import {
 	OpenAPI,
+	type User,
 	type UserAnimeList,
 	type UserAnimeListEdge
 } from '$lib/clients/myanimelist/generated';
 
-export module MalClient {
-	const baseUrl = OpenAPI.BASE;
-	const clientHeader = {
-		'X-MAL-CLIENT-ID': env.MAL_CLIENT_ID
-	};
+type GetUserAnimeListOptions = {
+	fields?: 'list_status';
+	limit?: number;
+	status?: 'watching' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_watch';
+	sort?: 'list_score' | 'list_updated_at' | 'anime_title' | 'anime_start_date' | 'anime_id';
+	offset?: number;
+};
 
-	interface GetUserAnimeListOptions {
-		fields?: 'list_status';
-		limit?: number;
-		status?: 'watching' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_watch';
-		sort?: 'list_score' | 'list_updated_at' | 'anime_title' | 'anime_start_date' | 'anime_id';
-		offset?: number;
-	}
+type RequestOptions = {
+	path: string;
+	method: 'POST' | 'GET' | 'PUT' | 'DELETE';
+	searchParams?: { [p: string]: string | number | undefined };
+	body?: any;
+};
 
-	export async function getUserFullAnimeList(
+export class MALClient {
+	private baseUrl = OpenAPI.BASE;
+
+	constructor(private accessToken: string) {}
+
+	async getUserFullAnimeList(
 		username: string,
 		options?: Omit<GetUserAnimeListOptions, 'limit' | 'offset'>
 	): Promise<UserAnimeListEdge[]> {
@@ -33,7 +39,7 @@ export module MalClient {
 		let result: UserAnimeListEdge[] = [];
 
 		while (true) {
-			const page = await getUserAnimeList(username, opts);
+			const page = await this.getUserAnimeList(username, opts);
 			result = result.concat(page.data ?? []);
 			opts.offset += limit;
 
@@ -45,17 +51,38 @@ export module MalClient {
 		return result;
 	}
 
-	export async function getUserAnimeList(
-		username: string,
-		options?: GetUserAnimeListOptions
-	): Promise<UserAnimeList> {
-		const searchParams = new URLSearchParams((options as Record<string, string>) ?? {});
+	getUserAnimeList(username: string, options?: GetUserAnimeListOptions): Promise<UserAnimeList> {
+		return this.request({
+			path: `/users/${username}/animelist`,
+			method: 'GET',
+			searchParams: options as any
+		});
+	}
 
-		const response = await fetch(`${baseUrl}/users/${username}/animelist?${searchParams}`, {
-			headers: clientHeader
+	getMe(): Promise<User> {
+		return this.request({
+			path: `/users/@me`,
+			method: 'GET'
+		});
+	}
+
+	private async request(options: RequestOptions) {
+		let url = `${this.baseUrl}${options.path}`;
+		if (options.searchParams) {
+			url += `?${new URLSearchParams(options.searchParams as any)}`;
+		}
+
+		const response = await fetch(url, {
+			method: options.method,
+			body: options?.body,
+			headers: {
+				Authorization: `Bearer ${this.accessToken}`
+			}
 		});
 
-		if (response.status >= 400) {
+		if (response.status === 401) {
+			// TODO: refresh token
+		} else if (response.status >= 400) {
 			throw new Error(`MAL Api error [${response.status}]: ${await response.text()}`);
 		}
 

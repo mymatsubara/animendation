@@ -81,7 +81,7 @@ export module MALOauth {
 		return response.json();
 	}
 
-	export async function refreshTokens(input: RefrehTokensInput): Promise<TokensResponse> {
+	export async function refreshTokens(input: RefrehTokensInput): Promise<TokensResponse | null> {
 		const response = await fetch(`${OAUTH_URL}/token`, {
 			method: 'POST',
 			headers: {

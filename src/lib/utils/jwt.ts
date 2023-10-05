@@ -1,4 +1,4 @@
-import { decode } from '@tsndr/cloudflare-worker-jwt';
+import { decode } from '@mymatsubara/cloudflare-worker-jwt';
 
 export module JwtUtils {
 	export function isExpired(token: string) {

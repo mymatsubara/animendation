@@ -70,7 +70,6 @@ export class MALClient {
 			);
 
 			result = result.concat(newAnimes ?? []);
-			console.log({ since, page: JSON.stringify(page, null, 2), newAnimes });
 
 			if (newAnimes?.length !== options.limit || !page?.paging?.next) {
 				break;

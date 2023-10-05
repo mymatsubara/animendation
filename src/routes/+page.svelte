@@ -7,7 +7,6 @@
 	const oauth = MALOauth.getAuthUrl(PUBLIC_MAL_CLIENT_ID);
 
 	$: {
-		console.log($user);
 		if ($user) {
 			goto(`/recommendations`);
 		}

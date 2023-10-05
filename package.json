@@ -41,7 +41,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@mymatsubara/cloudflare-worker-jwt": "^2.2.6",
+		"@tsndr/cloudflare-worker-jwt": "^2.2.5",
 		"@neondatabase/serverless": "^0.6.0",
 		"@trpc/client": "^10.38.5",
 		"@trpc/server": "^10.38.5",

@@ -1,13 +1,13 @@
-import decode from 'jwt-decode';
+import { decode } from '@tsndr/cloudflare-worker-jwt';
 
 export module JwtUtils {
 	export function isExpired(token: string) {
-		const content = decode<{ exp?: number }>(token);
+		const { payload } = decode(token);
 
-		if (content.exp === undefined) {
+		if (payload.exp === undefined) {
 			return false;
 		}
 
-		return Date.now() > content.exp * 1000;
+		return Date.now() > payload.exp * 1000;
 	}
 }

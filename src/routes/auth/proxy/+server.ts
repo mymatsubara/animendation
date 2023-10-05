@@ -36,7 +36,7 @@ export const POST: RequestHandler = async (event) => {
 		userId,
 		username
 	};
-	const backendAccessToken = Auth.signBackendAccessToken(user);
+	const backendAccessToken = await Auth.signBackendAccessToken(user);
 
 	const cookies = event.cookies;
 	AuthCookies.setRefreshTokenCookie(cookies, tokens.refresh_token);

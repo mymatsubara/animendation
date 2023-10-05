@@ -2,16 +2,15 @@ import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
 import type { AuthUser } from '$lib/auth/types';
 import type { Cookies } from '@sveltejs/kit';
-import jwt from 'jsonwebtoken';
+import jwt, { type JwtSignOptions } from '@tsndr/cloudflare-worker-jwt';
 
 export module Auth {
-	export function signBackendAccessToken(user: AuthUser, options?: jwt.SignOptions) {
-		return jwt.sign(user, env.BACKEND_ACCESS_TOKEN_KEY, options);
+	export function signBackendAccessToken(user: AuthUser, options?: JwtSignOptions) {
+		return jwt.sign(user, env.BACKEND_ACCESS_TOKEN_SECRET, options);
 	}
 
-	export function verifyBackendAccessToken(token: string): AuthUser {
-		const result = jwt.verify(token, env.BACKEND_ACCESS_TOKEN_KEY);
-		return result as AuthUser;
+	export function verifyBackendAccessToken(token: string) {
+		return jwt.verify(token, env.BACKEND_ACCESS_TOKEN_SECRET);
 	}
 }
 

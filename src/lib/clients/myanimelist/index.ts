@@ -56,14 +56,14 @@ export class MALClient {
 			path: `/users/${username}/animelist`,
 			method: 'GET',
 			searchParams: options as any
-		});
+		}) as Promise<UserAnimeList>;
 	}
 
 	getMe(): Promise<User> {
 		return this.request({
 			path: `/users/@me`,
 			method: 'GET'
-		});
+		}) as Promise<User>;
 	}
 
 	private async request(options: RequestOptions) {

@@ -28,21 +28,42 @@ export module Auth {
 }
 
 export module AuthCookies {
-	export const MAL_REFRESH_TOKEN_COOKIE = 'mr';
-	export const BACKEND_ACCESS_TOKEN_COOKIE = 'be';
+	type SetCookiesInput = {
+		cookies: Cookies;
+		mal: {
+			accessToken: string;
+			refreshToken: string;
+		};
+		backend: {
+			accessToken: string;
+		};
+	};
 
-	export function setCookies(cookies: Cookies, accessToken: string, refreshToken: string) {
-		setCookie(cookies, BACKEND_ACCESS_TOKEN_COOKIE, accessToken);
-		setCookie(cookies, MAL_REFRESH_TOKEN_COOKIE, refreshToken);
+	const MAL_REFRESH_TOKEN_COOKIE = 'mr';
+	const MAL_ACCESS_TOKEN_COOKIE = 'ma';
+	const BACKEND_ACCESS_TOKEN_COOKIE = 'ba';
+
+	export function setCookies(input: SetCookiesInput) {
+		const cookies = input.cookies;
+
+		setCookie(cookies, BACKEND_ACCESS_TOKEN_COOKIE, input.backend.accessToken);
+		setCookie(cookies, MAL_REFRESH_TOKEN_COOKIE, input.mal.refreshToken);
+		setCookie(cookies, MAL_ACCESS_TOKEN_COOKIE, input.mal.accessToken);
 	}
 
 	export function getCookies(cookies: Cookies) {
-		const accessToken = cookies.get(BACKEND_ACCESS_TOKEN_COOKIE);
-		const refreshToken = cookies.get(MAL_REFRESH_TOKEN_COOKIE);
+		const backendAccessToken = cookies.get(BACKEND_ACCESS_TOKEN_COOKIE);
+		const malRefreshToken = cookies.get(MAL_REFRESH_TOKEN_COOKIE);
+		const malAccessToken = cookies.get(MAL_ACCESS_TOKEN_COOKIE);
 
 		return {
-			accessToken,
-			refreshToken
+			mal: {
+				accessToken: malAccessToken,
+				refreshToken: malRefreshToken
+			},
+			backend: {
+				accessToken: backendAccessToken
+			}
 		};
 	}
 

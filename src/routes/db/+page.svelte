@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { trpc } from '$lib/trpc/client';
-	import type { PageData } from './$types';
 
-	export let data: PageData;
 	const result = trpc.recommendation.list.query();
 	const authed = trpc.recommendation.mine.query();
 </script>

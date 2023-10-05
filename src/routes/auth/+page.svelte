@@ -4,8 +4,8 @@
 	import { MALOauth } from '$lib/clients/myanimelist/oauth';
 	import { toast } from '$lib/stores/toast';
 	import { user } from '$lib/stores/user';
+	import { trpc } from '$lib/trpc/client';
 	import { onMount } from 'svelte';
-	import type { PostBody, PostResponse } from './types';
 
 	onMount(async () => {
 		const params = $page.url.searchParams;
@@ -22,26 +22,18 @@
 		if (state !== expectedState?.state || !code) {
 			failAuth();
 		} else {
-			const response = await fetch('/auth/proxy', {
-				method: 'POST',
-				headers: { 'Content-type': 'application/json' },
-				body: JSON.stringify({
+			try {
+				const authUser = await trpc.auth.login.mutate({
 					authCode: code,
 					codeVerifier: expectedState.codeVerifier
-				} satisfies PostBody)
-			});
+				});
 
-			if (response.status >= 400) {
+				$user = authUser;
+
+				goto('/recommendations');
+			} catch {
 				failAuth();
 			}
-
-			const resp = (await response.json()) as PostResponse;
-			$user = {
-				accessToken: resp.access_token,
-				data: resp.user
-			};
-
-			goto('/');
 		}
 	});
 </script>

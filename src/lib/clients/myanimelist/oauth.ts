@@ -11,14 +11,20 @@ export module MALOauth {
 		url: string;
 	};
 
-	export type GetTokenConfig = {
+	export type GetTokensInput = {
 		clientId: string;
 		clientSecret: string;
 		authCode: string;
 		codeVerifier: string;
 	};
 
-	export type GetTokenResponse = {
+	export type RefrehTokensInput = {
+		clientId: string;
+		clientSecret: string;
+		refreshToken: string;
+	};
+
+	export type TokensResponse = {
 		token_type: string;
 		expires_in: number;
 		access_token: string;
@@ -53,18 +59,39 @@ export module MALOauth {
 		};
 	}
 
-	export async function getTokens(config: GetTokenConfig): Promise<GetTokenResponse | null> {
+	export async function getTokens(input: GetTokensInput): Promise<TokensResponse | null> {
 		const response = await fetch(`${OAUTH_URL}/token`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded'
 			},
 			body: new URLSearchParams({
-				client_id: config.clientId,
-				client_secret: config.clientSecret,
+				client_id: input.clientId,
+				client_secret: input.clientSecret,
 				grant_type: 'authorization_code',
-				code: config.authCode,
-				code_verifier: config.codeVerifier
+				code: input.authCode,
+				code_verifier: input.codeVerifier
+			})
+		});
+
+		if (response.status >= 400) {
+			return null;
+		}
+
+		return response.json();
+	}
+
+	export async function refreshTokens(input: RefrehTokensInput): Promise<TokensResponse> {
+		const response = await fetch(`${OAUTH_URL}/token`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body: new URLSearchParams({
+				grant_type: 'refresh_token',
+				refresh_token: input.refreshToken,
+				client_id: input.clientId,
+				client_secret: input.clientSecret
 			})
 		});
 

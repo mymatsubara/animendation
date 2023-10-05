@@ -6,9 +6,11 @@
 
 	const oauth = MALOauth.getAuthUrl(PUBLIC_MAL_CLIENT_ID);
 
-	if ($user) {
-		const username = $user.data.username;
-		goto(`/user/${username}`);
+	$: {
+		console.log($user);
+		if ($user) {
+			goto(`/recommendations`);
+		}
 	}
 </script>
 

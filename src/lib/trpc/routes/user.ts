@@ -1,4 +1,4 @@
-import type { AuthUser } from '$lib/auth/types';
+import type { AuthUser } from '$lib/auth';
 import { router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import { TRPCError } from '@trpc/server';

@@ -1,6 +1,6 @@
 import { env } from '$env/dynamic/private';
 import { PUBLIC_MAL_CLIENT_ID } from '$env/static/public';
-import { Auth, AuthCookies } from '$lib/auth/server';
+import { Auth, AuthCookies } from '$lib/auth';
 import { MALClient } from '$lib/clients/myanimelist';
 import { MALOauth } from '$lib/clients/myanimelist/oauth';
 import { t } from '$lib/trpc';

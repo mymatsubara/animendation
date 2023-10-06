@@ -1,9 +1,13 @@
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
-import type { AuthUser } from '$lib/auth/types';
 import type { Cookies } from '@sveltejs/kit';
 import jwt, { type JwtSignOptions } from '@tsndr/cloudflare-worker-jwt';
 import type { JwtPayload } from 'jsonwebtoken';
+
+export type AuthUser = {
+	userId: number;
+	username: string;
+};
 
 export module Auth {
 	export function signBackendAccessToken(

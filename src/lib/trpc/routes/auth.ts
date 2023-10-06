@@ -8,7 +8,7 @@ import { publicProcedure, router } from '$lib/trpc';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-export const auth = router({
+export const authRoute = router({
 	login: publicProcedure
 		.input(
 			z.object({

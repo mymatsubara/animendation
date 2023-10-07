@@ -1,15 +1,13 @@
 <script lang="ts">
 	import { getAnimelist } from '$lib/stores/animelist';
-	import { user } from '$lib/stores/user';
+
+	export let username: string;
 
 	// Fetch user recomendations from trpc
-	$: animelist = getAnimelist($user?.username);
+	$: animelist = getAnimelist(username);
 </script>
 
-recommendation
-<a href="/recommendations/edit">Edit</a>
-animelist
-
+Animes
 {#if !$animelist}
 	<h1>Loading...</h1>
 {:else}

@@ -8,7 +8,8 @@
 
 	$: {
 		if ($user) {
-			goto(`/recommendations`);
+			const username = $user.username;
+			goto(`/recommendations/${username}`);
 		}
 	}
 </script>

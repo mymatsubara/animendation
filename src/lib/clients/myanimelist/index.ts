@@ -179,6 +179,8 @@ export class MALClient {
 
 		if (response.status === 401) {
 			throw new TRPCError({ code: 'UNAUTHORIZED' });
+		} else if (response.status === 404) {
+			throw new TRPCError({ code: 'NOT_FOUND', message: await response.text() });
 		} else if (response.status >= 400) {
 			throw new Error(`MAL Api error [${response.status}]: ${await response.text()}`);
 		}

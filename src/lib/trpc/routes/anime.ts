@@ -11,10 +11,10 @@ export const animeRoute = router({
 	info: publicProcedure
 		.input(
 			z.object({
-				ids: z.number().int().positive().array()
+				ids: z.coerce.number().int().positive().array()
 			})
 		)
-		.query(async ({ input }) => {
+		.mutation(async ({ input }) => {
 			let animes = await getAnimesInfo(input.ids);
 
 			// Fetch new animes from the MAL api
@@ -22,6 +22,8 @@ export const animeRoute = router({
 				const idsInDb = new Set(animes.map((anime) => anime.id));
 				const newIds = input.ids.filter((id) => !idsInDb.has(id));
 				const client = new MALClient({ clientId: PUBLIC_MAL_CLIENT_ID });
+
+				console.log({ newIds });
 
 				const newAnimes: Insertable<Anime>[] = [];
 

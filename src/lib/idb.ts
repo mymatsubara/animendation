@@ -1,3 +1,4 @@
+import type { AnimeInfo } from '$lib/trpc/routes/anime';
 import type { ListAnime } from '$lib/trpc/routes/user';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 
@@ -10,6 +11,10 @@ export interface IDBSchema extends DBSchema {
 			username: string;
 		};
 	};
+	animes: {
+		key: number;
+		value: AnimeInfo;
+	};
 }
 
 export type IDB = IDBPDatabase<IDBSchema>;
@@ -17,7 +22,7 @@ let db: IDB;
 
 export const indexedDb = async () => {
 	if (!db) {
-		db = await openDB<IDBSchema>('animendation', undefined, {
+		db = await openDB<IDBSchema>('animendation', 2, {
 			upgrade: async (db, oldVersion, newVersion, transaction, event) => {
 				console.log('upgrade triggered');
 				for (let store of db.objectStoreNames) {
@@ -26,11 +31,17 @@ export const indexedDb = async () => {
 
 				switch (newVersion) {
 					case 1:
-						const store = db.createObjectStore('animelist', {
+						const animelistStore = db.createObjectStore('animelist', {
 							keyPath: ['id', 'username']
 						});
-						store.createIndex('username', 'username');
+						animelistStore.createIndex('username', 'username');
 						console.log('Updated to idb version 1');
+
+					case 2:
+						db.createObjectStore('animes', {
+							keyPath: ['id']
+						});
+						console.log('Updated to idb version 2');
 				}
 			}
 		});

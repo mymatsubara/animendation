@@ -1,19 +1,25 @@
 <script lang="ts">
+	import { getAnimes } from '$lib/client/animes';
 	import { getAnimelist } from '$lib/stores/animelist';
 
 	export let username: string;
 
 	// Fetch user recomendations from trpc
 	$: animelist = getAnimelist(username);
+	$: animeslistIds = $animelist ? (Object.keys($animelist) as any[]) : [];
 </script>
 
 Animes
-{#if !$animelist}
-	<h1>Loading...</h1>
-{:else}
-	<ul>
-		{#each Object.values($animelist) as anime}
-			<li>{anime.title}</li>
-		{/each}
-	</ul>
-{/if}
+
+{#await getAnimes(animeslistIds)}
+	Loading...
+{:then animes}
+	{#each Object.values(animes) as anime (anime.id)}
+		<img src={anime.pictureMedium} />
+		<div>{anime.title}</div>
+		<div>{anime.mediaType}</div>
+		<div>{anime.nsfw}</div>
+		<div>{anime.seasonYear} - {anime.season}</div>
+		<div>{anime.genres}</div>
+	{/each}
+{/await}

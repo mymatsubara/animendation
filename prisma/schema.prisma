@@ -12,14 +12,70 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Gender {
-  male
-  female
-  other
+enum NsfwLevel {
+  white // This work is safe for work
+  gray // This work may be not safe for work
+  black // This work is not safe for work
 }
 
-model Person {
-  id        Int    @id @default(autoincrement())
-  firstName String
-  gender    Gender
+enum AnimeMediaType {
+  unknown
+  tv
+  ova
+  movie
+  special
+  ona
+  music
+}
+
+enum AnimeStatus {
+  finished_airing
+  currently_airing
+  not_yet_aired
+}
+
+enum Season {
+  winter
+  spring
+  summer
+  fall
+}
+
+enum AnimeSource {
+  other
+  original
+  manga
+  four_koma_manga
+  web_manga
+  digital_manga
+  novel
+  light_novel
+  visual_novel
+  game
+  card_game
+  book
+  picture_book
+  radio
+  music
+  web_novel
+  mixed_media
+}
+
+model Anime {
+  id            Int            @id
+  title         String
+  pictureMedium String?
+  pictureLarge  String?
+  startDate     DateTime?      @db.Date
+  endDate       DateTime?      @db.Date
+  nsfw          NsfwLevel?
+  genres        String[]
+  createdAt     DateTime       @db.Timestamptz()
+  updatedAt     DateTime       @db.Timestamptz()
+  mediaType     AnimeMediaType
+  status        AnimeStatus
+  episodes      Int
+  season        Season?
+  seasonYear    Int?
+  source        AnimeSource?
 }

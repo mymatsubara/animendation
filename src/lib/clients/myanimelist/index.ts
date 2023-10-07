@@ -1,10 +1,21 @@
 import {
 	OpenAPI,
+	type AnimeForList,
+	type AnimeListForRanking,
+	type List,
 	type User,
 	type UserAnimeList,
 	type UserAnimeListEdge
 } from '$lib/clients/myanimelist/generated';
+import type {
+	Anime,
+	AnimeMediaType,
+	AnimeSource,
+	AnimeStatus,
+	NsfwLevel
+} from '$lib/server/schema';
 import { TRPCError } from '@trpc/server';
+import type { Insertable } from 'kysely';
 
 type GetUserAnimeListOptions = {
 	fields?: 'list_status';
@@ -21,10 +32,44 @@ type RequestOptions = {
 	body?: any;
 };
 
+type GetAnimeRankingOptions = {
+	type: 'all' | 'airing' | 'upcoming' | 'tv' | 'ova' | 'special' | 'bypopularity' | 'favorite';
+	limit?: number;
+	offset?: number;
+};
+
+type GetAnimeRankingResponse = {
+	animes: AnimeDetail[];
+} & List;
+
+type MALClientOptions =
+	| {
+			accessToken: string;
+	  }
+	| { clientId: string };
+
+type AnimeDetail = Insertable<Anime>;
+
+const animeFields =
+	'start_date,end_date,nsfw,genres,created_at,updated_at,media_type,status,num_episodes,start_season,source,rating';
+
 export class MALClient {
 	private baseUrl = OpenAPI.BASE;
+	private headers!: Record<string, string>;
 
-	constructor(private accessToken: string) {}
+	constructor(options: MALClientOptions) {
+		if ('accessToken' in options) {
+			this.headers = {
+				Authorization: `Bearer ${options.accessToken}`
+			};
+		}
+
+		if ('clientId' in options) {
+			this.headers = {
+				'X-MAL-CLIENT-ID': options.clientId
+			};
+		}
+	}
 
 	async getUserFullAnimeList(
 		username: string,
@@ -82,6 +127,29 @@ export class MALClient {
 		return result;
 	}
 
+	async getAnimeDetail(id: number): Promise<AnimeDetail> {
+		const response = (await this.request({
+			path: `/anime/${id}`,
+			method: 'GET',
+			searchParams: { fields: animeFields }
+		})) as Required<AnimeForList>;
+
+		return mapAnime(response);
+	}
+
+	async getAnimeRaking(options: GetAnimeRankingOptions): Promise<GetAnimeRankingResponse> {
+		const response = (await this.request({
+			path: `/anime/ranking`,
+			method: 'GET',
+			searchParams: { ...options, fields: animeFields }
+		})) as AnimeListForRanking;
+
+		return {
+			animes: response.data?.map((anime) => mapAnime(anime.node as Required<AnimeForList>)) ?? [],
+			paging: response.paging
+		};
+	}
+
 	getUserAnimeList(username: string, options?: GetUserAnimeListOptions): Promise<UserAnimeList> {
 		return this.request({
 			path: `/users/${username}/animelist`,
@@ -106,9 +174,7 @@ export class MALClient {
 		const response = await fetch(url, {
 			method: options.method,
 			body: options?.body,
-			headers: {
-				Authorization: `Bearer ${this.accessToken}`
-			}
+			headers: this.headers
 		});
 
 		if (response.status === 401) {
@@ -119,4 +185,28 @@ export class MALClient {
 
 		return response.json();
 	}
+}
+
+function mapAnime(anime: Required<AnimeForList>): Insertable<Anime> {
+	const startDate = anime.start_date;
+	const endDate = anime.end_date;
+
+	return {
+		id: anime.id,
+		createdAt: anime.created_at,
+		episodes: anime.num_episodes,
+		genres: anime.genres?.map((genre) => genre.name as string) ?? [],
+		mediaType: anime.media_type as AnimeMediaType,
+		season: anime.start_season?.season,
+		seasonYear: anime.start_season?.year,
+		source: anime.source === '4_koma_manga' ? 'four_koma_manga' : (anime.source as AnimeSource),
+		status: anime.status as AnimeStatus,
+		title: anime.title,
+		updatedAt: anime.updated_at,
+		endDate: endDate ? new Date(endDate).toDateString() : undefined,
+		nsfw: anime.nsfw as NsfwLevel,
+		pictureLarge: anime.main_picture?.large,
+		pictureMedium: anime.main_picture?.medium,
+		startDate: startDate ? new Date(startDate).toDateString() : undefined
+	};
 }

@@ -33,7 +33,6 @@ async function updateStore(username: string) {
 		'username',
 		IDBKeyRange.only(username)
 	);
-	console.log({ userAnimelist });
 	const mostRecentAnime = maxStr(userAnimelist, (anime) => anime.updatedAt);
 
 	// Fetch animes since the most recent anime

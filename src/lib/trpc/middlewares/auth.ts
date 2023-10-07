@@ -54,7 +54,7 @@ export const isAuth = t.middleware(async ({ ctx, next }) => {
 		};
 	}
 
-	const malClient = new MALClient(tokens.mal.accessToken as string);
+	const malClient = new MALClient({ accessToken: tokens.mal.accessToken as string });
 
 	return next({
 		ctx: {

@@ -5,9 +5,9 @@
 	import { UsersService } from '$lib/clients/jikan/generated';
 	import { user } from '$lib/stores/user';
 
-	const username = browser ? $page.url.searchParams.get('username') ?? $user?.username : null;
+	const username = browser ? $page.url.searchParams.get('username') ?? $user?.username : undefined;
 
-	if (!username && browser) {
+	if (browser && !username) {
 		goto('/');
 	}
 

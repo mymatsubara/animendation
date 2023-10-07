@@ -27,7 +27,7 @@ export const authRoute = router({
 				throw new TRPCError({ code: 'UNAUTHORIZED' });
 			}
 
-			const client = new MALClient(malTokens.access_token);
+			const client = new MALClient({ accessToken: malTokens.access_token });
 			const { id, name } = await client.getMe();
 
 			if (!id || !name) {

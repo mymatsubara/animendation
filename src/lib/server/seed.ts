@@ -30,7 +30,7 @@ async function seedAnimes() {
 
 		await db
 			.insertInto('Anime')
-			.values(page.animes)
+			.values(page.animes.map((anime) => ({ ...anime, genres: anime.genres.join(',') })))
 			.onConflict((oc) =>
 				oc.column('id').doUpdateSet(() => ({
 					createdAt: ({ ref }) => ref('Anime.createdAt'),

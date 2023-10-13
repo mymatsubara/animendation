@@ -1,10 +1,8 @@
 import { PUBLIC_MAL_CLIENT_ID } from '$env/static/public';
-import { MALClient } from '$lib/clients/myanimelist';
+import { MALClient, type AnimeDetail } from '$lib/clients/myanimelist';
 import { db } from '$lib/server/db';
-import type { Anime } from '$lib/server/schema';
 import { publicProcedure, router } from '$lib/trpc';
 import { TRPCError, type inferAsyncReturnType } from '@trpc/server';
-import type { Insertable } from 'kysely';
 import { z } from 'zod';
 
 export const animeRoute = router({
@@ -25,7 +23,7 @@ export const animeRoute = router({
 
 				console.log({ newIds });
 
-				const newAnimes: Insertable<Anime>[] = [];
+				const newAnimes: AnimeDetail[] = [];
 
 				// Request are not made in parallel to avoid get rate limited by MAL api
 				for (let newId of newIds) {
@@ -41,10 +39,18 @@ export const animeRoute = router({
 				}
 
 				if (newAnimes.length > 0) {
-					await db.insertInto('Anime').values(newAnimes).execute();
+					await db
+						.insertInto('Anime')
+						.values(
+							newAnimes.map((anime) => ({
+								...anime,
+								genres: anime.genres.join(',')
+							}))
+						)
+						.execute();
 				}
 
-				animes = animes.concat(newAnimes as AnimeInfo[]);
+				animes = animes.concat(newAnimes);
 			}
 
 			return animes;
@@ -53,10 +59,15 @@ export const animeRoute = router({
 
 export type AnimeInfo = inferAsyncReturnType<typeof getAnimesInfo>[number];
 
-function getAnimesInfo(ids: number[]) {
-	return db
+async function getAnimesInfo(ids: number[]) {
+	const animes = await db
 		.selectFrom('Anime')
 		.select(['id', 'title', 'mediaType', 'season', 'seasonYear', 'nsfw', 'genres', 'pictureMedium'])
 		.where('id', 'in', ids)
 		.execute();
+
+	return animes.map((anime) => ({
+		...anime,
+		genres: anime.genres.split(',')
+	}));
 }

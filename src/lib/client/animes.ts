@@ -8,7 +8,6 @@ type GetAnimesResult = { [id: number]: AnimeInfo };
 
 export async function getAnimes(ids: number[]): Promise<GetAnimesResult> {
 	console.time();
-	console.log({ ids });
 
 	const notMemCachedIds = ids.filter((id) => !memCache[id]);
 	// Check idb for cache misses
@@ -16,9 +15,14 @@ export async function getAnimes(ids: number[]): Promise<GetAnimesResult> {
 		const idb = await indexedDb();
 
 		console.log({ notMemCachedIds });
-		const idbCachedAnimes = (
-			await Promise.all(notMemCachedIds.map((id) => idb.get('animes', id)))
-		).filter((anime) => anime);
+		// When a lot of animes are being fetched, it is faster to get all animes from idb instead
+		const store = idb.transaction('animes', 'readonly').store;
+		const idbCachedAnimes =
+			notMemCachedIds.length > 2000
+				? await idb.getAll('animes')
+				: (await Promise.all(notMemCachedIds.map((id) => store.get(Number(id))))).filter(
+						(anime) => anime
+				  );
 
 		memCache = {
 			...memCache,

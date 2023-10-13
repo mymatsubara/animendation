@@ -7,15 +7,8 @@ import {
 	type UserAnimeList,
 	type UserAnimeListEdge
 } from '$lib/clients/myanimelist/generated';
-import type {
-	Anime,
-	AnimeMediaType,
-	AnimeSource,
-	AnimeStatus,
-	NsfwLevel
-} from '$lib/server/schema';
+import type { Anime } from '$lib/server/schema';
 import { TRPCError } from '@trpc/server';
-import type { Insertable } from 'kysely';
 
 type GetUserAnimeListOptions = {
 	fields?: 'list_status';
@@ -48,7 +41,7 @@ type MALClientOptions =
 	  }
 	| { clientId: string };
 
-type AnimeDetail = Insertable<Anime>;
+export type AnimeDetail = Omit<Anime, 'genres'> & { genres: string[] };
 
 const animeFields =
 	'start_date,end_date,nsfw,genres,created_at,updated_at,media_type,status,num_episodes,start_season,source,rating';
@@ -189,7 +182,7 @@ export class MALClient {
 	}
 }
 
-function mapAnime(anime: Required<AnimeForList>): Insertable<Anime> {
+function mapAnime(anime: Required<AnimeForList>): AnimeDetail {
 	const startDate = anime.start_date;
 	const endDate = anime.end_date;
 
@@ -198,17 +191,17 @@ function mapAnime(anime: Required<AnimeForList>): Insertable<Anime> {
 		createdAt: anime.created_at,
 		episodes: anime.num_episodes,
 		genres: anime.genres?.map((genre) => genre.name as string) ?? [],
-		mediaType: anime.media_type as AnimeMediaType,
-		season: anime.start_season?.season,
-		seasonYear: anime.start_season?.year,
-		source: anime.source === '4_koma_manga' ? 'four_koma_manga' : (anime.source as AnimeSource),
-		status: anime.status as AnimeStatus,
+		mediaType: anime.media_type,
+		season: anime.start_season?.season ?? null,
+		seasonYear: anime.start_season?.year ?? null,
+		source: anime.source,
+		status: anime.status,
 		title: anime.title,
 		updatedAt: anime.updated_at,
-		endDate: endDate ? new Date(endDate).toDateString() : undefined,
-		nsfw: anime.nsfw as NsfwLevel,
+		endDate: endDate ? new Date(endDate).toDateString() : null,
+		nsfw: anime.nsfw,
 		pictureLarge: anime.main_picture?.large,
 		pictureMedium: anime.main_picture?.medium,
-		startDate: startDate ? new Date(startDate).toDateString() : undefined
+		startDate: startDate ? new Date(startDate).toDateString() : null
 	};
 }

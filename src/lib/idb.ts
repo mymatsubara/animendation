@@ -30,18 +30,17 @@ export const indexedDb = async () => {
 				}
 
 				switch (newVersion) {
+					case 2:
+						db.createObjectStore('animes', {
+							keyPath: 'id'
+						});
+						console.log('Updated to idb version 2');
 					case 1:
 						const animelistStore = db.createObjectStore('animelist', {
 							keyPath: ['id', 'username']
 						});
 						animelistStore.createIndex('username', 'username');
 						console.log('Updated to idb version 1');
-
-					case 2:
-						db.createObjectStore('animes', {
-							keyPath: ['id']
-						});
-						console.log('Updated to idb version 2');
 				}
 			}
 		});

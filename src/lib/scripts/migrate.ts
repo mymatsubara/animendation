@@ -69,7 +69,6 @@ async function migrate() {
 			const statements = sqlMigration.split(';');
 
 			for (const statement of statements) {
-				console.log(statement);
 				try {
 					await sql.raw(statement).execute(db);
 				} catch (e) {

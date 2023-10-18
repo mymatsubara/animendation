@@ -49,7 +49,8 @@ export const authRoute = router({
 						name: ({ ref }) => ref('User.name'),
 						picture: ({ ref }) => ref('User.picture')
 					}))
-				);
+				)
+				.execute();
 
 			const user: AuthUser = {
 				userId: id,

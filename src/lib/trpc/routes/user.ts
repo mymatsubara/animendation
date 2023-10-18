@@ -1,8 +1,10 @@
 import type { AuthUser } from '$lib/auth';
 import type { UserAnimeListEdge } from '$lib/clients/myanimelist/generated/models/UserAnimeListEdge';
-import { router } from '$lib/trpc';
+import { db } from '$lib/server/db';
+import { publicProcedure, router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import { TRPCError } from '@trpc/server';
+import { sql } from 'kysely';
 import { z } from 'zod';
 
 export const userRoute = router({
@@ -38,6 +40,26 @@ export const userRoute = router({
 			}
 
 			return animes.map(mapListAnime);
+		}),
+	recommendations: publicProcedure
+		.input(
+			z.object({
+				username: z.string()
+			})
+		)
+		.query(async ({ input }) => {
+			const recommendations = await db
+				.selectFrom('Recommendation')
+				.select(['animeId'])
+				.where('userId', '=', (qb) =>
+					qb
+						.selectFrom('User')
+						.select(['id'])
+						.where(({ ref }) => sql`${ref('name')} = ${input.username} collate nocase`)
+				)
+				.execute();
+
+			return recommendations.map(({ animeId }) => animeId);
 		})
 });
 

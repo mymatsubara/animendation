@@ -13,7 +13,9 @@
 		"test": "vitest",
 		"client:mal:generate": "openapi --input src/lib/clients/myanimelist/openapi.json --output src/lib/clients/myanimelist/generated",
 		"client:jikan:generate": "openapi --input src/lib/clients/jikan/openapi.json --output src/lib/clients/jikan/generated",
-		"seed": "vite-node --options.transformMode.ssr=.* src/lib/server/seed.ts"
+		"seed": "vite-node --options.transformMode.ssr=.* src/lib/scripts/seed.ts",
+		"migration:generate": "prisma migrate dev",
+		"migration:push": "vite-node --options.transformMode.ssr=.* src/lib/scripts/migrate.ts"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-cloudflare": "^2.3.3",

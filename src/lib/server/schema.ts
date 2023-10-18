@@ -22,6 +22,18 @@ export type Anime = {
 	source: string | null;
 	genres: string;
 };
+export type Recommendation = {
+	id: number;
+	animeId: number;
+	userId: number;
+};
+export type User = {
+	id: number;
+	name: string;
+	picture: string | null;
+};
 export type DB = {
 	Anime: Anime;
+	Recommendation: Recommendation;
+	User: User;
 };

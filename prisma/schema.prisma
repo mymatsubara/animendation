@@ -29,4 +29,25 @@ model Anime {
   seasonYear    Int?
   source        String?
   genres        String
+
+  Recommendation Recommendation[]
+}
+
+model User {
+  id      Int     @id
+  name    String  @unique
+  picture String?
+
+  Recommendation Recommendation[]
+}
+
+model Recommendation {
+  id      Int @id
+  animeId Int
+  userId  Int
+
+  anime Anime @relation(fields: [animeId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([animeId, userId])
 }

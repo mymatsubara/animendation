@@ -4,6 +4,7 @@ import type { AuthUser } from '$lib/auth';
 import { Auth, AuthCookies } from '$lib/auth';
 import { MALClient } from '$lib/clients/myanimelist';
 import { MALOauth } from '$lib/clients/myanimelist/oauth';
+import { db } from '$lib/server/db';
 import { publicProcedure, router } from '$lib/trpc';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
@@ -28,13 +29,27 @@ export const authRoute = router({
 			}
 
 			const client = new MALClient({ accessToken: malTokens.access_token });
-			const { id, name } = await client.getMe();
+			const { id, name, picture } = await client.getMe();
 
 			if (!id || !name) {
 				throw new TRPCError({
 					code: 'UNAUTHORIZED'
 				});
 			}
+
+			await db
+				.insertInto('User')
+				.values({
+					id,
+					name,
+					picture
+				})
+				.onConflict((oc) =>
+					oc.column('id').doUpdateSet(() => ({
+						name: ({ ref }) => ref('User.name'),
+						picture: ({ ref }) => ref('User.picture')
+					}))
+				);
 
 			const user: AuthUser = {
 				userId: id,

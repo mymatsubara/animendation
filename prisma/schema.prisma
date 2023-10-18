@@ -42,12 +42,11 @@ model User {
 }
 
 model Recommendation {
-  id      Int @id
   animeId Int
   userId  Int
 
   anime Anime @relation(fields: [animeId], references: [id])
   user  User  @relation(fields: [userId], references: [id])
 
-  @@unique([animeId, userId])
+  @@id([animeId, userId])
 }

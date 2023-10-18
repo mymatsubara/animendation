@@ -23,7 +23,6 @@ export type Anime = {
 	genres: string;
 };
 export type Recommendation = {
-	id: number;
 	animeId: number;
 	userId: number;
 };

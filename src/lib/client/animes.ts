@@ -7,8 +7,6 @@ let memCache: GetAnimesResult = {};
 type GetAnimesResult = { [id: number]: AnimeInfo };
 
 export async function getAnimes(ids: number[]): Promise<GetAnimesResult> {
-	console.time();
-
 	const notMemCachedIds = ids.filter((id) => !memCache[id]);
 	// Check idb for cache misses
 	if (notMemCachedIds.length > 0) {
@@ -48,6 +46,5 @@ export async function getAnimes(ids: number[]): Promise<GetAnimesResult> {
 		}
 	}
 
-	console.timeEnd();
 	return memCache;
 }

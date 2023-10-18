@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { trpc } from '$lib/trpc/client';
+	import { getRecommendations } from '$lib/client/recommendations';
 
 	export let username: string;
 
-	const recommendationsPromise = trpc.user.recommendations.query({ username });
+	$: recommendationsPromise = getRecommendations(username);
 </script>
 
 <h2>My recommendations</h2>
@@ -13,5 +13,5 @@
 {#await recommendationsPromise}
 	Loadind...
 {:then recommendations}
-	Recommended animes: {recommendations}
+	Recommended animes: {JSON.stringify(recommendations, null, 2)}
 {/await}

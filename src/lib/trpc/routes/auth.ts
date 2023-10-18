@@ -70,5 +70,8 @@ export const authRoute = router({
 			});
 
 			return user;
-		})
+		}),
+	logout: publicProcedure.mutation(({ ctx }) => {
+		AuthCookies.deleteCookies(ctx.event.cookies);
+	})
 });

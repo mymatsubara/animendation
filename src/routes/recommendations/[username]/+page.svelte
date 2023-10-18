@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { logout } from '$lib/client/logout';
 	import { UsersService } from '$lib/clients/jikan/generated';
 	import EditRecommendations from '$lib/components/EditRecommendations.svelte';
+	import LoginButton from '$lib/components/LoginButton.svelte';
 	import RecommendationList from '$lib/components/RecommendationList.svelte';
 	import { user } from '$lib/stores/user';
 
@@ -11,6 +13,12 @@
 
 	let edit = false;
 </script>
+
+{#if $user}
+	<button on:click={logout}>Logout</button>
+{:else if $user === null}
+	<LoginButton>Login</LoginButton>
+{/if}
 
 <h1>{username}</h1>
 

@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { getAnimes, type GetAnimesResult } from '$lib/client/animes';
+	import { getAnimes } from '$lib/client/animes';
 	import AnimesGrid from '$lib/components/AnimesGrid.svelte';
 	import { getAnimelist } from '$lib/stores/animelist';
 	import { getMyRecommendations } from '$lib/stores/my-recommendations';
+	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 
 	export let username: string;
-	let animes: GetAnimesResult | undefined = undefined;
+	let animes: AnimeInfo[] | undefined = undefined;
 
 	// Fetch user recomendations from trpc
 	const animelist = getAnimelist(username);

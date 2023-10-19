@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { GetAnimesResult } from '$lib/client/animes';
 	import Placeholder from '$lib/components/Placeholder.svelte';
 	import ThumbsUpIcon from '$lib/components/icons/ThumbsUpIcon.svelte';
+	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import { fade } from 'svelte/transition';
 
-	export let animes: GetAnimesResult | undefined;
+	export let animes: AnimeInfo[] | undefined;
 
 	export let recommendations:
 		| {
@@ -26,7 +26,7 @@
 			</div>
 		{/each}
 	{:else}
-		{#each Object.values(animes) as anime (anime.id)}
+		{#each animes as anime (anime.id)}
 			{@const isRecommended = recommendations?.mine?.has(anime.id)}
 			{@const href = `https://myanimelist.net/anime/${anime.id}`}
 			<div class="flex flex-col gap-1">

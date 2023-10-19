@@ -4,12 +4,12 @@ import { trpc } from '$lib/trpc/client';
 import type { AnimeInfo } from '$lib/trpc/routes/anime';
 import { toRecord } from '$lib/utils/array';
 
-let memCache: GetAnimesResult = {};
-export type GetAnimesResult = { [id: number]: AnimeInfo };
+let memCache: MemCache = {};
+type MemCache = { [id: number]: AnimeInfo };
 
-export async function getAnimes(ids: number[]): Promise<GetAnimesResult> {
+export async function getAnimes(ids: number[]): Promise<AnimeInfo[]> {
 	if (!browser) {
-		return {};
+		return [];
 	}
 
 	const notMemCachedIds = ids.filter((id) => !memCache[id]);
@@ -28,7 +28,7 @@ export async function getAnimes(ids: number[]): Promise<GetAnimesResult> {
 
 		memCache = {
 			...memCache,
-			...(toRecord(idbCachedAnimes, (anime) => anime?.id ?? 0) as GetAnimesResult)
+			...(toRecord(idbCachedAnimes, (anime) => anime?.id ?? 0) as MemCache)
 		};
 		const notIdbCachedIds = ids.filter((id) => !memCache[id]);
 
@@ -46,8 +46,5 @@ export async function getAnimes(ids: number[]): Promise<GetAnimesResult> {
 		}
 	}
 
-	return toRecord(
-		ids.map((id) => memCache[id]).filter((anime) => !!anime),
-		(anime) => anime.id
-	);
+	return ids.map((id) => memCache[id]).filter((anime) => !!anime);
 }

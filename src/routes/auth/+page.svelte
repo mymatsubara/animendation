@@ -5,6 +5,7 @@
 	import { toast } from '$lib/stores/toast';
 	import { user } from '$lib/stores/user';
 	import { trpc } from '$lib/trpc/client';
+	import { Spinner } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 
 	onMount(async () => {
@@ -31,7 +32,7 @@
 
 				$user = authUser;
 
-				goto('/');
+				goto(`/recommendations/${authUser.username}`);
 			} catch {
 				failAuth();
 			}
@@ -39,4 +40,7 @@
 	});
 </script>
 
-<h1>Loading...</h1>
+<div class="h-[70%] flex flex-col justify-center items-center gap-2">
+	<Spinner />
+	<div class="text-gray-700 text-sm font-medium">Logging in...</div>
+</div>

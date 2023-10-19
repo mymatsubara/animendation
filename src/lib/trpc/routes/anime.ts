@@ -44,7 +44,8 @@ export const animeRoute = router({
 						.values(
 							newAnimes.map((anime) => ({
 								...anime,
-								genres: anime.genres.join(',')
+								genres: anime.genres.join(','),
+								isSequel: anime.isSequel ? 1 : 0
 							}))
 						)
 						.execute();
@@ -62,7 +63,17 @@ export type AnimeInfo = inferAsyncReturnType<typeof getAnimesInfo>[number];
 async function getAnimesInfo(ids: number[]) {
 	const animes = await db
 		.selectFrom('Anime')
-		.select(['id', 'title', 'mediaType', 'season', 'seasonYear', 'nsfw', 'genres', 'pictureMedium'])
+		.select([
+			'id',
+			'title',
+			'mediaType',
+			'season',
+			'seasonYear',
+			'nsfw',
+			'genres',
+			'pictureMedium',
+			'isSequel'
+		])
 		.where('id', 'in', ids)
 		.execute();
 

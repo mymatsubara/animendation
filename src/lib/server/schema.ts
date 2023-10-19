@@ -21,6 +21,7 @@ export type Anime = {
 	seasonYear: number | null;
 	source: string | null;
 	genres: string;
+	isSequel: number | null;
 };
 export type Recommendation = {
 	animeId: number;

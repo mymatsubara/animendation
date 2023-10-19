@@ -1,5 +1,5 @@
 import { PUBLIC_MAL_CLIENT_ID } from '$env/static/public';
-import { MALClient } from '$lib/clients/myanimelist';
+import { MALClient, isSequel } from '$lib/clients/myanimelist';
 import { db } from '$lib/server/db';
 
 export async function seed() {
@@ -7,6 +7,7 @@ export async function seed() {
 
 	try {
 		await seedAnimes();
+		await checkAnimesSequelRetry();
 		console.log('✅ Database seeding completed!');
 	} catch (e) {
 		console.error('❌ Error while seeding database');
@@ -30,7 +31,12 @@ async function seedAnimes() {
 
 		await db
 			.insertInto('Anime')
-			.values(page.animes.map((anime) => ({ ...anime, genres: anime.genres.join(',') })))
+			.values(
+				page.animes.map((anime) => ({
+					...anime,
+					genres: anime.genres.join(',')
+				}))
+			)
 			.onConflict((oc) =>
 				oc.column('id').doUpdateSet(() => ({
 					createdAt: ({ ref }) => ref('Anime.createdAt'),
@@ -58,6 +64,93 @@ async function seedAnimes() {
 
 		offset += limit;
 	}
+}
+
+async function checkAnimesSequelRetry(maxRetries: number = 100) {
+	for (let i = 0; i < maxRetries; i++) {
+		try {
+			await checkAnimesSequel();
+			break;
+		} catch (e) {
+			console.log('🔄️ Error. Retring...');
+			console.error((e as any).message);
+			await wait(10000);
+		}
+	}
+}
+
+async function checkAnimesSequel() {
+	let sequelCheck: { [id: number]: boolean } = {};
+	const maxBackoff = 400;
+	const checked = new Set<number>();
+	const client = new MALClient({ clientId: PUBLIC_MAL_CLIENT_ID });
+	const animesNotChecked = await db
+		.selectFrom('Anime')
+		.select(['id'])
+		.where('isSequel', 'is', null)
+		.execute();
+
+	let backoff = 0;
+	for (const anime of animesNotChecked) {
+		if (checked.has(anime.id)) {
+			continue;
+		}
+
+		const animeDetails = await client.getAnimeDetailRaw(anime.id, 'related_anime');
+		sequelCheck[anime.id] = isSequel(animeDetails);
+		checked.add(anime.id);
+
+		const relatedSequels =
+			animeDetails?.related_anime?.filter(
+				({ relation_type }) => relation_type === 'sequel' || relation_type === 'side_story'
+			) ?? [];
+
+		for (const sequel of relatedSequels) {
+			const id = sequel.node?.id;
+			if (id) {
+				sequelCheck[id] = true;
+				checked.add(id);
+			}
+		}
+
+		console.log(`🎞️  [${checked.size}/${animesNotChecked.length}] Checking sequels...`);
+
+		await wait(backoff);
+		backoff = Math.min(backoff + 5, maxBackoff);
+
+		const checksToSave = Object.keys(sequelCheck).length;
+		if (checksToSave > 50) {
+			console.log(`💾 Saving ${checksToSave} sequel checks to the database...`);
+
+			const sequelIds = Object.entries(sequelCheck)
+				.filter(([_, isSequel]) => isSequel)
+				.map(([id, _]) => Number(id));
+			await db
+				.updateTable('Anime')
+				.set({
+					isSequel: 1
+				})
+				.where('id', 'in', sequelIds)
+				.execute();
+
+			const notSequelIds = Object.entries(sequelCheck)
+				.filter(([_, isSequel]) => !isSequel)
+				.map(([id, _]) => Number(id));
+			await db
+				.updateTable('Anime')
+				.set({
+					isSequel: 0
+				})
+				.where('id', 'in', notSequelIds)
+				.execute();
+
+			sequelCheck = {};
+		}
+	}
+}
+
+async function wait(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 seed();

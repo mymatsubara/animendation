@@ -29,6 +29,7 @@ model Anime {
   seasonYear    Int?
   source        String?
   genres        String
+  isSequel      Boolean?
 
   Recommendation Recommendation[]
 }

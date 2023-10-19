@@ -1,5 +1,6 @@
 import {
 	OpenAPI,
+	type AnimeForDetails,
 	type AnimeForList,
 	type AnimeListForRanking,
 	type List,
@@ -32,7 +33,7 @@ type GetAnimeRankingOptions = {
 };
 
 type GetAnimeRankingResponse = {
-	animes: AnimeDetail[];
+	animes: AnimeListEntry[];
 } & List;
 
 type MALClientOptions =
@@ -41,7 +42,8 @@ type MALClientOptions =
 	  }
 	| { clientId: string };
 
-export type AnimeDetail = Omit<Anime, 'genres'> & { genres: string[] };
+export type AnimeListEntry = Omit<Anime, 'genres' | 'isSequel'> & { genres: string[] };
+export type AnimeDetail = AnimeListEntry & { isSequel: boolean };
 
 const animeFields =
 	'start_date,end_date,nsfw,genres,created_at,updated_at,media_type,status,num_episodes,start_season,source,rating';
@@ -121,13 +123,22 @@ export class MALClient {
 	}
 
 	async getAnimeDetail(id: number): Promise<AnimeDetail> {
+		const animes = (await this.getAnimeDetailRaw(
+			id,
+			`${animeFields},related_anime`
+		)) as Required<AnimeForDetails>;
+
+		return mapAnimeDetail(animes);
+	}
+
+	async getAnimeDetailRaw(id: number, fields?: string): Promise<AnimeForDetails> {
 		const response = (await this.request({
 			path: `/anime/${id}`,
 			method: 'GET',
-			searchParams: { fields: animeFields }
-		})) as Required<AnimeForList>;
+			searchParams: { fields }
+		})) as AnimeForDetails;
 
-		return mapAnime(response);
+		return response;
 	}
 
 	async getAnimeRaking(options: GetAnimeRankingOptions): Promise<GetAnimeRankingResponse> {
@@ -182,7 +193,7 @@ export class MALClient {
 	}
 }
 
-function mapAnime(anime: Required<AnimeForList>): AnimeDetail {
+function mapAnime(anime: Required<AnimeForList>): AnimeListEntry {
 	const startDate = anime.start_date;
 	const endDate = anime.end_date;
 
@@ -204,4 +215,25 @@ function mapAnime(anime: Required<AnimeForList>): AnimeDetail {
 		pictureMedium: anime.main_picture?.medium,
 		startDate: startDate ? new Date(startDate).toDateString() : null
 	};
+}
+
+function mapAnimeDetail(anime: Required<AnimeForList>): AnimeDetail {
+	return {
+		...mapAnime(anime),
+		isSequel: isSequel(anime)
+	};
+}
+
+export function isSequel(anime: AnimeForDetails): boolean {
+	const relatedAnimes = anime.related_anime;
+	if (!relatedAnimes) {
+		return false;
+	}
+
+	return !!relatedAnimes.find(
+		({ relation_type }) =>
+			relation_type === 'full_story' ||
+			relation_type === 'prequel' ||
+			relation_type === 'parent_story'
+	);
 }

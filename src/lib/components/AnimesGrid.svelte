@@ -50,7 +50,7 @@
 </Input>
 
 <div
-	class="grid gap-3 grid-cols-2 min-[470px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 mt-4"
+	class="grid gap-3 grid-cols-2 min-[470px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 mt-5"
 >
 	{#if animes === undefined}
 		{#each new Array(25).fill(0) as _}

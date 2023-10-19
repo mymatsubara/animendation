@@ -1,47 +1,73 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import { UsersService } from '$lib/clients/jikan/generated';
+	import { UsersService, type user_profile } from '$lib/clients/jikan/generated';
 	import EditRecommendations from '$lib/components/EditRecommendations.svelte';
 	import NoProfilePicture from '$lib/components/NoProfilePicture.svelte';
 	import RecommendationList from '$lib/components/RecommendationList.svelte';
+	import ArrowTopRightIcon from '$lib/components/icons/ArrowTopRightIcon.svelte';
+	import CameraIcon from '$lib/components/icons/CameraIcon.svelte';
 	import CheckIcon from '$lib/components/icons/CheckIcon.svelte';
+	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
 	import PencilSquareIcon from '$lib/components/icons/PencilSquareIcon.svelte';
 	import { user } from '$lib/stores/user';
 	import { Tooltip } from 'flowbite-svelte';
 	import { fade } from 'svelte/transition';
 
+	let userProfile: user_profile | undefined = undefined;
 	$: username = $page.params.username;
-	$: userPromise = browser ? UsersService.getUserProfile(username) : undefined;
-	const pictureClass = 'w-[100px] h-[100px] flex items-center justify-center';
+	$: isMe = $user?.username?.toLowerCase() === username.toLocaleLowerCase();
+	$: {
+		if (username && browser) {
+			UsersService.getUserProfile(username).then((result) => (userProfile = result?.data));
+		}
+	}
+	const pictureClass = 'w-[100px] aspect-square flex items-center justify-center';
 
 	let edit = false;
 </script>
 
-<div class="bg-primary-800 w-full">
+<div class="bg-gradient-to-t from-gray-700 to-60% to-primary-800 w-full shadow">
 	<div class="flex gap-4 container items-end py-4">
-		<div class={pictureClass}>
-			{#if userPromise}
-				{#await userPromise then user}
-					{#if user?.data?.images?.webp?.image_url}
-						<div
-							transition:fade
-							class="{pictureClass} rounded bg-top bg-no-repeat bg-cover"
-							style="background-image: url({user.data.images.webp.image_url})"
-						/>
-					{:else}
-						<NoProfilePicture />
-					{/if}
-				{:catch}
+		<a
+			href={isMe ? 'https://myanimelist.net/editprofile.php?go=picture' : undefined}
+			class="{pictureClass} relative group"
+			target="_blank"
+		>
+			{#if userProfile}
+				{@const imageUrl = userProfile.images?.webp?.image_url}
+				{#if imageUrl}
+					<img
+						transition:fade
+						class="{pictureClass} rounded object-cover object-top shadow"
+						src={imageUrl}
+						alt="{userProfile.username}'s profile picture"
+					/>
+				{:else}
 					<NoProfilePicture />
-				{/await}
+				{/if}
 			{/if}
+			{#if isMe}
+				<div
+					class="absolute bottom-1 right-1 hidden group-hover:block p-2 rounded-full bg-primary-50/50"
+				>
+					<CameraIcon class="h-4" />
+				</div>
+			{/if}
+		</a>
+		<div class="flex flex-col">
+			<a
+				class="flex gap-1 items-center py-1 text-primary-100 hover:text-white"
+				href="https://myanimelist.net/profile/{username}"
+				target="_blank"
+				><MyanimelistLogoIcon class="h-3" /><ArrowTopRightIcon class="h-3 mb-[3px]" /></a
+			>
+			<h2 class="text-primary-50 text-xl font-medium">{userProfile?.username ?? username}</h2>
 		</div>
-		<h2 class="text-white text-2xl font-medium">{username}</h2>
 	</div>
 </div>
 
-<div class="container mt-3">
+<section class="container mt-4">
 	<div class="flex gap-1 items-center">
 		<h1 class="text-xl tracking-tight font-medium">Recommendations</h1>
 		{#if username.toLocaleLowerCase() === $user?.username?.toLocaleLowerCase()}
@@ -62,14 +88,14 @@
 
 	<div class="mb-3">
 		{#if !edit}
-			<div class="mt-3">
+			<div class="mt-4">
 				<RecommendationList {username} onAddRecommendations={() => (edit = true)} />
 			</div>
 		{:else if $user?.username}
 			<div class="text-gray-500 text-sm">Click to recommend/unrecommend an anime</div>
-			<div class="mt-3">
+			<div class="mt-4">
 				<EditRecommendations username={$user.username} />
 			</div>
 		{/if}
 	</div>
-</div>
+</section>

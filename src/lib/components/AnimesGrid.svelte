@@ -36,10 +36,13 @@
 						on:click={() =>
 							isRecommended ? recommendations?.remove(anime.id) : recommendations?.add(anime.id)}
 					>
-						<div
-							class="relative bg-center bg-cover w-full aspect-[225/350] rounded"
-							style="background-image: url({anime.pictureMedium})"
-						>
+						<div class="relative">
+							<img
+								src={anime.pictureMedium}
+								class="bg-center bg-cover w-full aspect-[225/350] rounded"
+								alt="{anime.title} picture"
+								loading="lazy"
+							/>
 							{#if isRecommended}
 								<div
 									class="gap-1 border absolute top-2 right-2 p-2 bg-gray-100 rounded-full flex items-center justify-center text-green-700"
@@ -53,9 +56,11 @@
 					</button>
 				{:else}
 					<a {href}>
-						<div
+						<img
+							src={anime.pictureMedium}
 							class="bg-center bg-cover w-full aspect-[225/350] rounded"
-							style="background-image: url({anime.pictureMedium})"
+							alt="{anime.title} picture"
+							loading="lazy"
 						/>
 					</a>
 				{/if}

@@ -1,47 +1,70 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import { logout } from '$lib/client/logout';
 	import { UsersService } from '$lib/clients/jikan/generated';
 	import EditRecommendations from '$lib/components/EditRecommendations.svelte';
-	import LoginButton from '$lib/components/LoginButton.svelte';
+	import NoProfilePicture from '$lib/components/NoProfilePicture.svelte';
 	import RecommendationList from '$lib/components/RecommendationList.svelte';
+	import CheckIcon from '$lib/components/icons/CheckIcon.svelte';
+	import PencilSquareIcon from '$lib/components/icons/PencilSquareIcon.svelte';
 	import { user } from '$lib/stores/user';
+	import { Tooltip } from 'flowbite-svelte';
+	import { fade } from 'svelte/transition';
 
 	$: username = $page.params.username;
 	$: userPromise = browser ? UsersService.getUserProfile(username) : undefined;
+	const pictureClass = 'w-[100px] h-[100px] flex items-center justify-center';
 
 	let edit = false;
 </script>
 
-{#if $user}
-	<button on:click={logout}>Logout</button>
-{:else if $user === null}
-	<LoginButton>Login</LoginButton>
-{/if}
+<div class="bg-primary-800 w-full">
+	<div class="flex gap-4 container items-end py-4">
+		<div class={pictureClass}>
+			{#if userPromise}
+				{#await userPromise then user}
+					{#if user?.data?.images?.webp?.image_url}
+						<div
+							transition:fade
+							class="{pictureClass} rounded bg-top bg-no-repeat bg-cover"
+							style="background-image: url({user.data.images.webp.image_url})"
+						/>
+					{:else}
+						<NoProfilePicture />
+					{/if}
+				{:catch}
+					<NoProfilePicture />
+				{/await}
+			{/if}
+		</div>
+		<h2 class="text-white text-2xl font-medium">{username}</h2>
+	</div>
+</div>
 
-<h1>{username}</h1>
-
-{#if userPromise}
-	{#await userPromise}
-		Loading..
-	{:then user}
-		{#if user?.data?.images?.webp?.image_url}
-			<img src={user.data.images.webp.image_url} alt="{username}'s profile picture" />
-		{:else}
-			Not profile picture
+<div class="container mt-3">
+	<div class="flex gap-1 items-center">
+		<h1 class="text-lg tracking-tight font-medium">Recommendations</h1>
+		{#if username.toLocaleLowerCase() === $user?.username?.toLocaleLowerCase()}
+			<button class="p-2 hover:bg-gray-200 rounded-full" on:click={() => (edit = !edit)}>
+				{#if !edit}
+					<PencilSquareIcon class="h-4 text-gray-800" />
+				{:else}
+					<CheckIcon class="h-4 text-gray-800" />
+				{/if}
+			</button>
+			{#if edit}
+				<Tooltip>Save</Tooltip>
+			{:else}
+				<Tooltip>Edit</Tooltip>
+			{/if}
 		{/if}
-	{:catch}
-		500 unexpected error
-	{/await}
-{/if}
+	</div>
 
-{#if username.toLocaleLowerCase() === $user?.username?.toLocaleLowerCase()}
-	<button on:click={() => (edit = !edit)}>{edit ? 'My recommendations' : 'Edit'}</button>
-{/if}
-
-{#if !edit}
-	<RecommendationList {username} />
-{:else if $user?.username}
-	<EditRecommendations username={$user.username} />
-{/if}
+	<div class="mb-3">
+		{#if !edit}
+			<RecommendationList {username} />
+		{:else if $user?.username}
+			<EditRecommendations username={$user.username} />
+		{/if}
+	</div>
+</div>

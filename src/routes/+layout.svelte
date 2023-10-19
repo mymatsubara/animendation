@@ -7,7 +7,6 @@
 	onMount(async () => {
 		try {
 			const u = await trpc.user.me.query();
-			console.log({ u });
 			$user = u;
 		} catch {
 			$user = null;

@@ -1,35 +1,32 @@
 <script lang="ts">
-	import { getAnimes } from '$lib/client/animes';
+	import { getAnimes, type GetAnimesResult } from '$lib/client/animes';
+	import AnimesGrid from '$lib/components/AnimesGrid.svelte';
 	import { getAnimelist } from '$lib/stores/animelist';
 	import { getMyRecommendations } from '$lib/stores/my-recommendations';
 
 	export let username: string;
+	let animes: GetAnimesResult | undefined = undefined;
 
 	// Fetch user recomendations from trpc
-	$: animelist = getAnimelist(username);
-	$: animeslistIds = $animelist ? (Object.keys($animelist) as any[]) : [];
+	const animelist = getAnimelist(username);
+	$: {
+		if ($animelist) {
+			getAnimes(Object.keys($animelist).map((id) => Number(id))).then(
+				(result) => (animes = result)
+			);
+		}
+	}
+
 	const recommendations = getMyRecommendations();
 </script>
 
-Animes
+<div class="text-gray-500 text-sm">Click to recommend/unrecommend an anime</div>
 
-{#await getAnimes(animeslistIds)}
-	Loading...
-{:then animes}
-	{#each Object.values(animes) as anime (anime.id)}
-		{@const isRecommended = $recommendations.has(anime.id)}
-		<button
-			on:click={() =>
-				isRecommended ? recommendations.remove(anime.id) : recommendations.add(anime.id)}
-		>
-			<img src={anime.pictureMedium} alt="{anime.title} picture" />
-		</button>
-		<div>
-			{anime.title} ({isRecommended ? 'Recommended' : 'Not recommended'})
-		</div>
-		<div>{anime.mediaType}</div>
-		<div>{anime.nsfw}</div>
-		<div>{anime.seasonYear} - {anime.season}</div>
-		<div>{anime.genres}</div>
-	{/each}
-{/await}
+<AnimesGrid
+	{animes}
+	recommendations={{
+		mine: $recommendations,
+		add: recommendations.add,
+		remove: recommendations.remove
+	}}
+/>

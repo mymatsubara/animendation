@@ -1,18 +1,22 @@
+import { browser } from '$app/environment';
 import { indexedDb } from '$lib/idb';
 import { trpc } from '$lib/trpc/client';
 import type { AnimeInfo } from '$lib/trpc/routes/anime';
 import { toRecord } from '$lib/utils/array';
 
 let memCache: GetAnimesResult = {};
-type GetAnimesResult = { [id: number]: AnimeInfo };
+export type GetAnimesResult = { [id: number]: AnimeInfo };
 
 export async function getAnimes(ids: number[]): Promise<GetAnimesResult> {
+	if (!browser) {
+		return {};
+	}
+
 	const notMemCachedIds = ids.filter((id) => !memCache[id]);
 	// Check idb for cache misses
 	if (notMemCachedIds.length > 0) {
 		const idb = await indexedDb();
 
-		console.log({ notMemCachedIds });
 		// When a lot of animes are being fetched, it is faster to get all animes from idb instead
 		const store = idb.transaction('animes', 'readonly').store;
 		const idbCachedAnimes =
@@ -30,13 +34,9 @@ export async function getAnimes(ids: number[]): Promise<GetAnimesResult> {
 
 		// Check backend for idb cache misses
 		if (notIdbCachedIds.length > 0) {
-			console.log({ notIdbCachedIds });
-
 			const animesToCache = await trpc.anime.info.mutate({
 				ids: notIdbCachedIds
 			});
-
-			console.log({ animesToCache });
 
 			await Promise.all(animesToCache.map((anime) => idb.put('animes', anime)));
 
@@ -46,5 +46,8 @@ export async function getAnimes(ids: number[]): Promise<GetAnimesResult> {
 		}
 	}
 
-	return memCache;
+	return toRecord(
+		ids.map((id) => memCache[id]).filter((anime) => !!anime),
+		(anime) => anime.id
+	);
 }

@@ -1,17 +1,14 @@
 <script lang="ts">
+	import type { GetAnimesResult } from '$lib/client/animes';
 	import { getRecommendations } from '$lib/client/recommendations';
+	import AnimesGrid from '$lib/components/AnimesGrid.svelte';
 
 	export let username: string;
+	let animes: GetAnimesResult | undefined = undefined;
 
-	$: recommendationsPromise = getRecommendations(username);
+	$: {
+		getRecommendations(username).then((result) => (animes = result));
+	}
 </script>
 
-<h2>My recommendations</h2>
-
-{username}
-
-{#await recommendationsPromise}
-	Loadind...
-{:then recommendations}
-	Recommended animes: {JSON.stringify(recommendations, null, 2)}
-{/await}
+<AnimesGrid {animes} />

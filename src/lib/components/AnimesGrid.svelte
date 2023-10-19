@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { GetAnimesResult } from '$lib/client/animes';
 	import Placeholder from '$lib/components/Placeholder.svelte';
+	import ThumbsUpIcon from '$lib/components/icons/ThumbsUpIcon.svelte';
+	import { fade } from 'svelte/transition';
 
 	export let animes: GetAnimesResult | undefined;
 
@@ -26,27 +28,46 @@
 	{:else}
 		{#each Object.values(animes) as anime (anime.id)}
 			{@const isRecommended = recommendations?.mine?.has(anime.id)}
+			{@const href = `https://myanimelist.net/anime/${anime.id}`}
 			<div class="flex flex-col gap-1">
 				{#if recommendations !== undefined}
 					<button
-						class="rounded w-full border"
+						class="rounded w-full border hover:shadow-lg hover:border-2"
 						on:click={() =>
 							isRecommended ? recommendations?.remove(anime.id) : recommendations?.add(anime.id)}
 					>
 						<div
+							class="relative bg-center bg-cover w-full aspect-[225/350] rounded"
+							style="background-image: url({anime.pictureMedium})"
+						>
+							{#if isRecommended}
+								<div
+									class="gap-1 border absolute top-2 right-2 p-2 bg-gray-100 rounded-full flex items-center justify-center text-green-700"
+									transition:fade={{ duration: 150 }}
+								>
+									<ThumbsUpIcon class="h-5" />
+									<div class="text-xs font-medium">Recommended</div>
+								</div>
+							{/if}
+						</div>
+					</button>
+				{:else}
+					<a {href}>
+						<div
 							class="bg-center bg-cover w-full aspect-[225/350] rounded"
 							style="background-image: url({anime.pictureMedium})"
 						/>
-					</button>
-				{:else}
-					<div
-						class="bg-center bg-cover w-full aspect-[225/350] rounded"
-						style="background-image: url({anime.pictureMedium})"
-					/>
+					</a>
 				{/if}
 
 				<div class="h-11 overflow-ellipsis overflow-hidden text-sm font-medium text-gray-600">
-					{anime.title}
+					{#if recommendations}
+						{anime.title}
+					{:else}
+						<a {href} target="_blank">
+							{anime.title}
+						</a>
+					{/if}
 				</div>
 			</div>
 		{/each}

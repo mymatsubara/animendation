@@ -43,7 +43,7 @@
 
 <div class="container mt-3">
 	<div class="flex gap-1 items-center">
-		<h1 class="text-lg tracking-tight font-medium">Recommendations</h1>
+		<h1 class="text-xl tracking-tight font-medium">Recommendations</h1>
 		{#if username.toLocaleLowerCase() === $user?.username?.toLocaleLowerCase()}
 			<button class="p-2 hover:bg-gray-200 rounded-full" on:click={() => (edit = !edit)}>
 				{#if !edit}
@@ -62,9 +62,14 @@
 
 	<div class="mb-3">
 		{#if !edit}
-			<RecommendationList {username} />
+			<div class="mt-3">
+				<RecommendationList {username} onAddRecommendations={() => (edit = true)} />
+			</div>
 		{:else if $user?.username}
-			<EditRecommendations username={$user.username} />
+			<div class="text-gray-500 text-sm">Click to recommend/unrecommend an anime</div>
+			<div class="mt-3">
+				<EditRecommendations username={$user.username} />
+			</div>
 		{/if}
 	</div>
 </div>

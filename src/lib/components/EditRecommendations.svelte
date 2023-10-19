@@ -20,8 +20,6 @@
 	const recommendations = getMyRecommendations();
 </script>
 
-<div class="text-gray-500 text-sm">Click to recommend/unrecommend an anime</div>
-
 <AnimesGrid
 	{animes}
 	recommendations={{

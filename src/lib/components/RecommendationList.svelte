@@ -1,14 +1,42 @@
 <script lang="ts">
-	import type { GetAnimesResult } from '$lib/client/animes';
+	import { getAnimes, type GetAnimesResult } from '$lib/client/animes';
 	import { getRecommendations } from '$lib/client/recommendations';
 	import AnimesGrid from '$lib/components/AnimesGrid.svelte';
+	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
+	import { getMyRecommendations } from '$lib/stores/my-recommendations';
+	import { user } from '$lib/stores/user';
+	import { Button } from 'flowbite-svelte';
 
 	export let username: string;
+	export let onAddRecommendations: () => void;
 	let animes: GetAnimesResult | undefined = undefined;
 
+	$: myRecommendations = username.toLowerCase() === $user?.username.toLocaleLowerCase();
 	$: {
-		getRecommendations(username).then((result) => (animes = result));
+		if (myRecommendations) {
+			const recommendations = getMyRecommendations();
+
+			recommendations.subscribe(async (ids) => {
+				if (ids) {
+					animes = await getAnimes([...ids]);
+				}
+			});
+		} else {
+			getRecommendations(username).then((result) => (animes = result));
+		}
 	}
 </script>
 
-<AnimesGrid {animes} />
+{#if animes === undefined || Object.keys(animes).length !== 0}
+	<AnimesGrid {animes} />
+{:else}
+	<div class="flex flex-col items-center justify-center gap-2 mt-24">
+		<div class="font-bold text-3xl">(ಠ.ಠ)</div>
+		<div class="text-gray-600">No recommendations</div>
+		{#if myRecommendations}
+			<Button class="mt-2 flex gap-1" on:click={onAddRecommendations}
+				><PlusIcon class="h-5" /><span class="whitespace-nowrap">Add recommendations</span></Button
+			>
+		{/if}
+	</div>
+{/if}

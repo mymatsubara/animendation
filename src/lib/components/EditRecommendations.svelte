@@ -12,9 +12,12 @@
 	const animelist = getAnimelist(username);
 	$: {
 		if ($animelist) {
-			getAnimes(Object.keys($animelist).map((id) => Number(id))).then(
-				(result) => (animes = result)
-			);
+			const anilist = $animelist;
+			getAnimes(Object.keys($animelist).map((id) => Number(id))).then((result) => {
+				const animeInfos = result.map((anime) => ({ ...anime, ...anilist[anime.id] }));
+				animeInfos.sort((a1, a2) => a2.updatedAt.localeCompare(a1.updatedAt));
+				animes = animeInfos;
+			});
 		}
 	}
 

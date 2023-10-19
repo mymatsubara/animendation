@@ -50,7 +50,8 @@ export module AuthCookies {
 		httpOnly: true,
 		secure: !dev,
 		sameSite: 'lax' as const,
-		path: '/'
+		path: '/',
+		maxAge: 2 * 30 * 24 * 60 * 60
 	};
 
 	export function setCookies(input: SetCookiesInput) {

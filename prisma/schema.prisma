@@ -43,8 +43,9 @@ model User {
 }
 
 model Recommendation {
-  animeId Int
-  userId  Int
+  animeId   Int
+  userId    Int
+  createdAt DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
 
   anime Anime @relation(fields: [animeId], references: [id])
   user  User  @relation(fields: [userId], references: [id])

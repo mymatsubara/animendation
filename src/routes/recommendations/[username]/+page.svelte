@@ -28,7 +28,6 @@
 			UsersService.getUserProfile(username).then((result) => (userProfile = result?.data));
 		}
 	}
-	$: console.log({ scrollY });
 </script>
 
 <svelte:window bind:scrollY />

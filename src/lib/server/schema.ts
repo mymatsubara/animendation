@@ -26,6 +26,7 @@ export type Anime = {
 export type Recommendation = {
 	animeId: number;
 	userId: number;
+	createdAt: Generated<string>;
 };
 export type User = {
 	id: number;

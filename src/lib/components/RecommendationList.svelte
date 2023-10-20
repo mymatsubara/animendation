@@ -13,7 +13,7 @@
 	export let onAddRecommendations: () => void;
 	let animes: AnimeInfo[] | undefined = undefined;
 
-	const animelist = getAnimelist($user?.username);
+	$: animelist = getAnimelist($user?.username);
 	$: myRecommendations = username.toLowerCase() === $user?.username.toLocaleLowerCase();
 	$: {
 		if (myRecommendations) {

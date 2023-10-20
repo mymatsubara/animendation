@@ -27,7 +27,7 @@
 	let edit = false;
 </script>
 
-<div class="bg-gradient-to-t from-gray-700 to-60% to-primary-800 w-full shadow">
+<div class="bg-gradient-to-t from-primary-900 to-primary-700 w-full">
 	<div class="flex gap-4 container items-end py-4">
 		<a
 			href={isMe ? 'https://myanimelist.net/editprofile.php?go=picture' : undefined}
@@ -88,12 +88,12 @@
 
 	<div class="mb-3">
 		{#if !edit}
-			<div class="mt-4">
+			<div class="mt-3">
 				<RecommendationList {username} onAddRecommendations={() => (edit = true)} />
 			</div>
 		{:else if $user?.username}
 			<div class="text-gray-500 text-sm">Click to recommend/unrecommend an anime</div>
-			<div class="mt-4">
+			<div class="mt-3">
 				<EditRecommendations username={$user.username} />
 			</div>
 		{/if}

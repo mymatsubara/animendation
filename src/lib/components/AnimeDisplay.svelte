@@ -35,8 +35,8 @@
 			</Badge>
 		</div>
 	{/if}
-	<div class="absolute right-1 bottom-1">
-		{#if status}
+	{#if status}
+		<div transition:fade={{ duration: 150 }} class="absolute right-1 bottom-1">
 			{#if status === 'completed'}
 				<Badge rounded class="px-2.5 py-0.5" color="blue"
 					><Indicator size="xs" class="mr-1" color="blue" />Completed</Badge
@@ -58,6 +58,6 @@
 					><Indicator size="xs" class="mr-1" color="yellow" />On hold</Badge
 				>
 			{/if}
-		{/if}
-	</div>
+		</div>
+	{/if}
 </div>

@@ -3,6 +3,7 @@
 	import { getRecommendations } from '$lib/client/recommendations';
 	import AnimesGrid from '$lib/components/AnimesGrid.svelte';
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
+	import { getAnimelist } from '$lib/stores/animelist';
 	import { getMyRecommendations } from '$lib/stores/my-recommendations';
 	import { user } from '$lib/stores/user';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
@@ -12,6 +13,7 @@
 	export let onAddRecommendations: () => void;
 	let animes: AnimeInfo[] | undefined = undefined;
 
+	const animelist = getAnimelist($user?.username);
 	$: myRecommendations = username.toLowerCase() === $user?.username.toLocaleLowerCase();
 	$: {
 		if (myRecommendations) {
@@ -29,7 +31,7 @@
 </script>
 
 {#if animes === undefined || Object.keys(animes).length !== 0}
-	<AnimesGrid {animes} />
+	<AnimesGrid {animes} animelist={$animelist} />
 {:else}
 	<div class="flex flex-col items-center justify-center gap-2 mt-24">
 		<div class="font-bold text-3xl">(ಠ.ಠ)</div>

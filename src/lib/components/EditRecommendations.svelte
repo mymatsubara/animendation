@@ -26,6 +26,7 @@
 
 <AnimesGrid
 	{animes}
+	animelist={$animelist}
 	recommendations={{
 		mine: $recommendations,
 		add: recommendations.add,

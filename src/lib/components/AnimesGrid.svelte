@@ -1,11 +1,11 @@
 <script lang="ts">
+	import AnimeDisplay from '$lib/components/AnimeDisplay.svelte';
 	import Placeholder from '$lib/components/Placeholder.svelte';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
-	import ThumbsUpIcon from '$lib/components/icons/ThumbsUpIcon.svelte';
+	import type { Animelist } from '$lib/stores/animelist';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import { Input } from 'flowbite-svelte';
 	import Fuse from 'fuse.js';
-	import { fade } from 'svelte/transition';
 
 	export let animes: AnimeInfo[] | undefined;
 	export let recommendations:
@@ -15,6 +15,7 @@
 				remove: (animeId: number) => Promise<void>;
 		  }
 		| undefined = undefined;
+	export let animelist: Animelist | undefined = undefined;
 
 	let filteredAnimes: AnimeInfo[];
 	let search: string = '';
@@ -70,33 +71,19 @@
 						on:click={() =>
 							isRecommended ? recommendations?.remove(anime.id) : recommendations?.add(anime.id)}
 					>
-						<div class="relative">
-							<img
-								src={anime.pictureMedium}
-								class="object-cover w-full aspect-[225/318] rounded"
-								alt="{anime.title} picture"
-								loading="lazy"
-							/>
-							{#if isRecommended}
-								<div
-									class="gap-1 border absolute top-2 right-2 p-2 bg-gray-100 rounded-full flex items-center justify-center text-green-700"
-									transition:fade={{ duration: 150 }}
-								>
-									<ThumbsUpIcon class="h-5" />
-									<div class="text-xs font-medium">Recommended</div>
-								</div>
-							{/if}
-						</div>
+						<AnimeDisplay
+							title={anime.title}
+							pictureUrl={anime.pictureMedium}
+							status={animelist?.[anime.id]?.status}
+							{isRecommended}
+						/>
 					</button>
 				{:else}
-					<a {href}>
-						<img
-							src={anime.pictureMedium}
-							class="bg-center bg-cover w-full aspect-[225/350] rounded"
-							alt="{anime.title} picture"
-							loading="lazy"
-						/>
-					</a>
+					<AnimeDisplay
+						title={anime.title}
+						pictureUrl={anime.pictureMedium}
+						status={animelist?.[anime.id]?.status}
+					/>
 				{/if}
 
 				<div class="h-11 overflow-ellipsis overflow-hidden text-sm font-medium text-gray-600">

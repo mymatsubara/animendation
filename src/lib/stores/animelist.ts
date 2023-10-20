@@ -5,7 +5,8 @@ import { maxStr, toRecord } from '$lib/utils/array';
 import { writable } from 'svelte/store';
 
 let curUserName: string | undefined = undefined;
-let store = writable<{ [id: number]: AnimelistAnime } | undefined>();
+let store = writable<Animelist | undefined>();
+export type Animelist = { [id: number]: AnimelistAnime };
 
 export function getAnimelist(username?: string) {
 	if (browser && username !== curUserName) {

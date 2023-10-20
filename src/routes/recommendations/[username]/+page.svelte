@@ -8,13 +8,19 @@
 	import ArrowTopRightIcon from '$lib/components/icons/ArrowTopRightIcon.svelte';
 	import CameraIcon from '$lib/components/icons/CameraIcon.svelte';
 	import CheckIcon from '$lib/components/icons/CheckIcon.svelte';
+	import ChevronUpIcon from '$lib/components/icons/ChevronUpIcon.svelte';
 	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
 	import PencilSquareIcon from '$lib/components/icons/PencilSquareIcon.svelte';
 	import { user } from '$lib/stores/user';
-	import { Tooltip } from 'flowbite-svelte';
+	import { Button, Tooltip } from 'flowbite-svelte';
 	import { fade } from 'svelte/transition';
 
+	const pictureClass = 'w-[100px] aspect-square flex items-center justify-center';
+
 	let userProfile: user_profile | undefined = undefined;
+	let edit = false;
+	let scrollY: number;
+
 	$: username = $page.params.username;
 	$: isMe = $user?.username?.toLowerCase() === username.toLocaleLowerCase();
 	$: {
@@ -22,10 +28,10 @@
 			UsersService.getUserProfile(username).then((result) => (userProfile = result?.data));
 		}
 	}
-	const pictureClass = 'w-[100px] aspect-square flex items-center justify-center';
-
-	let edit = false;
+	$: console.log({ scrollY });
 </script>
+
+<svelte:window bind:scrollY />
 
 <div class="bg-gradient-to-t from-primary-900 to-primary-700 w-full">
 	<div class="flex gap-4 container items-end py-4">
@@ -99,3 +105,17 @@
 		{/if}
 	</div>
 </section>
+
+{#if scrollY > 300}
+	<div transition:fade={{ duration: 150 }} class="fixed bottom-5 right-5">
+		<Button
+			class="rounded-full aspect-square p-3"
+			on:click={() =>
+				window.scrollTo({
+					top: 0,
+					behavior: 'smooth'
+				})}><ChevronUpIcon class="h-8 -translate-y-0.5" /></Button
+		>
+		<Tooltip class="whitespace-nowrap">Go to top</Tooltip>
+	</div>
+{/if}

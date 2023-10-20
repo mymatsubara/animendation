@@ -110,66 +110,66 @@
 </script>
 
 <div class="flex gap-4">
-	<div class="min-w">
-		<Input
-			class="max-w-sm"
-			type="search"
-			on:input={updateSearchDebounce}
-			placeholder="Search"
-			size="lg"
+	<Input
+		class="border-0 shadow"
+		type="search"
+		on:input={updateSearchDebounce}
+		placeholder="Search"
+		size="lg"
+	>
+		<svelte:fragment slot="left">
+			<SearchIcon class="h-5" />
+		</svelte:fragment>
+	</Input>
+
+	<div class="ml-4 items-center hidden sm:flex">
+		<Toggle class="whitespace-nowrap font-medium text-gray-500" bind:checked={filter.hideSequels}
+			>Hide sequels</Toggle
 		>
-			<svelte:fragment slot="left">
-				<SearchIcon class="h-5" />
-			</svelte:fragment>
-		</Input>
 	</div>
 
-	<span class="grow" />
-
-	<div class="flex gap-3 sm:gap-4">
-		<Toggle
-			class="whitespace-nowrap sm:text-base font-medium text-gray-500"
-			bind:checked={filter.hideSequels}>Hide sequel</Toggle
+	<div>
+		<Button outline size="lg" class="!p-1 aspect-square h-10 border-0 shadow" id="filter"
+			><AdjustmentIcon class="h-6" /></Button
 		>
 
-		<div>
-			<Button outline size="lg" class="!p-1 aspect-square h-10 border-0 shadow" id="filter"
-				><AdjustmentIcon class="h-6" /></Button
-			>
-			<Dropdown
-				containerClass="divide-y z-50 min-w-[300px] max-w-sm sm:max-w-lg border shadow-lg"
-				placement="bottom-end"
-				triggeredBy="#filter"
-			>
-				<div slot="header" class="text-center py-2 font-bold">Filters</div>
-				<div class="py-2 px-4">
-					<Label class="relative">
-						<div class="mb-1">Status</div>
-						<MultiSelect
-							class="min-h-[41px]"
-							placeholder="No filter"
-							items={statusOptions}
-							bind:value={filter.status}
-							let:item
-							let:clear
+		<Dropdown
+			containerClass="divide-y z-50 min-w-[300px] max-w-sm sm:max-w-lg border shadow-lg"
+			placement="bottom-end"
+			triggeredBy="#filter"
+		>
+			<div slot="header" class="text-center py-2 font-bold">Filters</div>
+			<div class="flex flex-col gap-4 py-2 px-4">
+				<Toggle
+					class="sm:hidden whitespace-nowrap font-medium text-gray-500"
+					bind:checked={filter.hideSequels}>Hide sequels</Toggle
+				>
+				<Label class="relative">
+					<div class="mb-1">Status</div>
+					<MultiSelect
+						class="min-h-[41px]"
+						placeholder="No filter"
+						items={statusOptions}
+						bind:value={filter.status}
+						let:item
+						let:clear
+					>
+						<Badge
+							rounded
+							color={notypecheck(item).color}
+							dismissable
+							params={{ duration: 100 }}
+							on:close={clear}
 						>
-							<Badge
-								rounded
-								color={notypecheck(item).color}
-								dismissable
-								params={{ duration: 100 }}
-								on:close={clear}
-							>
-								<Indicator color={notypecheck(item).color} size="xs" class="mr-1" />{item.name}
-							</Badge>
-						</MultiSelect>
-						{#if !filter.status?.length}
-							<div class="absolute bottom-2.5 left-2.5 text-gray-500">Select status</div>
-						{/if}
-					</Label>
-				</div>
-			</Dropdown>
-		</div>
+							<Indicator color={notypecheck(item).color} size="xs" class="mr-1" />{item.name}
+						</Badge>
+					</MultiSelect>
+					{#if !filter.status?.length}
+						<div class="absolute bottom-2.5 left-2.5 text-gray-500">Select status</div>
+					{/if}
+				</Label>
+			</div>
+		</Dropdown>
 	</div>
 </div>
 

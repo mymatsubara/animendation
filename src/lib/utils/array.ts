@@ -3,7 +3,9 @@ type Key = string | number;
 export function groupBy<T>(array: T[], predicate: (e: T) => Key) {
 	const result: { [k: Key]: T[] } = {};
 
-	for (const element of array) {
+	const len = array.length;
+	for (let i = 0; i < len; i++) {
+		const element = array[i];
 		const key = predicate(element);
 		let match = result[key];
 
@@ -20,7 +22,9 @@ export function groupBy<T>(array: T[], predicate: (e: T) => Key) {
 export function toRecord<T>(array: T[], predicate: (e: T) => Key) {
 	const result: { [k: Key]: T } = {};
 
-	for (const element of array) {
+	const len = array.length;
+	for (let i = 0; i < len; i++) {
+		const element = array[i];
 		const key = predicate(element);
 		result[key] = element;
 	}

@@ -81,7 +81,7 @@ export class MALClient {
 
 		while (true) {
 			const page = await this.getUserAnimeList(username, opts);
-			result = result.concat(page.data ?? []);
+			result.push(...(page.data ?? []));
 			opts.offset += limit;
 
 			if (!page?.paging?.next) {
@@ -109,7 +109,7 @@ export class MALClient {
 				(anime) => new Date(anime?.list_status?.updated_at ?? 0).getTime() >= sinceTime
 			);
 
-			result = result.concat(newAnimes ?? []);
+			result.push(...(newAnimes ?? []));
 
 			if (newAnimes?.length !== options.limit || !page?.paging?.next) {
 				break;

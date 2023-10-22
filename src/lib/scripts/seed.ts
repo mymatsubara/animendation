@@ -80,7 +80,7 @@ async function checkAnimesSequelRetry(maxRetries: number = 100) {
 }
 
 async function checkAnimesSequel() {
-	let sequelCheck: { [id: number]: boolean } = {};
+	let sequelCheck = new Map<number, boolean>();
 	const maxBackoff = 400;
 	const checked = new Set<number>();
 	const client = new MALClient({ clientId: PUBLIC_MAL_CLIENT_ID });
@@ -97,7 +97,7 @@ async function checkAnimesSequel() {
 		}
 
 		const animeDetails = await client.getAnimeDetailRaw(anime.id, 'related_anime');
-		sequelCheck[anime.id] = isSequel(animeDetails);
+		sequelCheck.set(anime.id, isSequel(animeDetails));
 		checked.add(anime.id);
 
 		const relatedSequels =
@@ -108,7 +108,7 @@ async function checkAnimesSequel() {
 		for (const sequel of relatedSequels) {
 			const id = sequel.node?.id;
 			if (id) {
-				sequelCheck[id] = true;
+				sequelCheck.set(id, true);
 				checked.add(id);
 			}
 		}
@@ -118,7 +118,7 @@ async function checkAnimesSequel() {
 		await wait(backoff);
 		backoff = Math.min(backoff + 5, maxBackoff);
 
-		const checksToSave = Object.keys(sequelCheck).length;
+		const checksToSave = sequelCheck.size;
 		if (checksToSave > 50) {
 			console.log(`💾 Saving ${checksToSave} sequel checks to the database...`);
 
@@ -144,7 +144,7 @@ async function checkAnimesSequel() {
 				.where('id', 'in', notSequelIds)
 				.execute();
 
-			sequelCheck = {};
+			sequelCheck.clear();
 		}
 	}
 }

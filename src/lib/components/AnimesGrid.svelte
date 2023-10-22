@@ -23,7 +23,6 @@
 		search?: string;
 		hideSequels: boolean;
 		status: AnimeStatus[];
-		checkStatus: boolean;
 		genre?: string;
 	};
 	type AnimeWithStatus = AnimeInfo & { status?: AnimeStatus };
@@ -55,15 +54,13 @@
 
 	let filter: Filter = {
 		hideSequels: false,
-		status: ['watching', 'completed'],
-		checkStatus: true,
+		status: [],
 		...startFilter
 	};
 
-	$: filter.checkStatus = animelist !== undefined;
 	$: animesWithStatus =
 		(animelist
-			? animes?.map((anime) => ({ ...anime, status: animelist?.[anime.id]?.status }))
+			? animes?.map((anime) => ({ ...anime, status: animelist?.get(anime.id)?.status }))
 			: animes) ?? [];
 	$: fuzzySearch = new Fuse(animesWithStatus, {
 		keys: ['title'],
@@ -90,7 +87,7 @@
 			animes = animes.filter((anime) => anime.genres.indexOf(genre) !== -1);
 		}
 
-		if (filter.checkStatus && filter.status?.length) {
+		if (filter.status?.length) {
 			animes = animes.filter((anime) => anime.status && filter.status.indexOf(anime.status) !== -1);
 		}
 

@@ -1,12 +1,12 @@
 import { browser } from '$app/environment';
 import { indexedDb, type AnimelistAnime } from '$lib/idb';
 import { trpc } from '$lib/trpc/client';
-import { maxStr, toRecord } from '$lib/utils/array';
+import { maxStr, toMap } from '$lib/utils/array';
 import { writable } from 'svelte/store';
 
 let curUserName: string | undefined = undefined;
 let store = writable<Animelist | undefined>();
-export type Animelist = { [id: number]: AnimelistAnime };
+export type Animelist = Map<number, AnimelistAnime>;
 
 export function getAnimelist(username?: string) {
 	if (browser && username !== curUserName) {
@@ -47,5 +47,5 @@ async function updateStore(username: string) {
 	await Promise.all(animelist.map((anime) => trx.put({ ...anime, username })));
 
 	const animes = await idb.getAll('animelist');
-	store.set(toRecord(animes, (anime) => anime.id));
+	store.set(toMap(animes, (anime) => anime.id));
 }

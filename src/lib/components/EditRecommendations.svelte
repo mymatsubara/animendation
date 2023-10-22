@@ -13,9 +13,11 @@
 	$: {
 		if ($animelist) {
 			const anilist = $animelist;
-			getAnimes(Object.keys($animelist).map((id) => Number(id))).then((result) => {
-				const animeInfos = result.map((anime) => ({ ...anime, ...anilist[anime.id] }));
-				animeInfos.sort((a1, a2) => a2.updatedAt.localeCompare(a1.updatedAt));
+			getAnimes([...anilist.keys()]).then((result) => {
+				const animeInfos = result.map((anime) => ({ ...anime, ...anilist.get(anime.id) }));
+				animeInfos.sort((a1, a2) =>
+					a2.updatedAt && a1.updatedAt ? a2.updatedAt.localeCompare(a1.updatedAt) : 1
+				);
 				animes = animeInfos;
 			});
 		}

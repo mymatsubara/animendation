@@ -30,7 +30,7 @@
 	}
 </script>
 
-{#if animes === undefined || Object.keys(animes).length !== 0}
+{#if animes === undefined || animes.length !== 0}
 	<AnimesGrid {animes} animelist={$animelist} />
 {:else}
 	<div class="flex flex-col items-center justify-center gap-2 mt-24">

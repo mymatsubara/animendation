@@ -36,6 +36,7 @@
 		| undefined = undefined;
 	export let startFilter: Partial<Filter> = {};
 
+	$: genres = new Set(animes?.flatMap((anime) => anime.genres) ?? []);
 	const statusOptions: StatusOption[] = [
 		{ value: 'completed', name: 'Completed', color: 'blue' },
 		{ value: 'watching', name: 'Watching', color: 'green' },
@@ -98,7 +99,7 @@
 	const notypecheck = (i: any) => i;
 </script>
 
-<div class="flex gap-4">
+<div class="flex gap-5">
 	<Input
 		class="border-0 shadow"
 		type="search"
@@ -128,7 +129,6 @@
 		<Dropdown
 			containerClass="divide-y z-50 min-w-[300px] max-w-sm sm:max-w-lg border shadow-lg"
 			placement="bottom-end"
-			triggeredBy="#filter"
 		>
 			<div slot="header" class="text-center py-2 font-bold">Filters</div>
 			<div class="flex flex-col gap-4 py-2 px-4">
@@ -136,11 +136,11 @@
 					class="sm:hidden whitespace-nowrap font-medium text-gray-500"
 					bind:checked={filter.hideSequels}>Hide sequels</Toggle
 				>
-				<Label class="relative">
+				<div class="text-sm font-medium text-gray-900">
 					<div class="mb-1">Status</div>
 					<MultiSelectChips bind:values={filter.status} items={statusOptions} let:item let:checked>
 						<Badge
-							class="border-2 border-transparent peer-checked:border-primary-700"
+							class="cursor-pointer border-2 border-transparent peer-checked:border-primary-700"
 							rounded
 							color={notypecheck(item).color}
 						>
@@ -149,6 +149,16 @@
 							>
 						</Badge>
 					</MultiSelectChips>
+				</div>
+
+				<Label>
+					<div class="mb-1">Genre</div>
+					<select class="w-full border border-gray-300 shadow rounded-lg" bind:value={filter.genre}>
+						<option hidden disabled selected value>Any</option>
+						{#each genres as genre}
+							<option value={genre}>{genre}</option>
+						{/each}
+					</select>
 				</Label>
 			</div>
 		</Dropdown>

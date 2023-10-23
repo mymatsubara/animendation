@@ -12,20 +12,24 @@
 	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
 	import PencilSquareIcon from '$lib/components/icons/PencilSquareIcon.svelte';
 	import { user } from '$lib/stores/user';
-	import { Button, Tooltip } from 'flowbite-svelte';
+	import { Button, Spinner, Tooltip } from 'flowbite-svelte';
 	import { fade } from 'svelte/transition';
 
 	const pictureClass = 'w-[100px] aspect-square flex items-center justify-center';
 
-	let userProfile: user_profile | undefined = undefined;
+	let userProfile: user_profile | null | undefined = undefined;
 	let edit = false;
 	let scrollY: number;
+	let showSpinner = false;
 
+	setTimeout(() => (showSpinner = true), 300);
 	$: username = $page.params.username;
 	$: isMe = $user?.username?.toLowerCase() === username.toLocaleLowerCase();
 	$: {
 		if (username && browser) {
-			UsersService.getUserProfile(username).then((result) => (userProfile = result?.data));
+			UsersService.getUserProfile(username)
+				.then((result) => (userProfile = result?.data ?? null))
+				.catch(() => (userProfile = null));
 		}
 	}
 </script>
@@ -51,6 +55,10 @@
 				{:else}
 					<NoProfilePicture />
 				{/if}
+			{:else if userProfile === undefined && showSpinner}
+				<Spinner />
+			{:else if userProfile === null}
+				<NoProfilePicture />
 			{/if}
 			{#if isMe}
 				<div

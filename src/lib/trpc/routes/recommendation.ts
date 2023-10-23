@@ -21,6 +21,7 @@ export const recommendationRoute = router({
 						.select(['id'])
 						.where(({ ref }) => sql`${ref('name')} = ${input.username} collate nocase`)
 				)
+				.orderBy('createdAt desc')
 				.execute();
 
 			return recommendations.map(({ animeId }) => animeId);
@@ -30,6 +31,7 @@ export const recommendationRoute = router({
 			.selectFrom('Recommendation')
 			.select(['animeId'])
 			.where('userId', '=', ctx.user.userId)
+			.orderBy('createdAt desc')
 			.execute();
 
 		return recommendations.map(({ animeId }) => animeId);

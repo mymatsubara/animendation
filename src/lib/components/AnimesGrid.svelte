@@ -49,7 +49,8 @@
 		{ value: 'watching', name: 'Watching', color: 'green' },
 		{ value: 'plan_to_watch', name: 'Plan to watch', color: 'dark' },
 		{ value: 'on_hold', name: 'On hold', color: 'yellow' },
-		{ value: 'dropped', name: 'Dropped', color: 'red' }
+		{ value: 'dropped', name: 'Dropped', color: 'red' },
+		{ value: undefined as any, name: 'No status', color: 'gray' }
 	];
 
 	let filter: Filter = {
@@ -67,7 +68,6 @@
 		threshold: 0.3
 	});
 	$: filteredAnimes = filterAnimes(animesWithStatus, filter, fuzzySearch);
-	$: console.log({ filteredAnimes, animes, animesWithStatus, filter, animelist });
 
 	function filterAnimes(
 		animes: AnimeWithStatus[],
@@ -88,7 +88,7 @@
 		}
 
 		if (filter.status?.length) {
-			animes = animes.filter((anime) => anime.status && filter.status.indexOf(anime.status) !== -1);
+			animes = animes.filter((anime) => filter.status.includes(anime.status as any));
 		}
 
 		return animes;

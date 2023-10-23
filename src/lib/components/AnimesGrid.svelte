@@ -138,28 +138,6 @@
 				>
 				<Label class="relative">
 					<div class="mb-1">Status</div>
-					<!-- <MultiSelect
-						class="min-h-[41px]"
-						placeholder="No filter"
-						items={statusOptions}
-						bind:value={filter.status}
-						let:item
-						let:clear
-					>
-						<Badge
-							rounded
-							color={notypecheck(item).color}
-							dismissable
-							params={{ duration: 100 }}
-							on:close={clear}
-						>
-							<Indicator color={notypecheck(item).color} size="xs" class="mr-1" />{item.name}
-						</Badge>
-					</MultiSelect>
-					{#if !filter.status?.length}
-						<div class="absolute bottom-2.5 left-2.5 text-gray-500">Select status</div>
-					{/if} -->
-
 					<MultiSelectChips bind:values={filter.status} items={statusOptions} let:item let:checked>
 						<Badge
 							class="border-2 border-transparent peer-checked:border-primary-700"

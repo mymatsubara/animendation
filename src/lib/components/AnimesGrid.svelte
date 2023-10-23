@@ -1,21 +1,13 @@
 <script lang="ts">
 	import AnimeDisplay from '$lib/components/AnimeDisplay.svelte';
 	import Placeholder from '$lib/components/Placeholder.svelte';
+	import MultiSelectChips from '$lib/components/forms/MultiSelectChips.svelte';
 	import AdjustmentIcon from '$lib/components/icons/AdjustmentIcon.svelte';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
 	import type { Animelist } from '$lib/stores/animelist';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { AnimeStatus } from '$lib/trpc/routes/user';
-	import {
-		Badge,
-		Button,
-		Dropdown,
-		Indicator,
-		Input,
-		Label,
-		MultiSelect,
-		Toggle
-	} from 'flowbite-svelte';
+	import { Badge, Button, Dropdown, Indicator, Input, Label, Toggle } from 'flowbite-svelte';
 	import Fuse from 'fuse.js';
 	import { fade } from 'svelte/transition';
 
@@ -126,10 +118,13 @@
 	</div>
 
 	<div>
-		<Button outline size="lg" class="!p-1 aspect-square h-10 border-0 shadow" id="filter"
-			><AdjustmentIcon class="h-6" /></Button
+		<Button
+			class="!p-1 aspect-square h-10 border-0 shadow"
+			type="button"
+			outline
+			size="lg"
+			id="filter"><AdjustmentIcon class="h-6" /></Button
 		>
-
 		<Dropdown
 			containerClass="divide-y z-50 min-w-[300px] max-w-sm sm:max-w-lg border shadow-lg"
 			placement="bottom-end"
@@ -143,7 +138,7 @@
 				>
 				<Label class="relative">
 					<div class="mb-1">Status</div>
-					<MultiSelect
+					<!-- <MultiSelect
 						class="min-h-[41px]"
 						placeholder="No filter"
 						items={statusOptions}
@@ -163,7 +158,19 @@
 					</MultiSelect>
 					{#if !filter.status?.length}
 						<div class="absolute bottom-2.5 left-2.5 text-gray-500">Select status</div>
-					{/if}
+					{/if} -->
+
+					<MultiSelectChips bind:values={filter.status} items={statusOptions} let:item let:checked>
+						<Badge
+							class="border-2 border-transparent peer-checked:border-primary-700"
+							rounded
+							color={notypecheck(item).color}
+						>
+							<Indicator color={notypecheck(item).color} size="xs" class="mr-1" /><span
+								class="unselectable">{item.name}</span
+							>
+						</Badge>
+					</MultiSelectChips>
 				</Label>
 			</div>
 		</Dropdown>
@@ -188,6 +195,7 @@
 			<div transition:fade={{ duration: 150 }} class="flex flex-col gap-1">
 				{#if recommendations !== undefined}
 					<button
+						type="button"
 						class="rounded w-full border hover:shadow-lg hover:border-2"
 						on:click={() =>
 							isRecommended ? recommendations?.remove(anime.id) : recommendations?.add(anime.id)}

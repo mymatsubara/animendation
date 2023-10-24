@@ -3,7 +3,8 @@
 
 	import { MultiSelect } from 'flowbite-svelte';
 
-	type T = $$Generic<{ value: string; name: string }>;
+	type K = $$Generic;
+	type T = $$Generic<{ value: K; name: number | string }>;
 	export let items: T[];
 	export let value: (string | number)[] | undefined = [];
 	export let placeholder: string = '';

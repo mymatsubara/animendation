@@ -17,6 +17,8 @@
 		hideSequels: boolean;
 		status: AnimeStatus[];
 		genres?: string[];
+		years?: number[];
+		seasons?: string[];
 	};
 	type AnimeWithStatus = AnimeInfo & { status?: AnimeStatus };
 	type Fuzzy = typeof fuzzySearch;
@@ -37,7 +39,7 @@
 		| undefined = undefined;
 	export let startFilter: Partial<Filter> = {};
 
-	const statusOptions: StatusOption[] = [
+	const statusItems: StatusOption[] = [
 		{ value: 'completed', name: 'Completed', color: 'blue' },
 		{ value: 'watching', name: 'Watching', color: 'green' },
 		{ value: 'plan_to_watch', name: 'Plan to watch', color: 'dark' },
@@ -53,7 +55,14 @@
 	};
 	let showFilter = false;
 
-	$: genresOptions = (() => {
+	$: yearItems = (() => {
+		const years = [
+			...new Set(animes?.map((anime) => anime.seasonYear).filter((year) => year) as number[])
+		];
+		years.sort((y1, y2) => y2 - y1);
+		return years.map((year) => ({ value: year, name: year }));
+	})();
+	$: genreItems = (() => {
 		const genres = [...new Set(animes?.flatMap((anime) => anime.genres) ?? [])];
 		genres.sort((g1, g2) => g1.localeCompare(g2));
 		return genres.map((genre) => ({ value: genre, name: genre }));
@@ -89,6 +98,11 @@
 		if (filter.status?.length) {
 			const status = new Set(filter.status);
 			animes = animes.filter((anime) => status.has(anime.status as any));
+		}
+
+		if (filter.years?.length) {
+			const years = new Set(filter.years);
+			animes = animes.filter((anime) => years.has(anime.seasonYear as number));
 		}
 
 		return animes;
@@ -145,11 +159,10 @@
 					bind:checked={filter.hideSequels}>Hide sequels</Toggle
 				>
 
-				<div class="relative text-sm font-medium text-gray-900">
+				<Label>
 					<div class="mb-1">Status</div>
 					<MultiSelect
-						class="min-h-[41px]"
-						items={statusOptions}
+						items={statusItems}
 						bind:value={filter.status}
 						placeholder="Select status"
 						let:item
@@ -165,19 +178,17 @@
 							<Indicator color={notypecheck(item).color} size="xs" class="mr-1" />{item.name}
 						</Badge>
 					</MultiSelect>
-				</div>
+				</Label>
 
-				<div class="relative">
-					<Label>
-						<div class="mb-1">Genre</div>
-						<MultiSelect
-							class="min-h-[41px]"
-							items={genresOptions}
-							bind:value={filter.genres}
-							placeholder="Select genre"
-						/>
-					</Label>
-				</div>
+				<Label>
+					<div class="mb-1">Genre</div>
+					<MultiSelect items={genreItems} bind:value={filter.genres} placeholder="Select genre" />
+				</Label>
+
+				<Label>
+					<div class="mb-1">Year</div>
+					<MultiSelect items={yearItems} bind:value={filter.years} placeholder="Select year" />
+				</Label>
 			</div>
 		</Dropdown>
 	</div>

@@ -62,13 +62,6 @@
 	};
 	let showFilter = false;
 
-	$: filterCount =
-		Number(filter.genres?.length ?? 0) +
-		Number(filter.hideSequels) +
-		Number(filter.genres?.length ?? 0) +
-		Number(filter.status?.length ?? 0) +
-		Number(filter.years?.length ?? 0) +
-		Number(filter.seasons?.length ?? 0);
 	$: yearItems = (() => {
 		const years = [
 			...new Set(animes?.map((anime) => anime.seasonYear).filter((year) => year) as number[])
@@ -216,11 +209,6 @@
 					size="lg"
 					on:click={toggle}
 					><AdjustmentIcon class="h-6" />
-					{#if filterCount}
-						<Indicator color="blue" placement="top-right" border size="xl"
-							><span class="text-white text-xs font-bold">{filterCount}</span></Indicator
-						>
-					{/if}
 				</Button>
 			</svelte:fragment>
 
@@ -228,9 +216,9 @@
 				<span />
 				<div class="text-center py-2 font-bold">Filters</div>
 				<div class="ml-auto mr-3">
-					<button class="text-sm font-medium text-primary-700 p-2" on:click={clearFilter}
-						>Clear all</button
-					>
+					<button class="relative text-sm font-medium text-primary-700 p-2" on:click={clearFilter}
+						>Clear all
+					</button>
 				</div>
 			</div>
 			<div class="flex flex-col gap-4 pt-2 pb-4 px-4">

@@ -12,6 +12,12 @@
 		.filter((i) => i !== null)
 		.map((i) => items[i as number].value);
 
+	$: {
+		if (!values?.length) {
+			clear();
+		}
+	}
+
 	function clear() {
 		status = items.map(() => false);
 	}

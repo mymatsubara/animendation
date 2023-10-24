@@ -10,7 +10,7 @@
 	export let placeholder: string = '';
 </script>
 
-<div class="relative">
+<div class="relative w-full">
 	{#if $$slots.default}
 		<MultiSelect
 			class={twMerge('min-h-[41px]', $$restProps.class)}
@@ -22,16 +22,10 @@
 			<slot {item} {clear} />
 		</MultiSelect>
 	{:else}
-		<MultiSelect
-			class={twMerge('min-h-[41px]', $$restProps.class)}
-			{items}
-			bind:value
-			let:item
-			let:clear
-		/>
+		<MultiSelect class={twMerge('min-h-[41px]', $$restProps.class)} {items} bind:value />
 	{/if}
 
 	{#if !value?.length}
-		<div class="absolute top-1/2 -translate-y-1/2 left-2.5 text-gray-500">{placeholder}</div>
+		<div class="absolute top-1/2 -translate-y-1/2 left-4 text-gray-500">{placeholder}</div>
 	{/if}
 </div>

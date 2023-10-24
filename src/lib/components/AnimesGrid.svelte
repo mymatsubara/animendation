@@ -3,6 +3,7 @@
 	import Placeholder from '$lib/components/Placeholder.svelte';
 	import Dropdown from '$lib/components/dropdown/Dropdown.svelte';
 	import MultiSelect from '$lib/components/forms/MultiSelect.svelte';
+	import MultiSelectChips from '$lib/components/forms/MultiSelectChips.svelte';
 	import AdjustmentIcon from '$lib/components/icons/AdjustmentIcon.svelte';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
 	import type { Animelist } from '$lib/stores/animelist';
@@ -132,19 +133,55 @@
 </script>
 
 <div class="flex gap-5">
-	<Input
-		class="border-0 shadow"
-		type="search"
-		on:input={updateSearchDebounce}
-		placeholder="Search"
-		size="lg"
-	>
-		<svelte:fragment slot="left">
-			<SearchIcon class="h-5" />
-		</svelte:fragment>
-	</Input>
+	<div class="grid md:grid-cols-2 lg:grid-cols-3 grow gap-5">
+		<div>
+			<Input
+				class="border-0 shadow"
+				type="search"
+				on:input={updateSearchDebounce}
+				placeholder="Search"
+				size="lg"
+			>
+				<svelte:fragment slot="left">
+					<SearchIcon class="h-5" />
+				</svelte:fragment>
+			</Input>
+		</div>
 
-	<div class="ml-4 items-center hidden sm:flex">
+		<div class="hidden md:block">
+			<MultiSelect
+				class="bg-gray-50 border-0 shadow w-full"
+				placeholder="Status"
+				items={statusItems}
+				bind:value={filter.status}
+				let:item
+				let:clear
+			>
+				<Badge
+					class="border-2 border-transparent"
+					rounded
+					color={notypecheck(item).color}
+					dismissable
+					on:close={clear}
+				>
+					<Indicator color={notypecheck(item).color} size="xs" class="mr-1" /><span
+						class="unselectable">{item.name}</span
+					>
+				</Badge>
+			</MultiSelect>
+		</div>
+
+		<div class="hidden lg:block">
+			<MultiSelect
+				class="bg-gray-50 border-0 shadow w-full"
+				placeholder="Genre"
+				items={genreItems}
+				bind:value={filter.genres}
+			/>
+		</div>
+	</div>
+
+	<div class="ml-2 mt-2 items-start hidden sm:flex">
 		<Toggle
 			class="whitespace-nowrap font-medium text-gray-500 w-max"
 			bind:checked={filter.hideSequels}>Hide sequels</Toggle
@@ -170,28 +207,22 @@
 					bind:checked={filter.hideSequels}>Hide sequels</Toggle
 				>
 
-				<Label>
+				<div class="md:hidden text-sm font-medium text-gray-900 dark:text-gray-300">
 					<div class="mb-1">Status</div>
-					<MultiSelect
-						items={statusItems}
-						bind:value={filter.status}
-						placeholder="Select status"
-						let:item
-						let:clear
-					>
+					<MultiSelectChips items={statusItems} bind:values={filter.status} let:item let:checked>
 						<Badge
+							class="cursor-pointer border-2 border-transparent peer-checked:border-primary-700"
 							rounded
 							color={notypecheck(item).color}
-							dismissable
-							params={{ duration: 100 }}
-							on:close={clear}
 						>
-							<Indicator color={notypecheck(item).color} size="xs" class="mr-1" />{item.name}
+							<Indicator color={notypecheck(item).color} size="xs" class="mr-1" /><span
+								class="unselectable">{item.name}</span
+							>
 						</Badge>
-					</MultiSelect>
-				</Label>
+					</MultiSelectChips>
+				</div>
 
-				<Label>
+				<Label class="lg:hidden">
 					<div class="mb-1">Genre</div>
 					<MultiSelect items={genreItems} bind:value={filter.genres} placeholder="Select genre" />
 				</Label>
@@ -215,7 +246,7 @@
 </div>
 
 <div
-	class="grid gap-3 grid-cols-2 min-[470px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 mt-5"
+	class="grid gap-3 grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 mt-5"
 >
 	{#if animes === undefined}
 		{#each new Array(25).fill(0) as _}

@@ -20,30 +20,15 @@
 <div class="flex gap-1.5 flex-wrap">
 	{#each items as item, i (item.value)}
 		{@const checked = status[i]}
-		<label class="label-focus">
-			<div class="w-0 overflow-hidden h-0">
-				<input
-					class="peer w-0 h-0 overflow-hidden opacity-0"
-					type="checkbox"
-					bind:checked={status[i]}
-				/>
-			</div>
+		<label>
+			<input class="peer hidden" type="checkbox" bind:checked={status[i]} />
 			{#if $$slots.default}
 				<slot {item} {checked} />
 			{:else}
-				<Badge
-					class="cursor-pointer border-2 border-transparent {checked ? 'border-primary-700' : ''}"
-					rounded
-				>
+				<Badge class="cursor-pointer border-2 border-transparent peer-border-primary-700" rounded>
 					<span class="unselectable">{item.name ?? item.value}</span>
 				</Badge>
 			{/if}
 		</label>
 	{/each}
 </div>
-
-<style lang="postcss">
-	.label-focus:has(input[type='checkbox']:focus) {
-		@apply scale-105;
-	}
-</style>

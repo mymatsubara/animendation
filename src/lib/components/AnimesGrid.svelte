@@ -9,6 +9,7 @@
 	import type { Animelist } from '$lib/stores/animelist';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { AnimeStatus } from '$lib/trpc/routes/user';
+	import { titleCase } from '$lib/utils/string';
 	import { Badge, Button, Indicator, Input, Label, Toggle } from 'flowbite-svelte';
 	import Fuse from 'fuse.js';
 	import { fade } from 'svelte/transition';
@@ -20,6 +21,7 @@
 		genres?: string[];
 		years?: number[];
 		seasons?: string[];
+		mediaTypes?: string[];
 	};
 	type AnimeWithStatus = AnimeInfo & { status?: AnimeStatus };
 	type Fuzzy = typeof fuzzySearch;
@@ -74,6 +76,11 @@
 		genres.sort((g1, g2) => g1.localeCompare(g2));
 		return genres.map((genre) => ({ value: genre, name: genre }));
 	})();
+	$: mediaItems = (() => {
+		const genres = [...new Set(animes?.flatMap((anime) => anime.mediaType) ?? [])];
+		genres.sort((g1, g2) => g1.localeCompare(g2));
+		return genres.map((genre) => ({ value: genre, name: titleCase(genre) }));
+	})();
 	$: animesWithStatus =
 		(animelist
 			? animes?.map((anime) => ({ ...anime, status: animelist?.get(anime.id)?.status }))
@@ -115,6 +122,11 @@
 		if (filter.seasons?.length) {
 			const seasons = new Set(filter.seasons);
 			animes = animes.filter((anime) => seasons.has(anime.season as string));
+		}
+
+		if (filter.mediaTypes?.length) {
+			const seasons = new Set(filter.mediaTypes);
+			animes = animes.filter((anime) => seasons.has(anime.mediaType as string));
 		}
 
 		return animes;
@@ -258,6 +270,15 @@
 						items={seasonItems}
 						bind:value={filter.seasons}
 						placeholder="Select season"
+					/>
+				</Label>
+
+				<Label>
+					<div class="mb-1">Media type</div>
+					<MultiSelect
+						items={mediaItems}
+						bind:value={filter.mediaTypes}
+						placeholder="Select media type"
 					/>
 				</Label>
 			</div>

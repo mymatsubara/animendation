@@ -1,14 +1,14 @@
 <script lang="ts">
 	import AnimeDisplay from '$lib/components/AnimeDisplay.svelte';
 	import Placeholder from '$lib/components/Placeholder.svelte';
-	import MultiSelectChips from '$lib/components/forms/MultiSelectChips.svelte';
+	import Dropdown from '$lib/components/dropdown/Dropdown.svelte';
+	import MultiSelect from '$lib/components/forms/MultiSelect.svelte';
 	import AdjustmentIcon from '$lib/components/icons/AdjustmentIcon.svelte';
-	import CloseIcon from '$lib/components/icons/CloseIcon.svelte';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
 	import type { Animelist } from '$lib/stores/animelist';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { AnimeStatus } from '$lib/trpc/routes/user';
-	import { Badge, Button, Dropdown, Indicator, Input, Label, Toggle } from 'flowbite-svelte';
+	import { Badge, Button, Indicator, Input, Label, Toggle } from 'flowbite-svelte';
 	import Fuse from 'fuse.js';
 	import { fade } from 'svelte/transition';
 
@@ -16,7 +16,7 @@
 		search?: string;
 		hideSequels: boolean;
 		status: AnimeStatus[];
-		genre?: string;
+		genres?: string[];
 	};
 	type AnimeWithStatus = AnimeInfo & { status?: AnimeStatus };
 	type Fuzzy = typeof fuzzySearch;
@@ -37,11 +37,6 @@
 		| undefined = undefined;
 	export let startFilter: Partial<Filter> = {};
 
-	$: genres = (() => {
-		const genres = [...new Set(animes?.flatMap((anime) => anime.genres) ?? [])];
-		genres.sort((g1, g2) => g1.localeCompare(g2));
-		return genres;
-	})();
 	const statusOptions: StatusOption[] = [
 		{ value: 'completed', name: 'Completed', color: 'blue' },
 		{ value: 'watching', name: 'Watching', color: 'green' },
@@ -56,7 +51,13 @@
 		status: [],
 		...startFilter
 	};
+	let showFilter = false;
 
+	$: genresOptions = (() => {
+		const genres = [...new Set(animes?.flatMap((anime) => anime.genres) ?? [])];
+		genres.sort((g1, g2) => g1.localeCompare(g2));
+		return genres.map((genre) => ({ value: genre, name: genre }));
+	})();
 	$: animesWithStatus =
 		(animelist
 			? animes?.map((anime) => ({ ...anime, status: animelist?.get(anime.id)?.status }))
@@ -80,13 +81,14 @@
 			animes = animes.filter((anime) => !anime.isSequel);
 		}
 
-		const genre = filter.genre;
-		if (genre) {
-			animes = animes.filter((anime) => anime.genres.indexOf(genre) !== -1);
+		if (filter.genres?.length) {
+			const genres = new Set(filter.genres);
+			animes = animes.filter((anime) => anime.genres.some((genre) => genres.has(genre)));
 		}
 
 		if (filter.status?.length) {
-			animes = animes.filter((anime) => filter.status.includes(anime.status as any));
+			const status = new Set(filter.status);
+			animes = animes.filter((anime) => status.has(anime.status as any));
 		}
 
 		return animes;
@@ -124,66 +126,57 @@
 		>
 	</div>
 
-	<div>
-		<Button
-			class="!p-1 aspect-square h-10 border-0 shadow"
-			type="button"
-			outline
-			size="lg"
-			id="filter"><AdjustmentIcon class="h-6" /></Button
-		>
+	<div class="relative">
+		<Dropdown class=" min-w-[min(calc(100vw-2.5rem),500px)] bg-white" bind:open={showFilter}>
+			<svelte:fragment slot="button" let:toggle>
+				<Button
+					class="!p-1 aspect-square h-10 border-0 shadow"
+					type="button"
+					outline
+					size="lg"
+					on:click={toggle}><AdjustmentIcon class="h-6" /></Button
+				>
+			</svelte:fragment>
 
-		<Dropdown
-			containerClass="divide-y z-50 min-w-[300px] max-w-sm sm:max-w-lg border shadow-lg"
-			placement="bottom-end"
-		>
 			<div slot="header" class="text-center py-2 font-bold">Filters</div>
-			<div class="flex flex-col gap-4 py-2 px-4">
+			<div class="flex flex-col gap-4 pt-2 pb-4 px-4">
 				<Toggle
 					class="sm:hidden whitespace-nowrap font-medium text-gray-500 w-max"
 					bind:checked={filter.hideSequels}>Hide sequels</Toggle
 				>
 
-				<div class="text-sm font-medium text-gray-900">
+				<div class="relative text-sm font-medium text-gray-900">
 					<div class="mb-1">Status</div>
-					<MultiSelectChips bind:values={filter.status} items={statusOptions} let:item let:checked>
+					<MultiSelect
+						class="min-h-[41px]"
+						items={statusOptions}
+						bind:value={filter.status}
+						placeholder="Select status"
+						let:item
+						let:clear
+					>
 						<Badge
-							class="cursor-pointer border-2 border-transparent {checked
-								? 'border-primary-700'
-								: ''}"
 							rounded
 							color={notypecheck(item).color}
+							dismissable
+							params={{ duration: 100 }}
+							on:close={clear}
 						>
-							<Indicator color={notypecheck(item).color} size="xs" class="mr-1" /><span
-								class="unselectable">{item.name}</span
-							>
+							<Indicator color={notypecheck(item).color} size="xs" class="mr-1" />{item.name}
 						</Badge>
-					</MultiSelectChips>
+					</MultiSelect>
 				</div>
 
 				<div class="relative">
 					<Label>
 						<div class="mb-1">Genre</div>
-						<select
-							class="w-full border border-gray-300 shadow rounded-lg {!filter.genre
-								? 'text-gray-400'
-								: ''} focus:text-gray-800"
-							bind:value={filter.genre}
-						>
-							<option hidden disabled selected value={undefined}>Any</option>
-							{#each genres as genre}
-								<option value={genre}>{genre}</option>
-							{/each}
-						</select>
+						<MultiSelect
+							class="min-h-[41px]"
+							items={genresOptions}
+							bind:value={filter.genres}
+							placeholder="Select genre"
+						/>
 					</Label>
-					{#if filter.genre}
-						<button
-							class="hover:bg-gray-200 absolute right-7 bottom-1.5 rounded-full p-1"
-							on:click={() => {
-								filter.genre = undefined;
-							}}><CloseIcon class="text-gray-600 h-5 rounded-full" /></button
-						>
-					{/if}
 				</div>
 			</div>
 		</Dropdown>

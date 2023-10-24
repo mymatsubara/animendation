@@ -4,7 +4,6 @@
 	type T = $$Generic<{ value: string; name?: string }>;
 	export let items: T[];
 	export let values: string[] = [];
-	export let clearable = true;
 	let valuesSet = new Set(values);
 	let status = items.map((item) => valuesSet.has(item.value));
 

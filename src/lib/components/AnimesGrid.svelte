@@ -47,6 +47,12 @@
 		{ value: 'dropped', name: 'Dropped', color: 'red' },
 		{ value: undefined as any, name: 'No status', color: 'gray' }
 	];
+	const seasonItems = [
+		{ value: 'winter', name: 'Winter' },
+		{ value: 'spring', name: 'Spring' },
+		{ value: 'summer', name: 'Summer' },
+		{ value: 'fall', name: 'Fall' }
+	];
 
 	let filter: Filter = {
 		hideSequels: false,
@@ -103,6 +109,11 @@
 		if (filter.years?.length) {
 			const years = new Set(filter.years);
 			animes = animes.filter((anime) => years.has(anime.seasonYear as number));
+		}
+
+		if (filter.seasons?.length) {
+			const seasons = new Set(filter.seasons);
+			animes = animes.filter((anime) => seasons.has(anime.season as string));
 		}
 
 		return animes;
@@ -188,6 +199,15 @@
 				<Label>
 					<div class="mb-1">Year</div>
 					<MultiSelect items={yearItems} bind:value={filter.years} placeholder="Select year" />
+				</Label>
+
+				<Label>
+					<div class="mb-1">Season</div>
+					<MultiSelect
+						items={seasonItems}
+						bind:value={filter.seasons}
+						placeholder="Select season"
+					/>
 				</Label>
 			</div>
 		</Dropdown>

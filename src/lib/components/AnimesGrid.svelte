@@ -3,6 +3,7 @@
 	import Placeholder from '$lib/components/Placeholder.svelte';
 	import MultiSelectChips from '$lib/components/forms/MultiSelectChips.svelte';
 	import AdjustmentIcon from '$lib/components/icons/AdjustmentIcon.svelte';
+	import CloseIcon from '$lib/components/icons/CloseIcon.svelte';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
 	import type { Animelist } from '$lib/stores/animelist';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
@@ -36,7 +37,11 @@
 		| undefined = undefined;
 	export let startFilter: Partial<Filter> = {};
 
-	$: genres = new Set(animes?.flatMap((anime) => anime.genres) ?? []);
+	$: genres = (() => {
+		const genres = [...new Set(animes?.flatMap((anime) => anime.genres) ?? [])];
+		genres.sort((g1, g2) => g1.localeCompare(g2));
+		return genres;
+	})();
 	const statusOptions: StatusOption[] = [
 		{ value: 'completed', name: 'Completed', color: 'blue' },
 		{ value: 'watching', name: 'Watching', color: 'green' },
@@ -113,8 +118,9 @@
 	</Input>
 
 	<div class="ml-4 items-center hidden sm:flex">
-		<Toggle class="whitespace-nowrap font-medium text-gray-500" bind:checked={filter.hideSequels}
-			>Hide sequels</Toggle
+		<Toggle
+			class="whitespace-nowrap font-medium text-gray-500 w-max"
+			bind:checked={filter.hideSequels}>Hide sequels</Toggle
 		>
 	</div>
 
@@ -126,6 +132,7 @@
 			size="lg"
 			id="filter"><AdjustmentIcon class="h-6" /></Button
 		>
+
 		<Dropdown
 			containerClass="divide-y z-50 min-w-[300px] max-w-sm sm:max-w-lg border shadow-lg"
 			placement="bottom-end"
@@ -133,14 +140,17 @@
 			<div slot="header" class="text-center py-2 font-bold">Filters</div>
 			<div class="flex flex-col gap-4 py-2 px-4">
 				<Toggle
-					class="sm:hidden whitespace-nowrap font-medium text-gray-500"
+					class="sm:hidden whitespace-nowrap font-medium text-gray-500 w-max"
 					bind:checked={filter.hideSequels}>Hide sequels</Toggle
 				>
+
 				<div class="text-sm font-medium text-gray-900">
 					<div class="mb-1">Status</div>
 					<MultiSelectChips bind:values={filter.status} items={statusOptions} let:item let:checked>
 						<Badge
-							class="cursor-pointer border-2 border-transparent peer-checked:border-primary-700"
+							class="cursor-pointer border-2 border-transparent {checked
+								? 'border-primary-700'
+								: ''}"
 							rounded
 							color={notypecheck(item).color}
 						>
@@ -151,15 +161,30 @@
 					</MultiSelectChips>
 				</div>
 
-				<Label>
-					<div class="mb-1">Genre</div>
-					<select class="w-full border border-gray-300 shadow rounded-lg" bind:value={filter.genre}>
-						<option hidden disabled selected value>Any</option>
-						{#each genres as genre}
-							<option value={genre}>{genre}</option>
-						{/each}
-					</select>
-				</Label>
+				<div class="relative">
+					<Label>
+						<div class="mb-1">Genre</div>
+						<select
+							class="w-full border border-gray-300 shadow rounded-lg {!filter.genre
+								? 'text-gray-400'
+								: ''} focus:text-gray-800"
+							bind:value={filter.genre}
+						>
+							<option hidden disabled selected value={undefined}>Any</option>
+							{#each genres as genre}
+								<option value={genre}>{genre}</option>
+							{/each}
+						</select>
+					</Label>
+					{#if filter.genre}
+						<button
+							class="hover:bg-gray-200 absolute right-7 bottom-1.5 rounded-full p-1"
+							on:click={() => {
+								filter.genre = undefined;
+							}}><CloseIcon class="text-gray-600 h-5 rounded-full" /></button
+						>
+					{/if}
+				</div>
 			</div>
 		</Dropdown>
 	</div>

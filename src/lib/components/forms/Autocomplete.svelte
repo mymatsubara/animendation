@@ -33,7 +33,7 @@
 
 	function updatePosition() {
 		computePosition(input as ReferenceElement, tooltip, {
-			placement: 'top',
+			placement: 'bottom',
 			middleware: [offset(4), flip()]
 		}).then(({ x, y }) => {
 			Object.assign(tooltip.style, {
@@ -143,6 +143,9 @@
 					{label(option)}
 				</div>
 			{/each}
+			{#if filteredOptions.length === 0}
+				<div class="text-left p-2 rounded-lg font-medium text-gray-500">No results</div>
+			{/if}
 		</div>
 	</div>
 </div>

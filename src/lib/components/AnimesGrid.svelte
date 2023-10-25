@@ -148,7 +148,8 @@
 			status: [],
 			genres: [],
 			seasons: [],
-			years: []
+			years: [],
+			mediaTypes: []
 		};
 	}
 
@@ -212,7 +213,7 @@
 	</div>
 
 	<div class="relative">
-		<Dropdown class=" min-w-[min(calc(100vw-2.5rem),500px)] bg-white" bind:open={showFilter}>
+		<Dropdown class=" min-w-[min(calc(100vw-1.5rem),500px)] bg-white" bind:open={showFilter}>
 			<svelte:fragment slot="button" let:toggle>
 				<Button
 					class="!p-1 aspect-square h-10 border-0 shadow"
@@ -287,7 +288,7 @@
 </div>
 
 <div
-	class="grid gap-3 grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 mt-5"
+	class="grid gap-3 grid-cols-2 min-[470px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 mt-5"
 >
 	{#if animes === undefined}
 		{#each new Array(25).fill(0) as _}
@@ -311,17 +312,13 @@
 					>
 						<AnimeDisplay
 							title={anime.title}
-							pictureUrl={anime.pictureMedium}
+							pictureUrl={anime.pictureLarge}
 							status={anime.status}
 							{isRecommended}
 						/>
 					</button>
 				{:else}
-					<AnimeDisplay
-						title={anime.title}
-						pictureUrl={anime.pictureMedium}
-						status={anime.status}
-					/>
+					<AnimeDisplay title={anime.title} pictureUrl={anime.pictureLarge} status={anime.status} />
 				{/if}
 
 				<div class="h-11 overflow-ellipsis overflow-hidden text-sm font-medium text-gray-600">

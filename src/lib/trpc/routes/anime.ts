@@ -73,7 +73,7 @@ async function getAnimesInfo(ids: number[]) {
 			'seasonYear',
 			'nsfw',
 			'genres',
-			'pictureMedium',
+			'pictureLarge',
 			'isSequel'
 		])
 		.where('id', 'in', ids)

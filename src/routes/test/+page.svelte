@@ -1,22 +1,50 @@
 <script lang="ts">
-	import MultiselectChips from '$lib/components/forms/MultiSelectChips.svelte';
+	import Autocomplete from '$lib/components/forms/Autocomplete.svelte';
+	import {
+		autoUpdate,
+		computePosition,
+		flip,
+		offset,
+		type ReferenceElement
+	} from '@floating-ui/dom';
+	let input: HTMLElement;
+	let tooltip: HTMLElement;
 
-	const items = [
-		{
-			value: 'watching',
-			title: 'Watching',
-			color: 'blue'
-		},
-		{
-			value: 'plan_to_watch',
-			title: 'Plan to watch',
-			color: 'gray'
-		}
-	];
+	function updatePosition() {
+		computePosition(input as ReferenceElement, tooltip, {
+			placement: 'top',
+			middleware: [offset(6), flip()]
+		}).then(({ x, y }) => {
+			Object.assign(tooltip.style, {
+				left: `${x}px`,
+				top: `${y}px`
+			});
+		});
+	}
 
-	let values: string[] = [];
+	let cleanup: () => void;
+
+	function showTooltip() {
+		tooltip.style.display = 'block';
+		cleanup = autoUpdate(input, tooltip, updatePosition);
+	}
+
+	function hideTooltip() {
+		tooltip.style.display = 'none';
+		cleanup?.();
+	}
 </script>
 
-<MultiselectChips bind:values {items} let:item />
-
-{values}
+<div class="h-16" />
+<Autocomplete
+	placeholder="Genre"
+	options={new Array(100).fill(0).map((_, i) => ({ value: `Genre ${i}` }))}
+/>
+<select>
+	<option>Test1</option>
+	<option>Test2</option>
+	<option>Test3</option>
+	<option>Test4</option>
+	<option>Test5</option>
+</select>
+<div class="h-[1000px]" />

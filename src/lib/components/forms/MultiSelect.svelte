@@ -13,21 +13,19 @@
 </script>
 
 <div class="relative w-full">
-	{#key empty}
-		{#if $$slots.default}
-			<MultiSelect
-				class={twMerge('min-h-[41px]', $$restProps.class)}
-				{items}
-				bind:value
-				let:item
-				let:clear
-			>
-				<slot {item} {clear} />
-			</MultiSelect>
-		{:else}
-			<MultiSelect class={twMerge('min-h-[41px]', $$restProps.class)} {items} bind:value />
-		{/if}
-	{/key}
+	{#if $$slots.default}
+		<MultiSelect
+			class={twMerge('min-h-[41px]', $$restProps.class)}
+			{items}
+			bind:value
+			let:item
+			let:clear
+		>
+			<slot {item} {clear} />
+		</MultiSelect>
+	{:else}
+		<MultiSelect class={twMerge('min-h-[41px]', $$restProps.class)} {items} bind:value />
+	{/if}
 
 	{#if !value?.length}
 		<div class="absolute top-1/2 -translate-y-1/2 left-4 text-gray-500">{placeholder}</div>

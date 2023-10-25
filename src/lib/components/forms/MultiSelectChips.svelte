@@ -28,13 +28,11 @@
 		{@const checked = status[i]}
 		<label>
 			<input class="peer hidden" type="checkbox" bind:checked={status[i]} />
-			{#if $$slots.default}
-				<slot {item} {checked} />
-			{:else}
+			<slot {item} {checked}>
 				<Badge class="cursor-pointer border-2 border-transparent peer-border-primary-700" rounded>
 					<span class="unselectable">{item.name ?? item.value}</span>
 				</Badge>
-			{/if}
+			</slot>
 		</label>
 	{/each}
 </div>

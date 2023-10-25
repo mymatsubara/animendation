@@ -6,6 +6,7 @@
 		offset,
 		type ReferenceElement
 	} from '@floating-ui/dom';
+	import { onDestroy } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
 	type Option = { value: string; label?: string };
@@ -18,6 +19,9 @@
 	let inputText: string | undefined = value;
 	let input: HTMLElement;
 	let tooltip: HTMLElement;
+	let cleanup: () => void;
+	let focusedIndex = 0;
+	let componentId = `multiselect-${Math.random()}`;
 
 	$: filteredOptions = inputText
 		? options.filter((option) =>
@@ -39,8 +43,6 @@
 		});
 	}
 
-	let cleanup: () => void;
-
 	function showTooltip() {
 		tooltip.style.display = 'block';
 		cleanup = autoUpdate(input, tooltip, updatePosition);
@@ -55,13 +57,31 @@
 		return option.label ?? option.value;
 	}
 
-	function select(option: Option) {
+	function select(option?: Option) {
 		selectedOption = option;
-		value = option.value;
-		inputText = label(option);
+		value = option?.value;
+		inputText = option ? label(option) : undefined;
+		focusedIndex = 0;
 	}
 
 	const notypescheck = (x: any) => x;
+
+	onDestroy(() => {
+		cleanup?.();
+	});
+
+	function scrollTo(optionIndex: number) {
+		const focusedElement = document.getElementById(optionId(optionIndex));
+
+		if (focusedElement && tooltip) {
+			const offset = 200;
+			tooltip.scrollTop = Math.max(notypescheck(focusedElement).offsetTop - offset, 0);
+		}
+	}
+
+	function optionId(optionIndex: number) {
+		return `${componentId}-${optionIndex}`;
+	}
 </script>
 
 <div class="relative w-full">
@@ -69,22 +89,32 @@
 		class={twMerge('p-2 w-full rounded-lg border border-gray-300', $$restProps.class)}
 		type="search"
 		{placeholder}
+		on:input={() => {
+			focusedIndex = 0;
+			tooltip.scrollTop = 0;
+		}}
 		on:focus={showTooltip}
 		on:focusout={hideTooltip}
 		on:keydown={(e) => {
 			if (e.key === 'Escape') {
 				e.preventDefault();
-				// inputText = selectedOption ? label(selectedOption) : '';
-				input.blur();
-			}
 
-			if (e.key === 'Enter' && filteredOptions.length) {
-				const hoveredOption = document.querySelectorAll(':hover[data-index]');
-				const index = Number(notypescheck(hoveredOption[0])?.dataset?.index ?? 0);
-
-				select(filteredOptions[index]);
+				if (inputText) {
+					select(undefined);
+					tooltip.scrollTop = 0;
+				} else {
+					input.blur();
+				}
+			} else if (e.key === 'Enter' && filteredOptions.length) {
+				select(filteredOptions[focusedIndex]);
 				hideTooltip();
 				input.blur();
+			} else if (e.key === 'ArrowDown') {
+				focusedIndex = Math.min(focusedIndex + 1, filteredOptions.length - 1);
+				scrollTo(focusedIndex);
+			} else if (e.key === 'ArrowUp') {
+				focusedIndex = Math.max(focusedIndex - 1, 0);
+				scrollTo(focusedIndex);
 			}
 		}}
 		bind:this={input}
@@ -92,22 +122,26 @@
 	/>
 
 	<div
-		class="absolute w-full hidden max-h-72 bg-white p-3 rounded-lg text-sm border border-gray-300 h-max overflow-y-scroll"
+		class="z-10 absolute w-full hidden max-h-72 bg-white p-3 rounded-lg text-sm border border-gray-300 h-max overflow-y-scroll"
 		bind:this={tooltip}
 	>
 		<div class="flex flex-col">
 			{#each filteredOptions as option, i (option.value)}
-				<option
-					data-index={i}
+				<!-- svelte-ignore a11y-no-static-element-interactions -->
+				<div
+					id={optionId(i)}
 					transition:slide={{ duration: 150 }}
-					class="text-left hover:bg-gray-100 p-2 rounded-lg font-medium"
+					class="text-left p-2 rounded-lg font-medium {focusedIndex === i ? 'bg-gray-100' : ''}"
 					on:mousedown={() => {
 						console.log('clicked');
 						select(option);
 					}}
+					on:mouseenter={() => {
+						focusedIndex = i;
+					}}
 				>
 					{label(option)}
-				</option>
+				</div>
 			{/each}
 		</div>
 	</div>

@@ -13,7 +13,6 @@
 
 	export let options: Option[];
 	export let value: string | undefined = undefined;
-	export let placeholder: string | undefined = undefined;
 
 	let selectedOption: Option | undefined;
 	let inputText: string | undefined = value;
@@ -43,14 +42,45 @@
 		});
 	}
 
+	let keyboard: 'open' | 'closed' = 'closed';
+	function virtualKeyboardHandler(event: any) {
+		const clientHeight = document.scrollingElement?.clientHeight;
+		const viewportHeight = event.target?.height;
+
+		let prevKeyboard = keyboard;
+		keyboard =
+			clientHeight && viewportHeight && Math.abs(clientHeight - viewportHeight) > 30
+				? 'open'
+				: 'closed';
+
+		if (prevKeyboard === 'open' && keyboard === 'closed') {
+			hideTooltip();
+		} else if (prevKeyboard === 'closed' && keyboard === 'open') {
+			showTooltip();
+		}
+	}
+
 	function showTooltip() {
 		tooltip.style.display = 'block';
 		cleanup = autoUpdate(input, tooltip, updatePosition);
+
+		if ('visualViewport' in window) {
+			(window.visualViewport as any).addEventListener('resize', virtualKeyboardHandler);
+		}
 	}
 
 	function hideTooltip() {
 		tooltip.style.display = 'none';
 		cleanup?.();
+
+		// Clear when inputText does not match the option
+		if (!selectedOption || label(selectedOption) !== inputText) {
+			select(undefined);
+		}
+
+		if ('visualViewport' in navigator) {
+			(navigator.visualViewport as any).removeEventListener('resize', virtualKeyboardHandler);
+		}
 	}
 
 	function label(option: Option) {
@@ -86,9 +116,12 @@
 
 <div class="relative w-full">
 	<input
-		class={twMerge('p-2 w-full rounded-lg border border-gray-300', $$restProps.class)}
+		{...$$restProps}
+		class={twMerge(
+			'px-4 py-2.5 w-full rounded-lg border border-gray-300 text-sm font-medium',
+			$$restProps.class
+		)}
 		type="search"
-		{placeholder}
 		on:input={() => {
 			focusedIndex = 0;
 			tooltip.scrollTop = 0;
@@ -109,6 +142,10 @@
 				select(filteredOptions[focusedIndex]);
 				hideTooltip();
 				input.blur();
+			} else if (e.key === 'Enter' && filteredOptions.length === 0) {
+				select(undefined);
+				hideTooltip();
+				input.blur();
 			} else if (e.key === 'ArrowDown') {
 				focusedIndex = Math.min(focusedIndex + 1, filteredOptions.length - 1);
 				scrollTo(focusedIndex);
@@ -122,7 +159,7 @@
 	/>
 
 	<div
-		class="z-10 absolute w-full hidden max-h-72 bg-white p-3 rounded-lg text-sm border border-gray-300 h-max overflow-y-scroll"
+		class="z-10 absolute w-full hidden max-h-72 bg-white p-3 rounded-lg text-sm border border-gray-300 h-max overflow-y-auto"
 		bind:this={tooltip}
 	>
 		<div class="flex flex-col">

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ChevronDownIcon from '$lib/components/icons/ChevronDownIcon.svelte';
 	import {
 		autoUpdate,
 		computePosition,
@@ -21,6 +22,7 @@
 	let cleanup: () => void;
 	let focusedIndex = 0;
 	let componentId = `multiselect-${Math.random()}`;
+	let open = false;
 
 	$: filteredOptions = inputText
 		? options.filter((option) =>
@@ -63,6 +65,7 @@
 	function showTooltip() {
 		tooltip.style.display = 'block';
 		cleanup = autoUpdate(input, tooltip, updatePosition);
+		open = true;
 
 		if ('visualViewport' in window) {
 			(window.visualViewport as any).addEventListener('resize', virtualKeyboardHandler);
@@ -72,6 +75,7 @@
 	function hideTooltip() {
 		tooltip.style.display = 'none';
 		cleanup?.();
+		open = false;
 
 		// Clear when inputText does not match the option
 		if (!selectedOption || label(selectedOption) !== inputText) {
@@ -158,6 +162,13 @@
 		bind:value={inputText}
 	/>
 
+	<ChevronDownIcon
+		stroke-width="3.5"
+		class="absolute p-1 right-3 top-1/2 -translate-y-1/2 h-6 transition {open
+			? 'rotate-180'
+			: 'pointer-events-none'}"
+	/>
+
 	<div
 		class="z-10 absolute w-full hidden max-h-72 bg-white p-3 rounded-lg text-sm border border-gray-300 h-max overflow-y-auto"
 		bind:this={tooltip}
@@ -186,3 +197,9 @@
 		</div>
 	</div>
 </div>
+
+<style lang="postcss">
+	input[type='search']::-webkit-search-cancel-button {
+		@apply right-5;
+	}
+</style>

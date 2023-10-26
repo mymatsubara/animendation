@@ -32,6 +32,19 @@ export function toRecord<T>(array: T[], predicate: (v: T) => Key) {
 	return result;
 }
 
+export function toRecordMap<T, O>(array: T[], predicate: (v: T) => Key, map: (v: T) => O) {
+	const result: { [k: Key]: O } = {};
+
+	const len = array.length;
+	for (let i = 0; i < len; i++) {
+		const value = array[i];
+		const key = predicate(value);
+		result[key] = map(value);
+	}
+
+	return result;
+}
+
 export function toMap<K, T>(array: T[], predicate: (v: T) => K) {
 	const result = new Map<K, T>();
 

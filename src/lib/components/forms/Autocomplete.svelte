@@ -10,13 +10,16 @@
 	import { onDestroy } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
-	type Option = { value: string; label?: string };
+
+	type V = $$Generic;
+	type T = $$Generic<Option<V>>;
+	type Option = { value: V; label?: string };
 
 	export let options: Option[];
-	export let value: string | undefined = undefined;
+	export let value: V | undefined = undefined;
 
 	let selectedOption: Option | undefined;
-	let inputText: string | undefined = value;
+	let inputText: string | undefined = value?.toString();
 	let input: HTMLElement;
 	let tooltip: HTMLElement;
 	let cleanup: () => void;
@@ -88,7 +91,7 @@
 	}
 
 	function label(option: Option) {
-		return option.label ?? option.value;
+		return option.label ?? option.value?.toString();
 	}
 
 	function select(option?: Option) {
@@ -164,7 +167,7 @@
 
 	<ChevronDownIcon
 		stroke-width="3.5"
-		class="absolute p-1 right-3 top-1/2 -translate-y-1/2 h-6 transition {open
+		class="absolute p-1 right-3 top-1/2 -translate-y-1/2 h-6 transition cursor-pointer {open
 			? 'rotate-180'
 			: 'pointer-events-none'}"
 	/>

@@ -2,32 +2,33 @@
 	import AnimeDisplay from '$lib/components/AnimeDisplay.svelte';
 	import Placeholder from '$lib/components/Placeholder.svelte';
 	import Dropdown from '$lib/components/dropdown/Dropdown.svelte';
-	import MultiSelect from '$lib/components/forms/MultiSelect.svelte';
+	import MultiSelectAutocomplete from '$lib/components/forms/MultiSelectAutocomplete.svelte';
 	import MultiSelectChips from '$lib/components/forms/MultiSelectChips.svelte';
 	import AdjustmentIcon from '$lib/components/icons/AdjustmentIcon.svelte';
+	import CloseIcon from '$lib/components/icons/CloseIcon.svelte';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
 	import type { Animelist } from '$lib/stores/animelist';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { AnimeStatus } from '$lib/trpc/routes/user';
 	import { titleCase } from '$lib/utils/string';
-	import { Badge, Button, Indicator, Input, Label, Toggle } from 'flowbite-svelte';
+	import { Badge, Button, Indicator, Input, Toggle } from 'flowbite-svelte';
 	import Fuse from 'fuse.js';
 	import { fade } from 'svelte/transition';
 
 	type Filter = {
 		search?: string;
 		hideSequels: boolean;
-		status: AnimeStatus[];
-		genres?: string[];
-		years?: number[];
-		seasons?: string[];
-		mediaTypes?: string[];
+		status?: Set<AnimeStatus>;
+		genres?: Set<string>;
+		years?: Set<number>;
+		seasons?: Set<string>;
+		mediaTypes?: Set<string>;
 	};
 	type AnimeWithStatus = AnimeInfo & { status?: AnimeStatus };
 	type Fuzzy = typeof fuzzySearch;
 	type StatusOption = {
 		value: AnimeStatus;
-		name: string;
+		label: string;
 		color: string;
 	};
 
@@ -42,44 +43,43 @@
 		| undefined = undefined;
 	export let startFilter: Partial<Filter> = {};
 
-	const statusItems: StatusOption[] = [
-		{ value: 'completed', name: 'Completed', color: 'blue' },
-		{ value: 'watching', name: 'Watching', color: 'green' },
-		{ value: 'plan_to_watch', name: 'Plan to watch', color: 'dark' },
-		{ value: 'on_hold', name: 'On hold', color: 'yellow' },
-		{ value: 'dropped', name: 'Dropped', color: 'red' },
-		{ value: undefined as any, name: 'No status', color: 'gray' }
+	const statusOptions: StatusOption[] = [
+		{ value: 'completed', label: 'Completed', color: 'blue' },
+		{ value: 'watching', label: 'Watching', color: 'green' },
+		{ value: 'plan_to_watch', label: 'Plan to watch', color: 'dark' },
+		{ value: 'on_hold', label: 'On hold', color: 'yellow' },
+		{ value: 'dropped', label: 'Dropped', color: 'red' },
+		{ value: undefined as any, label: 'No status', color: 'gray' }
 	];
-	const seasonItems = [
-		{ value: 'winter', name: 'Winter' },
-		{ value: 'spring', name: 'Spring' },
-		{ value: 'summer', name: 'Summer' },
-		{ value: 'fall', name: 'Fall' }
+	const seasonOptions = [
+		{ value: 'winter', label: 'Winter' },
+		{ value: 'spring', label: 'Spring' },
+		{ value: 'summer', label: 'Summer' },
+		{ value: 'fall', label: 'Fall' }
 	];
 
 	let filter: Filter = {
 		hideSequels: false,
-		status: [],
 		...startFilter
 	};
 	let showFilter = false;
 
-	$: yearItems = (() => {
+	$: yearOptions = (() => {
 		const years = [
 			...new Set(animes?.map((anime) => anime.seasonYear).filter((year) => year) as number[])
 		];
 		years.sort((y1, y2) => y2 - y1);
-		return years.map((year) => ({ value: year, name: year }));
+		return years.map((year) => ({ value: year, label: year.toString() }));
 	})();
-	$: genreItems = (() => {
+	$: genreOptions = (() => {
 		const genres = [...new Set(animes?.flatMap((anime) => anime.genres) ?? [])];
 		genres.sort((g1, g2) => g1.localeCompare(g2));
-		return genres.map((genre) => ({ value: genre, name: genre }));
+		return genres.map((genre) => ({ value: genre, label: genre }));
 	})();
-	$: mediaItems = (() => {
+	$: mediaOptions = (() => {
 		const genres = [...new Set(animes?.flatMap((anime) => anime.mediaType) ?? [])];
 		genres.sort((g1, g2) => g1.localeCompare(g2));
-		return genres.map((genre) => ({ value: genre, name: titleCase(genre) }));
+		return genres.map((genre) => ({ value: genre, label: titleCase(genre) }));
 	})();
 	$: animesWithStatus =
 		(animelist
@@ -104,29 +104,24 @@
 			animes = animes.filter((anime) => !anime.isSequel);
 		}
 
-		if (filter.genres?.length) {
-			const genres = new Set(filter.genres);
-			animes = animes.filter((anime) => anime.genres.some((genre) => genres.has(genre)));
+		if (filter.genres?.size) {
+			animes = animes.filter((anime) => anime.genres.some((genre) => filter.genres?.has(genre)));
 		}
 
-		if (filter.status?.length) {
-			const status = new Set(filter.status);
-			animes = animes.filter((anime) => status.has(anime.status as any));
+		if (filter.status?.size) {
+			animes = animes.filter((anime) => filter.status?.has(anime.status as any));
 		}
 
-		if (filter.years?.length) {
-			const years = new Set(filter.years);
-			animes = animes.filter((anime) => years.has(anime.seasonYear as number));
+		if (filter.years?.size) {
+			animes = animes.filter((anime) => filter.years?.has(anime.seasonYear as number));
 		}
 
-		if (filter.seasons?.length) {
-			const seasons = new Set(filter.seasons);
-			animes = animes.filter((anime) => seasons.has(anime.season as string));
+		if (filter.seasons?.size) {
+			animes = animes.filter((anime) => filter.seasons?.has(anime.season as string));
 		}
 
-		if (filter.mediaTypes?.length) {
-			const seasons = new Set(filter.mediaTypes);
-			animes = animes.filter((anime) => seasons.has(anime.mediaType as string));
+		if (filter.mediaTypes?.size) {
+			animes = animes.filter((anime) => filter.seasons?.has(anime.mediaType as string));
 		}
 
 		return animes;
@@ -145,11 +140,11 @@
 		filter = {
 			search: filter.search,
 			hideSequels: false,
-			status: [],
-			genres: [],
-			seasons: [],
-			years: [],
-			mediaTypes: []
+			status: new Set(),
+			genres: new Set(),
+			seasons: new Set(),
+			years: new Set(),
+			mediaTypes: new Set()
 		};
 	}
 
@@ -173,34 +168,31 @@
 		</div>
 
 		<div class="hidden md:block">
-			<MultiSelect
-				class="bg-gray-50 border-0 shadow w-full"
+			<MultiSelectAutocomplete
+				class="border-transparent shadow"
+				options={statusOptions}
+				bind:values={filter.status}
 				placeholder="Status"
-				items={statusItems}
-				bind:value={filter.status}
-				let:item
-				let:clear
+				let:option
 			>
 				<Badge
-					class="border-2 border-transparent"
+					class="border-2 border-transparent hover:shadow"
 					rounded
-					color={notypecheck(item).color}
-					dismissable
-					on:close={clear}
+					color={notypecheck(option.color)}
 				>
-					<Indicator color={notypecheck(item).color} size="xs" class="mr-1" /><span
-						class="unselectable">{item.name}</span
-					>
+					<Indicator color={notypecheck(option.color)} size="xs" class="mr-1" /><span
+						class="unselectable">{option.label}</span
+					><CloseIcon stroke-width="2.5" class="h-3 ml-1" />
 				</Badge>
-			</MultiSelect>
+			</MultiSelectAutocomplete>
 		</div>
 
 		<div class="hidden lg:block">
-			<MultiSelect
-				class="bg-gray-50 border-0 shadow w-full"
-				placeholder="Genre"
-				items={genreItems}
-				bind:value={filter.genres}
+			<MultiSelectAutocomplete
+				class="bg-gray-50 border-0 shadow"
+				placeholder="Genres"
+				options={genreOptions}
+				bind:values={filter.genres}
 			/>
 		</div>
 	</div>
@@ -242,46 +234,63 @@
 
 				<div class="md:hidden text-sm font-medium text-gray-900 dark:text-gray-300">
 					<div class="mb-1">Status</div>
-					<MultiSelectChips items={statusItems} bind:values={filter.status} let:item let:checked>
+					<MultiSelectChips
+						options={statusOptions}
+						bind:values={filter.status}
+						let:option
+						let:checked
+					>
 						<Badge
-							class="cursor-pointer border-2 border-transparent peer-checked:border-primary-700"
+							class={checked ? 'outline outline-2 outline-primary-600' : ''}
 							rounded
-							color={notypecheck(item).color}
+							color={notypecheck(option.color)}
 						>
-							<Indicator color={notypecheck(item).color} size="xs" class="mr-1" /><span
-								class="unselectable">{item.name}</span
+							<Indicator color={notypecheck(option.color)} size="xs" class="mr-1" /><span
+								class="unselectable">{option.label}</span
 							>
 						</Badge>
 					</MultiSelectChips>
 				</div>
 
-				<Label class="lg:hidden">
-					<div class="mb-1">Genre</div>
-					<MultiSelect items={genreItems} bind:value={filter.genres} placeholder="Select genre" />
-				</Label>
+				<fieldset class="lg:hidden">
+					<label for="genreFilter">Genre</label>
+					<MultiSelectAutocomplete
+						id="genreFilter"
+						options={genreOptions}
+						bind:values={filter.genres}
+						placeholder="Select genres"
+					/>
+				</fieldset>
 
-				<Label>
-					<div class="mb-1">Year</div>
-					<MultiSelect items={yearItems} bind:value={filter.years} placeholder="Select year" />
-				</Label>
+				<fieldset>
+					<label for="yearFilter">Year</label>
+					<MultiSelectAutocomplete
+						id="yearFilter"
+						options={yearOptions}
+						bind:values={filter.years}
+						placeholder="Select years"
+					/>
+				</fieldset>
 
-				<Label>
-					<div class="mb-1">Season</div>
-					<MultiSelect
-						items={seasonItems}
-						bind:value={filter.seasons}
+				<fieldset>
+					<label for="seasonFilter">Season</label>
+					<MultiSelectAutocomplete
+						id="seasonFilter"
+						options={seasonOptions}
+						bind:values={filter.seasons}
 						placeholder="Select season"
 					/>
-				</Label>
+				</fieldset>
 
-				<Label>
-					<div class="mb-1">Media type</div>
-					<MultiSelect
-						items={mediaItems}
-						bind:value={filter.mediaTypes}
+				<fieldset>
+					<label for="mediaFilter">Media type</label>
+					<MultiSelectAutocomplete
+						id="mediaFilter"
+						options={mediaOptions}
+						bind:values={filter.mediaTypes}
 						placeholder="Select media type"
 					/>
-				</Label>
+				</fieldset>
 			</div>
 		</Dropdown>
 	</div>

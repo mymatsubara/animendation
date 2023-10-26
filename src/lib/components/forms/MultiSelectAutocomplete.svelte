@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ChevronDownIcon from '$lib/components/icons/ChevronDownIcon.svelte';
 	import CloseIcon from '$lib/components/icons/CloseIcon.svelte';
-	import { toRecord } from '$lib/utils/array';
+	import { toMap } from '$lib/utils/array';
 	import {
 		autoUpdate,
 		computePosition,
@@ -13,12 +13,13 @@
 	import { onDestroy } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
-	type Option = { value: string; label?: string };
 
+	type Value = $$Generic;
+	type Option = $$Generic<{ value: Value; label?: string }>;
 	export let options: Option[];
-	export let values: Set<string> | undefined = new Set();
+	export let values: Set<Value> | undefined = new Set();
 
-	$: optionsByValue = toRecord(options, (option) => option.value);
+	$: optionsByValue = toMap(options, (option) => option.value);
 	let inputText: string | undefined = undefined;
 	let input: HTMLElement;
 	let tooltip: HTMLElement;
@@ -29,7 +30,7 @@
 	let open = false;
 
 	$: values = values ?? new Set();
-	$: selectedOptions = [...(values ?? [])].map((value) => optionsByValue[value]);
+	$: selectedOptions = [...(values ?? [])].map((value) => optionsByValue.get(value) as Option);
 	$: unselectedOptions = options.filter((option) => !values?.has(option.value));
 	$: filteredOptions = inputText
 		? unselectedOptions.filter((option) =>
@@ -64,14 +65,16 @@
 
 		if (prevKeyboard === 'open' && keyboard === 'closed') {
 			hideTooltip();
-		} else if (prevKeyboard === 'closed' && keyboard === 'open') {
-			showTooltip();
 		}
 	}
 
 	function showTooltip() {
+		if (open) {
+			return;
+		}
+
 		tooltip.style.display = 'block';
-		cleanup = autoUpdate(input, tooltip, updatePosition);
+		cleanup = autoUpdate(inputContainer, tooltip, updatePosition);
 		open = true;
 
 		if ('visualViewport' in window) {
@@ -81,6 +84,7 @@
 
 	function hideTooltip() {
 		tooltip.style.display = 'none';
+		input.blur();
 		cleanup?.();
 		open = false;
 
@@ -132,16 +136,16 @@
 
 <div class="relative w-full">
 	<div
-		class="bg-gray-50 border border-gray-300 rounded-lg input-container"
+		class={twMerge(
+			'bg-gray-50 border border-gray-300 rounded-lg input-container',
+			$$restProps.class
+		)}
 		bind:this={inputContainer}
 	>
 		<div class="relative">
 			<input
 				{...$$restProps}
-				class={twMerge(
-					'px-4 py-2.5 w-full rounded-lg border-0 bg-transparent text-sm font-medium focus:ring-0',
-					$$restProps.class
-				)}
+				class="px-4 py-2.5 w-full rounded-lg border-0 bg-transparent text-sm font-medium focus:ring-0"
 				type="search"
 				on:input={() => {
 					focusedIndex = 0;
@@ -181,23 +185,22 @@
 
 			<ChevronDownIcon
 				stroke-width="3.5"
-				class="absolute p-1 right-3 top-1/2 -translate-y-1/2 h-6 transition {open
+				class="absolute p-1 right-3 top-1/2 -translate-y-1/2 h-6 transition cursor-pointer {open
 					? 'rotate-180'
 					: 'pointer-events-none'}"
 			/>
 		</div>
 
 		{#if values?.size}
-			<div class="flex flex-wrap gap-1 px-3 pb-2">
+			<div class="flex flex-wrap gap-1 px-3 pb-2 items-center">
 				{#each selectedOptions as option (option.value)}
-					{@const unselectOption = () => unselect(option)}
-					<slot name="chip" {option} unselect={unselectOption}>
-						<button class="cursor-pointer" on:click={unselectOption}>
-							<Badge class="cursor-pointer pl-2 pr-1.5 hover:shadow" on:click={unselectOption}
+					<button on:click={() => unselect(option)}>
+						<slot {option}>
+							<Badge rounded class="pl-2 pr-1.5 hover:shadow"
 								>{label(option)}<CloseIcon stroke-width="2.0" class="h-3 ml-1" /></Badge
 							>
-						</button>
-					</slot>
+						</slot>
+					</button>
 				{/each}
 			</div>
 		{/if}

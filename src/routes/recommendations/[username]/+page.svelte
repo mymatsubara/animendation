@@ -80,7 +80,7 @@
 	</div>
 </div>
 
-<section class="container mt-4">
+<section class="container mt-4 pb-2">
 	<div class="flex gap-1 items-center">
 		<h1 class="text-xl tracking-tight font-medium">Recommendations</h1>
 		{#if username.toLocaleLowerCase() === $user?.username?.toLocaleLowerCase()}

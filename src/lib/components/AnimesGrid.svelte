@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { AnimeService } from '$lib/clients/jikan/generated';
 	import AnimeDisplay from '$lib/components/AnimeDisplay.svelte';
 	import Placeholder from '$lib/components/Placeholder.svelte';
 	import Dropdown from '$lib/components/dropdown/Dropdown.svelte';
@@ -6,12 +7,13 @@
 	import MultiSelectChips from '$lib/components/forms/MultiSelectChips.svelte';
 	import AdjustmentIcon from '$lib/components/icons/AdjustmentIcon.svelte';
 	import CloseIcon from '$lib/components/icons/CloseIcon.svelte';
+	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
 	import type { Animelist } from '$lib/stores/animelist';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { AnimeStatus } from '$lib/trpc/routes/user';
 	import { titleCase } from '$lib/utils/string';
-	import { Badge, Button, Indicator, Input, Toggle } from 'flowbite-svelte';
+	import { Badge, Button, Indicator, Input, Spinner, Toggle } from 'flowbite-svelte';
 	import Fuse from 'fuse.js';
 	import { fade } from 'svelte/transition';
 
@@ -63,6 +65,16 @@
 		...startFilter
 	};
 	let showFilter = false;
+	let loadingMal = false;
+	let malPage = 1;
+	let malHasNextPage = true;
+
+	$: {
+		if (filter) {
+			malPage = 1;
+			malHasNextPage = true;
+		}
+	}
 
 	$: yearOptions = (() => {
 		const years = [
@@ -81,15 +93,18 @@
 		genres.sort((g1, g2) => g1.localeCompare(g2));
 		return genres.map((genre) => ({ value: genre, label: titleCase(genre) }));
 	})();
-	$: animesWithStatus =
-		(animelist
-			? animes?.map((anime) => ({ ...anime, status: animelist?.get(anime.id)?.status }))
-			: animes) ?? [];
+	$: animesWithStatus = addStatus(animes ?? [], animelist);
 	$: fuzzySearch = new Fuse(animesWithStatus, {
 		keys: ['title'],
 		threshold: 0.3
 	});
 	$: filteredAnimes = filterAnimes(animesWithStatus, filter, fuzzySearch);
+
+	function addStatus(animes: AnimeInfo[], animelist: Animelist | undefined): AnimeWithStatus[] {
+		return animelist
+			? animes?.map((anime) => ({ ...anime, status: animelist?.get(anime.id)?.status }))
+			: animes;
+	}
 
 	function filterAnimes(
 		animes: AnimeWithStatus[],
@@ -133,7 +148,41 @@
 		timeout = setTimeout(() => {
 			filter.search = (event.target as any)?.value ?? '';
 			filter = filter;
-		}, 300);
+		}, 500);
+	}
+
+	async function searchOnMyanimelist() {
+		loadingMal = true;
+		try {
+			const limit = 25;
+			const animes = await AnimeService.getAnimeSearch(undefined, malPage, limit, filter.search);
+			malPage += 1;
+			malHasNextPage = animes.pagination?.has_next_page ?? false;
+
+			if (animes.data) {
+				const m = Number.MAX_SAFE_INTEGER;
+				animes.data.sort((a1, a2) => (a1.popularity ?? m) - (a2.popularity ?? m));
+				const filteredIds = new Set(filteredAnimes.map((anime) => anime.id));
+				const foundAnimes: AnimeInfo[] = animes.data
+					.filter((anime) => !filteredIds.has(anime.mal_id as number))
+					.map((anime) => ({
+						id: anime.mal_id ?? 0,
+						genres: anime.genres?.map((genre) => genre.name ?? '') ?? [],
+						title: anime.title ?? 'No title',
+						isSequel: null,
+						mediaType: anime.type ?? 'Unknown',
+						nsfw: 'white',
+						pictureLarge:
+							anime.images?.webp?.large_image_url ?? anime.images?.webp?.image_url ?? null,
+						season: anime.season ?? null,
+						seasonYear: anime.year ?? null
+					}));
+
+				filteredAnimes = filteredAnimes.concat(addStatus(foundAnimes, animelist));
+			}
+		} finally {
+			loadingMal = false;
+		}
 	}
 
 	function clearFilter() {
@@ -337,5 +386,41 @@
 				</div>
 			</div>
 		{/each}
+		{#if recommendations && filter.search && filteredAnimes.length > 0 && malHasNextPage}
+			<Button
+				disabled={loadingMal}
+				class="w-full grow flex flex-col items-center justify-center gap-2 aspect-[225/318]"
+				type="button"
+				on:click={searchOnMyanimelist}
+			>
+				{#if loadingMal}
+					<Spinner size="10" />
+				{:else}
+					<SearchIcon stroke-width="2.0" class="h-10" />
+				{/if}
+				<div>Search on <MyanimelistLogoIcon class="h-4" /></div>
+				<div class="text-sm text-primary-300">Search: {filter.search}</div>
+			</Button>
+		{/if}
 	{/if}
 </div>
+
+{#if animes !== undefined && filteredAnimes.length === 0}
+	<div in:fade={{ duration: 150 }} class="flex flex-col items-center justify-center gap-2">
+		<div class="font-bold text-3xl">(ಠ.ಠ)</div>
+		<div class="text-gray-600">No animes found</div>
+		{#if recommendations}
+			<Button disabled={loadingMal} type="button" class="mt-1 flex" on:click={searchOnMyanimelist}>
+				{#if loadingMal}
+					<Spinner size="5" class="mr-2" />
+				{:else}
+					<SearchIcon class="h-5 mr-2" />
+				{/if}
+				<span class="whitespace-nowrap mr-1.5">Search on </span><MyanimelistLogoIcon
+					class="h-4 mt-0.5"
+				/></Button
+			>
+			<div class="text-sm text-gray-400">Search: {filter.search}</div>
+		{/if}
+	</div>
+{/if}

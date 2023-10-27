@@ -331,13 +331,9 @@
 				{/if}
 
 				<div class="h-11 overflow-ellipsis overflow-hidden text-sm font-medium text-gray-600">
-					{#if recommendations}
+					<a {href} target="_blank">
 						{anime.title}
-					{:else}
-						<a {href} target="_blank">
-							{anime.title}
-						</a>
-					{/if}
+					</a>
 				</div>
 			</div>
 		{/each}

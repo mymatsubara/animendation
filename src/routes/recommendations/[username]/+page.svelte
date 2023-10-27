@@ -25,6 +25,7 @@
 	setTimeout(() => (showSpinner = true), 300);
 	$: username = $page.params.username;
 	$: isMe = $user?.username?.toLowerCase() === username.toLocaleLowerCase();
+	$: displayUsername = userProfile?.username ?? username;
 	$: {
 		if (username && browser) {
 			UsersService.getUserProfile(username)
@@ -35,6 +36,10 @@
 </script>
 
 <svelte:window bind:scrollY />
+
+<svelte:head>
+	<title>{displayUsername}'s recommendations - Animendation</title>
+</svelte:head>
 
 <div class="bg-gradient-to-t from-primary-900 to-primary-700 w-full">
 	<div class="flex gap-4 container items-end py-4">
@@ -75,14 +80,16 @@
 				target="_blank"
 				><MyanimelistLogoIcon class="h-3" /><ArrowTopRightIcon class="h-3 mb-[3px]" /></a
 			>
-			<h2 class="text-primary-50 text-xl font-medium">{userProfile?.username ?? username}</h2>
+			<h2 class="text-primary-50 text-xl font-medium">{displayUsername}</h2>
 		</div>
 	</div>
 </div>
 
 <section class="container mt-4 pb-2">
 	<div class="flex gap-1 items-center">
-		<h1 class="text-xl tracking-tight font-medium">Recommendations</h1>
+		<h1 class="text-xl tracking-tight font-medium">
+			{edit ? 'Edit recommendations' : 'Recommendations'}
+		</h1>
 		{#if username.toLocaleLowerCase() === $user?.username?.toLocaleLowerCase()}
 			<button class="p-2 hover:bg-gray-200 rounded-full" on:click={() => (edit = !edit)}>
 				{#if !edit}

@@ -66,8 +66,9 @@
 	};
 	let showFilter = false;
 	let loadingMal = false;
-	let malPage = 1;
 	let malHasNextPage = true;
+	let malPage = 1;
+	let loadingRecommendations = new Set<number>();
 
 	$: {
 		if (filter) {
@@ -140,6 +141,22 @@
 		}
 
 		return animes;
+	}
+
+	async function toggleRecommendation(animeId: number) {
+		try {
+			loadingRecommendations.add(animeId);
+			loadingRecommendations = loadingRecommendations;
+
+			if (recommendations?.mine?.has(animeId)) {
+				await recommendations.remove(animeId);
+			} else {
+				await recommendations?.add(animeId);
+			}
+		} finally {
+			loadingRecommendations.delete(animeId);
+			loadingRecommendations = loadingRecommendations;
+		}
 	}
 
 	let timeout: NodeJS.Timeout;
@@ -358,15 +375,17 @@
 	{:else}
 		{#each filteredAnimes as anime (anime.id)}
 			{@const isRecommended = recommendations?.mine?.has(anime.id)}
-			{@const href = `https://myanimelist.net/anime/${anime.id}`}
+			{@const isLoading = loadingRecommendations.has(anime.id)}
 
 			<div transition:fade={{ duration: 150 }} class="flex flex-col gap-1">
 				{#if recommendations !== undefined}
 					<button
 						type="button"
-						class="rounded w-full border hover:shadow-lg hover:border-2"
-						on:click={() =>
-							isRecommended ? recommendations?.remove(anime.id) : recommendations?.add(anime.id)}
+						class="rounded w-full border hover:shadow-lg hover:border-2 relative {isLoading
+							? 'brightness-75'
+							: ''}"
+						on:click={() => toggleRecommendation(anime.id)}
+						disabled={isLoading}
 					>
 						<AnimeDisplay
 							title={anime.title}
@@ -374,13 +393,18 @@
 							status={anime.status}
 							{isRecommended}
 						/>
+						{#if isLoading}
+							<div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2">
+								<Spinner size="14" />
+							</div>
+						{/if}
 					</button>
 				{:else}
 					<AnimeDisplay title={anime.title} pictureUrl={anime.pictureLarge} status={anime.status} />
 				{/if}
 
 				<div class="h-11 overflow-ellipsis overflow-hidden text-sm font-medium text-gray-600">
-					<a {href} target="_blank">
+					<a href="https://myanimelist.net/anime/${anime.id}" target="_blank">
 						{anime.title}
 					</a>
 				</div>

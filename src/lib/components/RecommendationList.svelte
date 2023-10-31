@@ -18,9 +18,11 @@
 	$: myRecommendations = username.toLowerCase() === $user?.username.toLocaleLowerCase();
 	$: {
 		if (myRecommendations) {
-			getRecommendations(username).then((result) => (animes = result));
+			if ($recommendations !== undefined) {
+				getAnimes(Array.from($recommendations)).then((result) => (animes = result));
+			}
 		} else {
-			getAnimes(Array.from($recommendations)).then((result) => (animes = result));
+			getRecommendations(username).then((result) => (animes = result));
 		}
 	}
 </script>

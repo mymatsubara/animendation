@@ -18,7 +18,7 @@
 			<Avatar size="sm" />
 		{/if}
 	</Button>
-	<Dropdown>
-		<DropdownItem on:click={logout}>Logout</DropdownItem>
+	<Dropdown placement="bottom-start">
+		<DropdownItem on:click={logout}>Log out</DropdownItem>
 	</Dropdown>
 </div>

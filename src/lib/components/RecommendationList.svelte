@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { getAnimes } from '$lib/client/animes';
 	import { getRecommendations } from '$lib/client/recommendations';
 	import AnimesGrid from '$lib/components/AnimesGrid.svelte';
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 	import { getMyanimelist } from '$lib/stores/animelist';
+	import { getMyRecommendations } from '$lib/stores/my-recommendations';
 	import { user } from '$lib/stores/user';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import { Button } from 'flowbite-svelte';
@@ -12,9 +14,14 @@
 	let animes: AnimeInfo[] | undefined = undefined;
 
 	const animelist = getMyanimelist();
+	const recommendations = getMyRecommendations();
 	$: myRecommendations = username.toLowerCase() === $user?.username.toLocaleLowerCase();
 	$: {
-		getRecommendations(username).then((result) => (animes = result));
+		if (myRecommendations) {
+			getRecommendations(username).then((result) => (animes = result));
+		} else {
+			getAnimes(Array.from($recommendations)).then((result) => (animes = result));
+		}
 	}
 </script>
 

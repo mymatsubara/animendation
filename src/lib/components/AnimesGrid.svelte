@@ -2,18 +2,30 @@
 	import { AnimeService } from '$lib/clients/jikan/generated';
 	import AnimeDisplay from '$lib/components/AnimeDisplay.svelte';
 	import Placeholder from '$lib/components/Placeholder.svelte';
-	import Dropdown from '$lib/components/dropdown/Dropdown.svelte';
+	import CustomDropdown from '$lib/components/dropdown/CustomDropdown.svelte';
 	import MultiSelectAutocomplete from '$lib/components/forms/MultiSelectAutocomplete.svelte';
 	import MultiSelectChips from '$lib/components/forms/MultiSelectChips.svelte';
 	import AdjustmentIcon from '$lib/components/icons/AdjustmentIcon.svelte';
 	import CloseIcon from '$lib/components/icons/CloseIcon.svelte';
 	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
+	import VerticalEllipsisIcon from '$lib/components/icons/VerticalEllipsisIcon.svelte';
 	import type { Animelist } from '$lib/stores/animelist';
+	import { getMyRecommendations } from '$lib/stores/my-recommendations';
+	import { user } from '$lib/stores/user';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { AnimeStatus } from '$lib/trpc/routes/user';
 	import { titleCase } from '$lib/utils/string';
-	import { Badge, Button, Indicator, Input, Spinner, Toggle } from 'flowbite-svelte';
+	import {
+		Badge,
+		Button,
+		Dropdown,
+		DropdownItem,
+		Indicator,
+		Input,
+		Spinner,
+		Toggle
+	} from 'flowbite-svelte';
 	import Fuse from 'fuse.js';
 	import { fade } from 'svelte/transition';
 
@@ -36,15 +48,10 @@
 
 	export let animes: AnimeInfo[] | undefined;
 	export let animelist: Animelist | undefined = undefined;
-	export let recommendations:
-		| {
-				mine: Set<number>;
-				add: (animeId: number) => Promise<void>;
-				remove: (animeId: number) => Promise<void>;
-		  }
-		| undefined = undefined;
 	export let startFilter: Partial<Filter> = {};
+	export let recommend = false;
 
+	const recommendations = getMyRecommendations();
 	const statusOptions: StatusOption[] = [
 		{ value: 'completed', label: 'Completed', color: 'blue' },
 		{ value: 'watching', label: 'Watching', color: 'green' },
@@ -148,10 +155,10 @@
 			loadingRecommendations.add(animeId);
 			loadingRecommendations = loadingRecommendations;
 
-			if (recommendations?.mine?.has(animeId)) {
+			if ($recommendations.has(animeId)) {
 				await recommendations.remove(animeId);
 			} else {
-				await recommendations?.add(animeId);
+				await recommendations.add(animeId);
 			}
 		} finally {
 			loadingRecommendations.delete(animeId);
@@ -271,7 +278,7 @@
 	</div>
 
 	<div class="relative">
-		<Dropdown class=" min-w-[min(calc(100vw-1.5rem),500px)] bg-white" bind:open={showFilter}>
+		<CustomDropdown class=" min-w-[min(calc(100vw-1.5rem),500px)] bg-white" bind:open={showFilter}>
 			<svelte:fragment slot="button" let:toggle>
 				<Button
 					class="!p-1 aspect-square h-10 border-0 shadow"
@@ -358,7 +365,7 @@
 					/>
 				</fieldset>
 			</div>
-		</Dropdown>
+		</CustomDropdown>
 	</div>
 </div>
 
@@ -374,11 +381,11 @@
 		{/each}
 	{:else}
 		{#each filteredAnimes as anime (anime.id)}
-			{@const isRecommended = recommendations?.mine?.has(anime.id)}
+			{@const isRecommended = $recommendations.has(anime.id)}
 			{@const isLoading = loadingRecommendations.has(anime.id)}
 
 			<div transition:fade={{ duration: 150 }} class="flex flex-col gap-1">
-				{#if recommendations !== undefined}
+				{#if recommend}
 					<button
 						type="button"
 						class="rounded w-full border hover:shadow-lg hover:border-2 relative {isLoading
@@ -403,18 +410,33 @@
 					<AnimeDisplay title={anime.title} pictureUrl={anime.pictureLarge} status={anime.status} />
 				{/if}
 
-				<div class="h-11 overflow-ellipsis overflow-hidden text-sm font-medium text-gray-600">
-					{#if !recommendations}
-						<a href="https://myanimelist.net/anime/${anime.id}" target="_blank">
-							{anime.title}
-						</a>
-					{:else}
-						<div>{anime.title}</div>
+				<div class="h-11 flex justify-between items-start gap-1">
+					<div title={anime.title} class="h-11 overflow-hidden text-sm font-medium text-gray-600">
+						{#if !recommend}
+							<a href="https://myanimelist.net/anime/${anime.id}" target="_blank">
+								{anime.title}
+							</a>
+						{:else}
+							<div>{anime.title}</div>
+						{/if}
+					</div>
+					{#if $user}
+						<Button class="border-0 hover:bg-gray-200 hover:text-primary-500 px-1 py-0.5" outline
+							><VerticalEllipsisIcon class="h-5" /></Button
+						>
+						<Dropdown placement="bottom-end">
+							<DropdownItem
+								class={isRecommended ? 'text-red-700' : 'text-primary-700'}
+								on:click={() => toggleRecommendation(anime.id)}
+								>{isRecommended ? 'Unrecommend' : 'Recommend'}</DropdownItem
+							>
+						</Dropdown>
 					{/if}
 				</div>
 			</div>
 		{/each}
-		{#if recommendations && filter.search && filteredAnimes.length > 0 && malHasNextPage}
+
+		{#if recommend && filter.search && filteredAnimes.length > 0 && malHasNextPage}
 			<Button
 				disabled={loadingMal}
 				class="w-full grow flex flex-col items-center justify-center gap-2 aspect-[225/318]"
@@ -437,7 +459,7 @@
 	<div in:fade={{ duration: 150 }} class="flex flex-col items-center justify-center gap-2">
 		<div class="font-bold text-3xl">(ಠ.ಠ)</div>
 		<div class="text-gray-600">No animes found</div>
-		{#if recommendations}
+		{#if recommend}
 			<Button disabled={loadingMal} type="button" class="mt-1 flex" on:click={searchOnMyanimelist}>
 				{#if loadingMal}
 					<Spinner size="5" class="mr-2" />

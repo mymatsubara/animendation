@@ -12,7 +12,7 @@ async function fetchMyRecommendations() {
 }
 
 user.subscribe(async (user) => {
-	if (!user) {
+	if (user) {
 		await fetchMyRecommendations();
 	} else {
 		recommendations.set(new Set());

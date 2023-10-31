@@ -2,7 +2,6 @@
 	import { getAnimes } from '$lib/client/animes';
 	import AnimesGrid from '$lib/components/AnimesGrid.svelte';
 	import { getMyanimelist } from '$lib/stores/animelist';
-	import { getMyRecommendations } from '$lib/stores/my-recommendations';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 
 	let animes: AnimeInfo[] | undefined = undefined;
@@ -21,16 +20,6 @@
 			});
 		}
 	}
-
-	const recommendations = getMyRecommendations();
 </script>
 
-<AnimesGrid
-	{animes}
-	animelist={$animelist}
-	recommendations={{
-		mine: $recommendations,
-		add: recommendations.add,
-		remove: recommendations.remove
-	}}
-/>
+<AnimesGrid {animes} animelist={$animelist} recommend />

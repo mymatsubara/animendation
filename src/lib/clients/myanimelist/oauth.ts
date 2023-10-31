@@ -39,7 +39,7 @@ export module MALOauth {
 	export function getAuthUrl(clientId: string): AuthUrlResult {
 		const codeVerifier = createCodeVerifier();
 		const codeChallenge = createCodeChallenge(codeVerifier);
-		const state = crypto.randomUUID();
+		const state = crypto?.randomUUID?.() ?? Math.random().toString();
 
 		const queryParams = new URLSearchParams({
 			response_type: 'code',
@@ -114,7 +114,7 @@ export module MALOauth {
 
 	// https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
 	function createCodeVerifier() {
-		return `${crypto.randomUUID()}-${crypto.randomUUID()}`;
+		return `${crypto?.randomUUID?.()}-${crypto?.randomUUID?.()}`;
 	}
 
 	// https://datatracker.ietf.org/doc/html/rfc7636#section-4.2 (plain)

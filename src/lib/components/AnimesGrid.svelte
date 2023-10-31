@@ -427,9 +427,7 @@
 						{/if}
 					</div>
 					{#if $user}
-						<Button class="border-0 hover:bg-gray-200 hover:text-primary-500 px-1 py-0.5" outline
-							><VerticalEllipsisIcon class="h-5" /></Button
-						>
+						<button class="px-2 pt-0.5 pb-2"><VerticalEllipsisIcon class="h-5" /></button>
 						<Dropdown placement="bottom-end">
 							<DropdownItem
 								class={isRecommended ? 'text-red-700' : 'text-primary-700'}

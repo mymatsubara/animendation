@@ -70,7 +70,7 @@
 		cleanup = autoUpdate(input, tooltip, updatePosition);
 		open = true;
 
-		if ('visualViewport' in window && 'virtualKeyboard' in window) {
+		if ('visualViewport' in window && 'virtualKeyboard' in navigator) {
 			(window.visualViewport as any).addEventListener('resize', virtualKeyboardHandler);
 		}
 	}
@@ -85,7 +85,7 @@
 			select(undefined);
 		}
 
-		if ('visualViewport' in window && 'virtualKeyboard' in window) {
+		if ('visualViewport' in window && 'virtualKeyboard' in navigator) {
 			(window.visualViewport as any).removeEventListener('resize', virtualKeyboardHandler);
 		}
 	}

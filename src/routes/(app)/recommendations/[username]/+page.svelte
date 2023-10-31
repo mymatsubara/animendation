@@ -85,7 +85,7 @@
 	</div>
 </div>
 
-<section class="container mt-6 pb-2">
+<section class="container mt-4 pb-2">
 	<div class="flex gap-1 items-center">
 		<h1 class="text-xl tracking-tight font-medium">
 			{edit ? 'Edit recommendations' : 'Recommendations'}

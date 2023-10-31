@@ -10,8 +10,8 @@
 </script>
 
 <nav class="bg-primary-900 py-4">
-	<div class="container flex justify-between">
-		<Logo />
+	<div class="container flex justify-between items-center">
+		<Logo class="text-[28px]" />
 		<div>
 			{#if $user}
 				<ProfileDropdown
@@ -19,7 +19,7 @@
 					recommendationsUrl="/recommendations/{$user.username}"
 				/>
 			{:else}
-				<LoginLink><Button class="py-1.5">Login</Button></LoginLink>
+				<LoginLink><Button class="font-semibold py-1.5">Login</Button></LoginLink>
 			{/if}
 		</div>
 	</div>

@@ -394,7 +394,7 @@
 				{#if recommend}
 					<button
 						type="button"
-						class="rounded w-full border hover:shadow-lg hover:border-2 relative {isLoading
+						class="rounded w-full border hover:shadow-lg relative {isLoading
 							? 'brightness-75'
 							: ''}"
 						on:click={() => toggleRecommendation(anime.id)}

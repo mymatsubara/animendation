@@ -7,12 +7,12 @@
 	export let recommendationsUrl: string;
 </script>
 
-<div>
+<div class="h-8">
 	<Button class="border-0 w-max p-0 rounded-full">
 		{#if profilePicture}
 			<!-- svelte-ignore a11y-img-redundant-alt -->
 			<img
-				class="h-8 object-top object-cover rounded-full aspect-square border border-primary-50"
+				class="h-8 object-top object-cover rounded-full aspect-square border border-primary-300"
 				src={profilePicture}
 				alt="My profile picture"
 			/>

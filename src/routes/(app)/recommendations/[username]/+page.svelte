@@ -91,13 +91,17 @@
 			{edit ? 'Edit recommendations' : 'Recommendations'}
 		</h1>
 		{#if username.toLocaleLowerCase() === $user?.username?.toLocaleLowerCase()}
-			<button class="p-2 hover:bg-gray-200 rounded-full" on:click={() => (edit = !edit)}>
+			<Button
+				outline
+				class="border-0 p-3 hover:bg-gray-200 rounded-full"
+				on:click={() => (edit = !edit)}
+			>
 				{#if !edit}
 					<PencilSquareIcon class="h-4 text-gray-800" />
 				{:else}
 					<CheckIcon class="h-4 text-gray-800" />
 				{/if}
-			</button>
+			</Button>
 			{#if edit}
 				<Tooltip>Save</Tooltip>
 			{:else}

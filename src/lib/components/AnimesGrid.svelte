@@ -404,9 +404,13 @@
 				{/if}
 
 				<div class="h-11 overflow-ellipsis overflow-hidden text-sm font-medium text-gray-600">
-					<a href="https://myanimelist.net/anime/${anime.id}" target="_blank">
-						{anime.title}
-					</a>
+					{#if !recommendations}
+						<a href="https://myanimelist.net/anime/${anime.id}" target="_blank">
+							{anime.title}
+						</a>
+					{:else}
+						<div>{anime.title}</div>
+					{/if}
 				</div>
 			</div>
 		{/each}

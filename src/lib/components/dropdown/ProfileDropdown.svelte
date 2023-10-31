@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { logout } from '$lib/client/logout';
-	import { Avatar, Dropdown, DropdownItem } from 'flowbite-svelte';
+	import { Avatar, Button, Dropdown, DropdownItem } from 'flowbite-svelte';
 
 	export let profilePicture: string | undefined;
 </script>
 
 <div>
-	<button>
+	<Button class="border-0 w-max p-0 rounded-full">
 		{#if profilePicture}
 			<!-- svelte-ignore a11y-img-redundant-alt -->
 			<img
@@ -17,7 +17,7 @@
 		{:else}
 			<Avatar size="sm" />
 		{/if}
-	</button>
+	</Button>
 	<Dropdown>
 		<DropdownItem on:click={logout}>Logout</DropdownItem>
 	</Dropdown>

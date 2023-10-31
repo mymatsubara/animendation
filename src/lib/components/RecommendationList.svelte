@@ -1,10 +1,8 @@
 <script lang="ts">
-	import { getAnimes } from '$lib/client/animes';
 	import { getRecommendations } from '$lib/client/recommendations';
 	import AnimesGrid from '$lib/components/AnimesGrid.svelte';
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
-	import { getAnimelist } from '$lib/stores/animelist';
-	import { getMyRecommendations } from '$lib/stores/my-recommendations';
+	import { getMyanimelist } from '$lib/stores/animelist';
 	import { user } from '$lib/stores/user';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import { Button } from 'flowbite-svelte';
@@ -13,20 +11,10 @@
 	export let onAddRecommendations: () => void;
 	let animes: AnimeInfo[] | undefined = undefined;
 
-	$: animelist = getAnimelist($user?.username);
+	const animelist = getMyanimelist();
 	$: myRecommendations = username.toLowerCase() === $user?.username.toLocaleLowerCase();
 	$: {
-		if (myRecommendations) {
-			const recommendations = getMyRecommendations();
-
-			recommendations.subscribe(async (ids) => {
-				if (ids) {
-					animes = await getAnimes([...ids]);
-				}
-			});
-		} else {
-			getRecommendations(username).then((result) => (animes = result));
-		}
+		getRecommendations(username).then((result) => (animes = result));
 	}
 </script>
 

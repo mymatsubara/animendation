@@ -32,7 +32,7 @@
 
 				$user = authUser;
 
-				goto(`/`);
+				goto(`/recommendations/${authUser.username}`);
 			} catch {
 				failAuth();
 			}

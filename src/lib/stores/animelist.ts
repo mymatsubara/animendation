@@ -1,24 +1,22 @@
-import { browser } from '$app/environment';
 import { indexedDb, type AnimelistAnime } from '$lib/idb';
+import { user } from '$lib/stores/user';
 import { trpc } from '$lib/trpc/client';
 import { maxStr, toMap } from '$lib/utils/array';
 import { writable } from 'svelte/store';
 
-let curUserName: string | undefined = undefined;
 let store = writable<Animelist | undefined>();
+
+user.subscribe(async (user) => {
+	if (user) {
+		await updateStore(user.username);
+	} else {
+		store.set(undefined);
+	}
+});
+
 export type Animelist = Map<number, AnimelistAnime>;
 
-export function getAnimelist(username?: string) {
-	if (browser && username !== curUserName) {
-		if (username === undefined) {
-			store.set(undefined);
-		} else {
-			updateStore(username);
-		}
-
-		curUserName = username;
-	}
-
+export function getMyanimelist() {
 	return {
 		subscribe: store.subscribe
 	};

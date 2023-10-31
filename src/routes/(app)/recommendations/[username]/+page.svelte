@@ -114,7 +114,7 @@
 		{:else if $user?.username}
 			<div class="text-gray-500 text-sm">Click to recommend/unrecommend an anime</div>
 			<div class="mt-3">
-				<EditRecommendations username={$user.username} />
+				<EditRecommendations />
 			</div>
 		{/if}
 	</div>

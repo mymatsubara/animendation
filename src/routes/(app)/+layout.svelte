@@ -12,7 +12,10 @@
 		<div />
 		<div>
 			{#if $user}
-				<ProfileDropdown profilePicture={$profilePicture} />
+				<ProfileDropdown
+					profilePicture={$profilePicture}
+					recommendationsUrl="/recommendations/{$user.username}"
+				/>
 			{:else}
 				<LoginButton>Login</LoginButton>
 			{/if}

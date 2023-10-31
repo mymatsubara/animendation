@@ -12,6 +12,7 @@
 	import VerticalEllipsisIcon from '$lib/components/icons/VerticalEllipsisIcon.svelte';
 	import type { Animelist } from '$lib/stores/animelist';
 	import { getMyRecommendations } from '$lib/stores/my-recommendations';
+	import { toast } from '$lib/stores/toast';
 	import { user } from '$lib/stores/user';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { AnimeStatus } from '$lib/trpc/routes/user';
@@ -155,11 +156,16 @@
 			loadingRecommendations.add(animeId);
 			loadingRecommendations = loadingRecommendations;
 
-			if ($recommendations.has(animeId)) {
+			if ($recommendations?.has(animeId)) {
 				await recommendations.remove(animeId);
 			} else {
 				await recommendations.add(animeId);
 			}
+		} catch {
+			$toast = {
+				message: 'Could not modify anime recommendation. Please try again',
+				level: 'error'
+			};
 		} finally {
 			loadingRecommendations.delete(animeId);
 			loadingRecommendations = loadingRecommendations;
@@ -381,7 +387,7 @@
 		{/each}
 	{:else}
 		{#each filteredAnimes as anime (anime.id)}
-			{@const isRecommended = $recommendations.has(anime.id)}
+			{@const isRecommended = $recommendations?.has(anime.id)}
 			{@const isLoading = loadingRecommendations.has(anime.id)}
 
 			<div transition:fade={{ duration: 150 }} class="flex flex-col gap-1">
@@ -413,7 +419,7 @@
 				<div class="h-11 flex justify-between items-start gap-1">
 					<div title={anime.title} class="h-11 overflow-hidden text-sm font-medium text-gray-600">
 						{#if !recommend}
-							<a href="https://myanimelist.net/anime/${anime.id}" target="_blank">
+							<a href="https://myanimelist.net/anime/{anime.id}" target="_blank">
 								{anime.title}
 							</a>
 						{:else}

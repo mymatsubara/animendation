@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { logout } from '$lib/client/logout';
-	import { Avatar, Button, Dropdown, DropdownItem } from 'flowbite-svelte';
+	import LeaveIcon from '$lib/components/icons/LeaveIcon.svelte';
+	import { Avatar, Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 
 	export let profilePicture: string | undefined;
+	export let recommendationsUrl: string;
 </script>
 
 <div>
@@ -18,7 +20,11 @@
 			<Avatar size="sm" />
 		{/if}
 	</Button>
-	<Dropdown placement="bottom-start">
-		<DropdownItem on:click={logout}>Log out</DropdownItem>
+	<Dropdown class="py-2" placement="bottom-start">
+		<DropdownItem href={recommendationsUrl}>My recommendations</DropdownItem>
+		<DropdownDivider />
+		<DropdownItem class="flex gap-2 text-red-500" on:click={logout}
+			><LeaveIcon class="h-5" /> Log out</DropdownItem
+		>
 	</Dropdown>
 </div>

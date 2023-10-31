@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import LoginButton from '$lib/components/LoginButton.svelte';
+	import LoginLink from '$lib/components/LoginLink.svelte';
 	import { user } from '$lib/stores/user';
 
 	$: {
@@ -11,4 +11,4 @@
 	}
 </script>
 
-<LoginButton>Login</LoginButton>
+<LoginLink>Login</LoginLink>

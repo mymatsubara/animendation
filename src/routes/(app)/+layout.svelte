@@ -1,15 +1,17 @@
 <script lang="ts">
-	import LoginButton from '$lib/components/LoginButton.svelte';
+	import LoginLink from '$lib/components/LoginLink.svelte';
 	import ProfileDropdown from '$lib/components/dropdown/ProfileDropdown.svelte';
+	import Logo from '$lib/components/logo/Logo.svelte';
 	import { getProfilePicture } from '$lib/stores/profile-picture';
 	import { user } from '$lib/stores/user';
+	import { Button } from 'flowbite-svelte';
 
 	const profilePicture = getProfilePicture();
 </script>
 
-<div class="bg-primary-700 pt-3">
+<nav class="bg-primary-900 py-4">
 	<div class="container flex justify-between">
-		<div />
+		<Logo />
 		<div>
 			{#if $user}
 				<ProfileDropdown
@@ -17,9 +19,9 @@
 					recommendationsUrl="/recommendations/{$user.username}"
 				/>
 			{:else}
-				<LoginButton>Login</LoginButton>
+				<LoginLink><Button class="py-1.5">Login</Button></LoginLink>
 			{/if}
 		</div>
 	</div>
-</div>
+</nav>
 <slot />

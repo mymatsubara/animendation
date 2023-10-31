@@ -12,12 +12,12 @@
 		{#if profilePicture}
 			<!-- svelte-ignore a11y-img-redundant-alt -->
 			<img
-				class="h-8 object-top object-cover rounded-full aspect-square"
+				class="h-8 object-top object-cover rounded-full aspect-square border border-primary-50"
 				src={profilePicture}
 				alt="My profile picture"
 			/>
 		{:else}
-			<Avatar size="sm" />
+			<Avatar border size="sm" />
 		{/if}
 	</Button>
 	<Dropdown class="py-2" placement="bottom-start">

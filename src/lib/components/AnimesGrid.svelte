@@ -427,7 +427,9 @@
 						{/if}
 					</div>
 					{#if $user}
-						<button class="px-2 pt-0.5 pb-2"><VerticalEllipsisIcon class="h-5" /></button>
+						<button class="px-2 pt-0.5 pb-2 text-primary-700"
+							><VerticalEllipsisIcon class="h-5" /></button
+						>
 						<Dropdown placement="bottom-end">
 							<DropdownItem
 								class={isRecommended ? 'text-red-700' : 'text-primary-700'}

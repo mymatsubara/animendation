@@ -1,6 +1,8 @@
+import { user } from '$lib/stores/user';
 import { trpc } from '$lib/trpc/client';
 import { writable } from 'svelte/store';
 
+export type MyRecommendations = ReturnType<typeof getMyRecommendations>;
 const recommendations = writable<Set<number>>();
 
 export function getMyRecommendations() {
@@ -23,7 +25,11 @@ export function getMyRecommendations() {
 		});
 	}
 
-	fetchMyRecommendations();
+	user.subscribe(async (user) => {
+		if (!user) {
+			await fetchMyRecommendations();
+		}
+	});
 
 	return {
 		subscribe: recommendations.subscribe,

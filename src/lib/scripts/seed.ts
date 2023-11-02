@@ -12,6 +12,10 @@ export async function seed() {
 	} catch (e) {
 		console.error('❌ Error while seeding database');
 		console.error(e);
+
+		if (process) {
+			process.exit(1);
+		}
 	}
 }
 

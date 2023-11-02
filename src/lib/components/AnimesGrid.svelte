@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { AnimeService } from '$lib/clients/jikan/generated';
+	import type { AnimeStatus } from '$lib/clients/myanimelist';
 	import AnimeDisplay from '$lib/components/AnimeDisplay.svelte';
 	import Placeholder from '$lib/components/Placeholder.svelte';
 	import CustomDropdown from '$lib/components/dropdown/CustomDropdown.svelte';
@@ -15,7 +16,6 @@
 	import { toast } from '$lib/stores/toast';
 	import { user } from '$lib/stores/user';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
-	import type { AnimeStatus } from '$lib/trpc/routes/user';
 	import { titleCase } from '$lib/utils/string';
 	import {
 		Badge,

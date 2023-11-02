@@ -33,7 +33,7 @@
 					Make your own anime recommendation list
 				</h2>
 				<p class="mb-4 text-primary-300 md:text-md md:mb-6">
-					Connect your Myanimelist account and start recommending today
+					Link to your Myanimelist account and start recommending
 				</p>
 				<LoginLink
 					><Button class="px-6 py-3 text-xl font-bold text-primary-50">Join now!</Button></LoginLink

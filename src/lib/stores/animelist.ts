@@ -1,4 +1,6 @@
+import type { AnimeStatus } from '$lib/clients/myanimelist';
 import { indexedDb, type AnimelistAnime } from '$lib/idb';
+import { toast } from '$lib/stores/toast';
 import { user } from '$lib/stores/user';
 import { trpc } from '$lib/trpc/client';
 import { maxStr, toMap } from '$lib/utils/array';
@@ -18,7 +20,8 @@ export type Animelist = Map<number, AnimelistAnime>;
 
 export function getMyanimelist() {
 	return {
-		subscribe: store.subscribe
+		subscribe: store.subscribe,
+		upsert
 	};
 }
 
@@ -35,7 +38,7 @@ async function updateStore(username: string) {
 	const mostRecentAnime = maxStr(userAnimelist, (anime) => anime.updatedAt);
 
 	// Fetch animes since the most recent anime
-	const animelist = await trpc.user.animelist.query({
+	const animelist = await trpc.animelist.mine.query({
 		sinceUtc: mostRecentAnime?.updatedAt,
 		username
 	});
@@ -46,4 +49,48 @@ async function updateStore(username: string) {
 
 	const animes = await idb.getAll('animelist');
 	store.set(toMap(animes, (anime) => anime.id));
+}
+
+async function upsert(animeId: number, status: AnimeStatus) {
+	let previousState: Animelist | undefined;
+	try {
+		const malUpdate = trpc.animelist.upsert.mutate({ animeId, status });
+
+		// Optmistic update
+		store.update((animelist) => {
+			if (!animelist) {
+				return;
+			}
+
+			previousState = new Map(animelist);
+
+			const anime = animelist.get(animeId);
+			const updatedAt = new Date().toISOString().replace('Z', '+00:00');
+			if (anime) {
+				anime.status = status;
+				anime.updatedAt = updatedAt;
+			} else {
+				animelist.set(animeId, {
+					id: animeId,
+					updatedAt,
+					status: status,
+					title: 'Pending',
+					finishDate: '',
+					largePicture: '',
+					mediumPicture: '',
+					score: 0,
+					startDate: '',
+					username: ''
+				});
+			}
+
+			return animelist;
+		});
+
+		await malUpdate;
+	} catch (e) {
+		console.error('Rolling back on error');
+		store.set(previousState);
+		toast.set({ message: 'Failed to update anime status', level: 'error' });
+	}
 }

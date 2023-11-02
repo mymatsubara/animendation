@@ -1,6 +1,6 @@
 <script lang="ts">
+	import type { AnimeStatus } from '$lib/clients/myanimelist';
 	import ThumbsUpIcon from '$lib/components/icons/ThumbsUpIcon.svelte';
-	import type { AnimeStatus } from '$lib/trpc/routes/user';
 	import { Badge, Indicator } from 'flowbite-svelte';
 	import { fade } from 'svelte/transition';
 

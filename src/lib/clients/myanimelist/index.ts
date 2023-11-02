@@ -3,6 +3,7 @@ import {
 	type AnimeForDetails,
 	type AnimeForList,
 	type AnimeListForRanking,
+	type AnimeListStatus,
 	type List,
 	type User,
 	type UserAnimeList,
@@ -10,6 +11,15 @@ import {
 } from '$lib/clients/myanimelist/generated';
 import type { Anime } from '$lib/server/schema';
 import { TRPCError } from '@trpc/server';
+
+export const animeStatus = [
+	'watching',
+	'completed',
+	'on_hold',
+	'dropped',
+	'plan_to_watch'
+] as const;
+export type AnimeStatus = typeof animeStatus[number];
 
 type GetUserAnimeListOptions = {
 	fields?: 'list_status';
@@ -24,6 +34,7 @@ type RequestOptions = {
 	method: 'POST' | 'GET' | 'PUT' | 'DELETE';
 	searchParams?: { [p: string]: string | number | undefined };
 	body?: any;
+	headers?: Record<string, string>;
 };
 
 type GetAnimeRankingOptions = {
@@ -35,6 +46,19 @@ type GetAnimeRankingOptions = {
 type GetAnimeRankingResponse = {
 	animes: AnimeListEntry[];
 } & List;
+
+type UpdateMyanimelistStatus = {
+	animeId: number;
+	status?: AnimeStatus;
+	is_rewatching?: boolean;
+	score?: number;
+	num_watched_episodes?: number;
+	priority?: number;
+	num_times_rewatched?: number;
+	rewatch_value?: number;
+	tags?: string;
+	comments?: string;
+};
 
 type MALClientOptions =
 	| {
@@ -169,6 +193,19 @@ export class MALClient {
 		}) as Promise<User>;
 	}
 
+	updateMyanimelistStatus(input: UpdateMyanimelistStatus): Promise<AnimeListStatus> {
+		const { animeId, ...body } = input;
+
+		return this.request({
+			path: `/anime/${animeId}/my_list_status`,
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body: new URLSearchParams(body as any)
+		}) as Promise<AnimeListStatus>;
+	}
+
 	private async request(options: RequestOptions) {
 		let url = `${this.baseUrl}${options.path}`;
 		if (options.searchParams) {
@@ -178,7 +215,7 @@ export class MALClient {
 		const response = await fetch(url, {
 			method: options.method,
 			body: options?.body,
-			headers: this.headers
+			headers: { ...this.headers, ...options.headers }
 		});
 
 		if (response.status === 401) {

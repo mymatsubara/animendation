@@ -1,5 +1,5 @@
 import type { AnimeInfo } from '$lib/trpc/routes/anime';
-import type { ListAnime } from '$lib/trpc/routes/user';
+import type { ListAnime } from '$lib/trpc/routes/animelist';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 
 export type AnimelistAnime = ListAnime & { username: string };

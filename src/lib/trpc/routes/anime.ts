@@ -21,8 +21,6 @@ export const animeRoute = router({
 				const newIds = input.ids.filter((id) => !idsInDb.has(id));
 				const client = new MALClient({ clientId: PUBLIC_MAL_CLIENT_ID });
 
-				console.log({ newIds });
-
 				const newAnimes: AnimeDetail[] = [];
 
 				// Request are not made in parallel to avoid get rate limited by MAL api

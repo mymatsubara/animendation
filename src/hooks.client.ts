@@ -2,6 +2,7 @@ import { dev } from '$app/environment';
 import { PUBLIC_SENTRY_DSN } from '$env/static/public';
 import * as Sentry from '@sentry/sveltekit';
 import { Replay } from '@sentry/sveltekit';
+import { TRPCClientError } from '@trpc/client';
 
 if (!dev) {
 	Sentry.init({
@@ -21,8 +22,14 @@ if (!dev) {
 		environment: dev ? 'dev' : 'prod'
 	});
 
-	// If you have a custom error handler, pass it to `handleErrorWithSentry`
 	window.addEventListener('unhandledrejection', (event) => {
+		if (
+			event.reason instanceof TRPCClientError &&
+			event.reason.data.code === 'INTERNAL_SERVER_ERROR'
+		) {
+			return;
+		}
+
 		Sentry.captureException(event.reason);
 	});
 }

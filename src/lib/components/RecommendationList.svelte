@@ -28,7 +28,7 @@
 </script>
 
 {#if animes === undefined || animes.length !== 0}
-	<AnimesGrid {animes} animelist={$animelist} />
+	<AnimesGrid {animes} />
 {:else}
 	<div class="flex flex-col items-center justify-center gap-2 mt-24">
 		<div class="font-bold text-3xl">(ಠ.ಠ)</div>

@@ -22,4 +22,4 @@
 	}
 </script>
 
-<AnimesGrid {animes} animelist={$animelist} recommend />
+<AnimesGrid {animes} recommend />

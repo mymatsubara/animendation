@@ -11,7 +11,7 @@
 	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
 	import VerticalEllipsisIcon from '$lib/components/icons/VerticalEllipsisIcon.svelte';
-	import type { Animelist } from '$lib/stores/animelist';
+	import { getMyanimelist, type Animelist } from '$lib/stores/animelist';
 	import { getMyRecommendations } from '$lib/stores/my-recommendations';
 	import { toast } from '$lib/stores/toast';
 	import { user } from '$lib/stores/user';
@@ -48,10 +48,10 @@
 	};
 
 	export let animes: AnimeInfo[] | undefined;
-	export let animelist: Animelist | undefined = undefined;
 	export let startFilter: Partial<Filter> = {};
 	export let recommend = false;
 
+	const animelist = getMyanimelist();
 	const recommendations = getMyRecommendations();
 	const statusOptions: StatusOption[] = [
 		{ value: 'completed', label: 'Completed', color: 'blue' },
@@ -102,7 +102,7 @@
 		genres.sort((g1, g2) => g1.localeCompare(g2));
 		return genres.map((genre) => ({ value: genre, label: titleCase(genre) }));
 	})();
-	$: animesWithStatus = addStatus(animes ?? [], animelist);
+	$: animesWithStatus = addStatus(animes ?? [], $animelist);
 	$: fuzzySearch = new Fuse(animesWithStatus, {
 		keys: ['title'],
 		threshold: 0.3
@@ -208,7 +208,7 @@
 						seasonYear: anime.year ?? null
 					}));
 
-				filteredAnimes = filteredAnimes.concat(addStatus(foundAnimes, animelist));
+				filteredAnimes = filteredAnimes.concat(addStatus(foundAnimes, $animelist));
 			}
 		} finally {
 			loadingMal = false;

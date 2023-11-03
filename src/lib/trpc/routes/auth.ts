@@ -7,6 +7,7 @@ import { MALOauth } from '$lib/clients/myanimelist/oauth';
 import { db } from '$lib/server/db';
 import { publicProcedure, router } from '$lib/trpc';
 import { TRPCError } from '@trpc/server';
+import { sql } from 'kysely';
 import { z } from 'zod';
 
 export const authRoute = router({
@@ -44,12 +45,10 @@ export const authRoute = router({
 					name,
 					picture
 				})
-				.onConflict((oc) =>
-					oc.column('id').doUpdateSet(() => ({
-						name: ({ ref }) => ref('User.name'),
-						picture: ({ ref }) => ref('User.picture')
-					}))
-				)
+				.onDuplicateKeyUpdate({
+					name: ({ ref }) => sql`VALUES(${ref('User.name')})`,
+					picture: ({ ref }) => sql`VALUES(${ref('User.picture')})`
+				})
 				.execute();
 
 			const user: AuthUser = {

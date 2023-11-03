@@ -11,6 +11,7 @@ import {
 } from '$lib/clients/myanimelist/generated';
 import type { Anime } from '$lib/server/schema';
 import { TRPCError } from '@trpc/server';
+import type { Insertable } from 'kysely';
 
 export const animeStatus = [
 	'watching',
@@ -66,7 +67,7 @@ type MALClientOptions =
 	  }
 	| { clientId: string };
 
-export type AnimeListEntry = Omit<Anime, 'genres' | 'isSequel'> & { genres: string[] };
+export type AnimeListEntry = Omit<Insertable<Anime>, 'genres' | 'isSequel'> & { genres: string[] };
 export type AnimeDetail = AnimeListEntry & { isSequel: boolean };
 
 const animeFields =

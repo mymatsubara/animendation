@@ -8,8 +8,9 @@ generator kysely {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model Anime {
@@ -20,8 +21,8 @@ model Anime {
   startDate     String?
   endDate       String?
   nsfw          String?
-  createdAt     DateTime
-  updatedAt     DateTime
+  createdAt     DateTime @db.DateTime()
+  updatedAt     DateTime @db.DateTime()
   mediaType     String
   status        String
   episodes      Int
@@ -45,10 +46,12 @@ model User {
 model Recommendation {
   animeId   Int
   userId    Int
-  createdAt DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
+  createdAt DateTime @default(now())
 
   anime Anime @relation(fields: [animeId], references: [id])
   user  User  @relation(fields: [userId], references: [id])
 
   @@id([animeId, userId])
+  @@index([animeId])
+  @@index([userId])
 }

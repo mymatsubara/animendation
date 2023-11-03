@@ -1,6 +1,7 @@
 import { PUBLIC_MAL_CLIENT_ID } from '$env/static/public';
 import { MALClient, isSequel } from '$lib/clients/myanimelist';
 import { db } from '$lib/server/db';
+import { sql } from 'kysely';
 
 export async function seed() {
 	console.log('⏳ Starting database seeding...');
@@ -41,25 +42,23 @@ async function seedAnimes() {
 					genres: anime.genres.join(',')
 				}))
 			)
-			.onConflict((oc) =>
-				oc.column('id').doUpdateSet(() => ({
-					createdAt: ({ ref }) => ref('Anime.createdAt'),
-					episodes: ({ ref }) => ref('Anime.episodes'),
-					genres: ({ ref }) => ref('Anime.genres'),
-					mediaType: ({ ref }) => ref('Anime.mediaType'),
-					season: ({ ref }) => ref('Anime.season'),
-					seasonYear: ({ ref }) => ref('Anime.seasonYear'),
-					source: ({ ref }) => ref('Anime.source'),
-					status: ({ ref }) => ref('Anime.status'),
-					title: ({ ref }) => ref('Anime.title'),
-					updatedAt: ({ ref }) => ref('Anime.updatedAt'),
-					endDate: ({ ref }) => ref('Anime.endDate'),
-					nsfw: ({ ref }) => ref('Anime.nsfw'),
-					pictureLarge: ({ ref }) => ref('Anime.pictureLarge'),
-					pictureMedium: ({ ref }) => ref('Anime.pictureMedium'),
-					startDate: ({ ref }) => ref('Anime.startDate')
-				}))
-			)
+			.onDuplicateKeyUpdate({
+				createdAt: ({ ref }) => sql`VALUES(${ref('Anime.createdAt')})`,
+				episodes: ({ ref }) => sql`VALUES(${ref('Anime.episodes')})`,
+				genres: ({ ref }) => sql`VALUES(${ref('Anime.genres')})`,
+				mediaType: ({ ref }) => sql`VALUES(${ref('Anime.mediaType')})`,
+				season: ({ ref }) => sql`VALUES(${ref('Anime.season')})`,
+				seasonYear: ({ ref }) => sql`VALUES(${ref('Anime.seasonYear')})`,
+				source: ({ ref }) => sql`VALUES(${ref('Anime.source')})`,
+				status: ({ ref }) => sql`VALUES(${ref('Anime.status')})`,
+				title: ({ ref }) => sql`VALUES(${ref('Anime.title')})`,
+				updatedAt: ({ ref }) => sql`VALUES(${ref('Anime.updatedAt')})`,
+				endDate: ({ ref }) => sql`VALUES(${ref('Anime.endDate')})`,
+				nsfw: ({ ref }) => sql`VALUES(${ref('Anime.nsfw')})`,
+				pictureLarge: ({ ref }) => sql`VALUES(${ref('Anime.pictureLarge')})`,
+				pictureMedium: ({ ref }) => sql`VALUES(${ref('Anime.pictureMedium')})`,
+				startDate: ({ ref }) => sql`VALUES(${ref('Anime.startDate')})`
+			})
 			.execute();
 
 		if (!page?.paging?.next) {
@@ -76,7 +75,7 @@ async function checkAnimesSequelRetry(maxRetries: number = 100) {
 			await checkAnimesSequel();
 			break;
 		} catch (e) {
-			console.log('🔄️ Error. Retring...');
+			console.log('🔄️ Error. Retring...', e);
 			console.error((e as any).message);
 			await wait(10000);
 		}
@@ -122,34 +121,43 @@ async function checkAnimesSequel() {
 		await wait(backoff);
 		backoff = Math.min(backoff + 5, maxBackoff);
 
-		const checksToSave = sequelCheck.size;
-		if (checksToSave > 50) {
-			console.log(`💾 Saving ${checksToSave} sequel checks to the database...`);
-
-			const sequelIds = Object.entries(sequelCheck)
-				.filter(([_, isSequel]) => isSequel)
-				.map(([id, _]) => Number(id));
-			await db
-				.updateTable('Anime')
-				.set({
-					isSequel: 1
-				})
-				.where('id', 'in', sequelIds)
-				.execute();
-
-			const notSequelIds = Object.entries(sequelCheck)
-				.filter(([_, isSequel]) => !isSequel)
-				.map(([id, _]) => Number(id));
-			await db
-				.updateTable('Anime')
-				.set({
-					isSequel: 0
-				})
-				.where('id', 'in', notSequelIds)
-				.execute();
-
+		if (sequelCheck.size > 50) {
+			saveSequelChecks(sequelCheck);
 			sequelCheck.clear();
 		}
+	}
+
+	saveSequelChecks(sequelCheck);
+}
+
+async function saveSequelChecks(sequelCheck: Map<number, boolean>) {
+	const checksToSave = sequelCheck.size;
+	console.log(`💾 Saving ${checksToSave} sequel checks to the database...`);
+
+	const sequelIds = [...sequelCheck.entries()]
+		.filter(([_, isSequel]) => isSequel)
+		.map(([id, _]) => Number(id));
+	if (sequelIds.length) {
+		await db
+			.updateTable('Anime')
+			.set({
+				isSequel: 1
+			})
+			.where('id', 'in', sequelIds)
+			.execute();
+	}
+
+	const notSequelIds = [...sequelCheck.entries()]
+		.filter(([_, isSequel]) => !isSequel)
+		.map(([id, _]) => Number(id));
+	if (notSequelIds.length) {
+		await db
+			.updateTable('Anime')
+			.set({
+				isSequel: 0
+			})
+			.where('id', 'in', notSequelIds)
+			.execute();
 	}
 }
 

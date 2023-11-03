@@ -12,8 +12,8 @@ export type Anime = {
 	startDate: string | null;
 	endDate: string | null;
 	nsfw: string | null;
-	createdAt: string;
-	updatedAt: string;
+	createdAt: Timestamp;
+	updatedAt: Timestamp;
 	mediaType: string;
 	status: string;
 	episodes: number;
@@ -26,7 +26,7 @@ export type Anime = {
 export type Recommendation = {
 	animeId: number;
 	userId: number;
-	createdAt: Generated<string>;
+	createdAt: Generated<Timestamp>;
 };
 export type User = {
 	id: number;

@@ -50,7 +50,18 @@ export const animeRoute = router({
 				}
 
 				animes = animes.concat(
-					newAnimes.map((anime) => ({ ...anime, isSequel: anime.isSequel ? 1 : 0 }))
+					newAnimes.map((anime) => ({
+						...anime,
+						isSequel: anime.isSequel ? 1 : 0,
+						endDate: anime.endDate ?? null,
+						nsfw: anime.nsfw ?? null,
+						pictureLarge: anime.pictureLarge ?? null,
+						pictureMedium: anime.pictureMedium ?? null,
+						season: anime.season ?? null,
+						seasonYear: anime.seasonYear ?? null,
+						source: anime.source ?? null,
+						startDate: anime.startDate ?? null
+					}))
 				);
 			}
 

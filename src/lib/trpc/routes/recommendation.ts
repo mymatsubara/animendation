@@ -1,7 +1,6 @@
 import { db } from '$lib/server/db';
 import { publicProcedure, router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
-import { sql } from 'kysely';
 import { z } from 'zod';
 
 export const recommendationRoute = router({
@@ -16,10 +15,7 @@ export const recommendationRoute = router({
 				.selectFrom('Recommendation')
 				.select(['animeId'])
 				.where('userId', '=', (qb) =>
-					qb
-						.selectFrom('User')
-						.select(['id'])
-						.where(({ ref }) => sql`${ref('name')} = ${input.username} collate nocase`)
+					qb.selectFrom('User').select(['id']).where('name', '=', input.username)
 				)
 				.orderBy('createdAt desc')
 				.execute();

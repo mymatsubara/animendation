@@ -22,7 +22,9 @@ user.subscribe(async (user) => {
 export function getMyRecommendations() {
 	async function add(animeId: number) {
 		await trpc.recommendation.add.mutate({ animeId });
-		recommendations.update((rec) => rec?.add(animeId));
+
+		// Add anime as the first element of the set
+		recommendations.update((rec) => (rec !== undefined ? new Set([animeId, ...rec]) : undefined));
 	}
 
 	async function remove(animeId: number) {
@@ -36,6 +38,6 @@ export function getMyRecommendations() {
 	return {
 		subscribe: recommendations.subscribe,
 		add,
-		remove
+		remove,
 	};
 }

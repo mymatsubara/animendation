@@ -19,6 +19,14 @@
 	<title>Animendation - Make your own anime recommendation list</title>
 </svelte:head>
 
+{#if $user === undefined}
+	<div
+		class="z-10 fixed flex-col gap-3 w-full bg-primary-900 flex items-center justify-center h-full"
+	>
+		<Logo class="text-4xl" />
+	</div>
+{/if}
+
 <div class="min-h-full bg-gradient-to-t from-primary-800 to-primary-900 w-full">
 	<div class="md:h-[100vh] flex flex-col container">
 		<div class="flex justify-between py-6 items-center">

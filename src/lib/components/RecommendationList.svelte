@@ -18,11 +18,6 @@
 	$: isMyRecommendationList = username.toLowerCase() === $user?.username.toLocaleLowerCase();
 
 	if (!isMyRecommendationList) {
-		console.log('not my recommendation list', {
-			username,
-			user: $user,
-			mine: username.toLowerCase() === $user?.username.toLocaleLowerCase(),
-		});
 		getRecommendations(username).then((result) => (animes = result));
 	}
 

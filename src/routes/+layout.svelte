@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ToastHandler from '$lib/components/toast/ToastHandler.svelte';
+	import ToastHandler from '$lib/components/toasts/ToastHandler.svelte';
 	import { user } from '$lib/stores/user';
 	import { trpc } from '$lib/trpc/client';
 	import { onMount } from 'svelte';

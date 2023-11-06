@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ThumbsUpIcon from '$lib/components/icons/ThumbsUpIcon.svelte';
-	import AnimeStatusSelect from '$lib/components/select/AnimeStatusSelect.svelte';
+	import AnimeStatusSelect from '$lib/components/selects/AnimeStatusSelect.svelte';
 	import type { Myanimelist } from '$lib/stores/animelist';
 	import { Badge } from 'flowbite-svelte';
 	import { fade } from 'svelte/transition';

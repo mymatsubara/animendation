@@ -3,7 +3,7 @@
 	import type { AnimeStatus } from '$lib/clients/myanimelist';
 	import AnimeDisplay from '$lib/components/AnimeDisplay.svelte';
 	import Placeholder from '$lib/components/Placeholder.svelte';
-	import CustomDropdown from '$lib/components/dropdown/CustomDropdown.svelte';
+	import CustomDropdown from '$lib/components/dropdowns/CustomDropdown.svelte';
 	import MultiSelectAutocomplete from '$lib/components/forms/MultiSelectAutocomplete.svelte';
 	import MultiSelectChips from '$lib/components/forms/MultiSelectChips.svelte';
 	import AdjustmentIcon from '$lib/components/icons/AdjustmentIcon.svelte';
@@ -25,7 +25,7 @@
 		Indicator,
 		Input,
 		Spinner,
-		Toggle
+		Toggle,
 	} from 'flowbite-svelte';
 	import Fuse from 'fuse.js';
 	import { fade } from 'svelte/transition';
@@ -59,18 +59,18 @@
 		{ value: 'plan_to_watch', label: 'Plan to watch', color: 'dark' },
 		{ value: 'on_hold', label: 'On hold', color: 'yellow' },
 		{ value: 'dropped', label: 'Dropped', color: 'red' },
-		{ value: undefined as any, label: 'No status', color: 'gray' }
+		{ value: undefined as any, label: 'No status', color: 'gray' },
 	];
 	const seasonOptions = [
 		{ value: 'winter', label: 'Winter' },
 		{ value: 'spring', label: 'Spring' },
 		{ value: 'summer', label: 'Summer' },
-		{ value: 'fall', label: 'Fall' }
+		{ value: 'fall', label: 'Fall' },
 	];
 
 	let filter: Filter = {
 		hideSequels: false,
-		...startFilter
+		...startFilter,
 	};
 	let showFilter = false;
 	let loadingMal = false;
@@ -87,7 +87,7 @@
 
 	$: yearOptions = (() => {
 		const years = [
-			...new Set(animes?.map((anime) => anime.seasonYear).filter((year) => year) as number[])
+			...new Set(animes?.map((anime) => anime.seasonYear).filter((year) => year) as number[]),
 		];
 		years.sort((y1, y2) => y2 - y1);
 		return years.map((year) => ({ value: year, label: year.toString() }));
@@ -105,7 +105,7 @@
 	$: animesWithStatus = addStatus(animes ?? [], $animelist);
 	$: fuzzySearch = new Fuse(animesWithStatus, {
 		keys: ['title'],
-		threshold: 0.3
+		threshold: 0.3,
 	});
 	$: filteredAnimes = filterAnimes(animesWithStatus, filter, fuzzySearch);
 
@@ -164,7 +164,7 @@
 		} catch {
 			$toast = {
 				message: 'Could not modify anime recommendation. Please try again',
-				level: 'error'
+				level: 'error',
 			};
 		} finally {
 			loadingRecommendations.delete(animeId);
@@ -205,7 +205,7 @@
 						pictureLarge:
 							anime.images?.webp?.large_image_url ?? anime.images?.webp?.image_url ?? null,
 						season: anime.season ?? null,
-						seasonYear: anime.year ?? null
+						seasonYear: anime.year ?? null,
 					}));
 
 				filteredAnimes = filteredAnimes.concat(addStatus(foundAnimes, $animelist));
@@ -223,7 +223,7 @@
 			genres: new Set(),
 			seasons: new Set(),
 			years: new Set(),
-			mediaTypes: new Set()
+			mediaTypes: new Set(),
 		};
 	}
 

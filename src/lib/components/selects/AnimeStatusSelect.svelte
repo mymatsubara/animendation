@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { statusDisplay } from '$lib/client/display';
 	import type { AnimeStatus } from '$lib/clients/myanimelist';
-	import CustomDropdown from '$lib/components/dropdown/CustomDropdown.svelte';
+	import CustomDropdown from '$lib/components/dropdowns/CustomDropdown.svelte';
 	import ChevronDownIcon from '$lib/components/icons/ChevronDownIcon.svelte';
 	import CloseIcon from '$lib/components/icons/CloseIcon.svelte';
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';

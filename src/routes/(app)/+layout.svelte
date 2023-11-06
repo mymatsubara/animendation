@@ -1,7 +1,7 @@
 <script lang="ts">
 	import LoginLink from '$lib/components/LoginLink.svelte';
-	import ProfileDropdown from '$lib/components/dropdown/ProfileDropdown.svelte';
-	import Logo from '$lib/components/logo/Logo.svelte';
+	import ProfileDropdown from '$lib/components/dropdowns/ProfileDropdown.svelte';
+	import Logo from '$lib/components/logos/Logo.svelte';
 	import { getProfilePicture } from '$lib/stores/profile-picture';
 	import { user } from '$lib/stores/user';
 	import { Button } from 'flowbite-svelte';

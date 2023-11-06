@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import LoginLink from '$lib/components/LoginLink.svelte';
-	import Logo from '$lib/components/logo/Logo.svelte';
+	import Logo from '$lib/components/logos/Logo.svelte';
 	import LaptopMockup from '$lib/components/mockups/LaptopMockup.svelte';
 	import MobileMockup from '$lib/components/mockups/MobileMockup.svelte';
 	import { user } from '$lib/stores/user';

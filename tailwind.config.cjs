@@ -2,7 +2,7 @@
 const config = {
 	content: [
 		'./src/**/*.{html,js,svelte,ts}',
-		'./node_modules/flowbite-svelte/**/*.{html,js,svelte,ts}'
+		'./node_modules/flowbite-svelte/**/*.{html,js,svelte,ts}',
 	],
 
 	plugins: [require('flowbite/plugin')],
@@ -14,11 +14,11 @@ const config = {
 			sm: '640px',
 			md: '768px',
 			lg: '1024px',
-			xl: '1280px'
+			xl: '1280px',
 		},
 		container: {
 			center: true,
-			padding: '0.75rem'
+			padding: '0.75rem',
 		},
 		extend: {
 			colors: {
@@ -33,11 +33,16 @@ const config = {
 					600: '#2563eb',
 					700: '#1d4ed8',
 					800: '#1e40af',
-					900: '#1e3a8a'
-				}
-			}
-		}
-	}
+					900: '#1e3a8a',
+				},
+			},
+		},
+	},
+
+	safelist: [
+		{ pattern: /text-(blue|green|gray|red|yellow)-800/ },
+		{ pattern: /bg-(blue|green|gray|red|yellow)-100/, variants: ['hover'] },
+	],
 };
 
 module.exports = config;

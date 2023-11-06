@@ -6,6 +6,7 @@ import { trpc } from '$lib/trpc/client';
 import { maxStr, toMap } from '$lib/utils/array';
 import { writable } from 'svelte/store';
 
+export type Myanimelist = ReturnType<typeof getMyanimelist>;
 let store = writable<Animelist | undefined>();
 
 user.subscribe(async (user) => {
@@ -21,7 +22,8 @@ export type Animelist = Map<number, AnimelistAnime>;
 export function getMyanimelist() {
 	return {
 		subscribe: store.subscribe,
-		upsert
+		upsert,
+		remove
 	};
 }
 
@@ -92,5 +94,30 @@ async function upsert(animeId: number, status: AnimeStatus) {
 		console.error('Rolling back on error');
 		store.set(previousState);
 		toast.set({ message: 'Failed to update anime status', level: 'error' });
+	}
+}
+
+async function remove(animeId: number) {
+	let previousState: Animelist | undefined;
+	try {
+		const malUpdate = trpc.animelist.remove.mutate({ animeId });
+
+		// Optmistic update
+		store.update((animelist) => {
+			if (!animelist) {
+				return;
+			}
+
+			previousState = new Map(animelist);
+			animelist.delete(animeId);
+
+			return animelist;
+		});
+
+		await malUpdate;
+	} catch (e) {
+		console.error('Rolling back on error');
+		store.set(previousState);
+		toast.set({ message: 'Failed to remove anime from list', level: 'error' });
 	}
 }

@@ -194,7 +194,7 @@ export class MALClient {
 		}) as Promise<User>;
 	}
 
-	updateMyanimelistStatus(input: UpdateMyanimelistStatus): Promise<AnimeListStatus> {
+	updateAnimeStatusOnList(input: UpdateMyanimelistStatus): Promise<AnimeListStatus> {
 		const { animeId, ...body } = input;
 
 		return this.request({
@@ -205,6 +205,13 @@ export class MALClient {
 			},
 			body: new URLSearchParams(body as any)
 		}) as Promise<AnimeListStatus>;
+	}
+
+	removeAnimeFromList(animeId: number) {
+		return this.request({
+			path: `/anime/${animeId}/my_list_status`,
+			method: 'DELETE'
+		});
 	}
 
 	private async request(options: RequestOptions) {

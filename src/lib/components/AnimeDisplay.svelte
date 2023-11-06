@@ -1,13 +1,19 @@
 <script lang="ts">
-	import type { AnimeStatus } from '$lib/clients/myanimelist';
 	import ThumbsUpIcon from '$lib/components/icons/ThumbsUpIcon.svelte';
-	import { Badge, Indicator } from 'flowbite-svelte';
+	import AnimeStatusSelect from '$lib/components/select/AnimeStatusSelect.svelte';
+	import type { Myanimelist } from '$lib/stores/animelist';
+	import { Badge } from 'flowbite-svelte';
 	import { fade } from 'svelte/transition';
 
 	export let title: string;
 	export let pictureUrl: string | null;
-	export let status: AnimeStatus | undefined = undefined;
 	export let isRecommended = false;
+	export let statusHandler:
+		| {
+				animelist: Myanimelist;
+				animeId: number;
+		  }
+		| undefined;
 </script>
 
 <div class="relative">
@@ -35,29 +41,9 @@
 			</Badge>
 		</div>
 	{/if}
-	{#if status}
-		<div transition:fade={{ duration: 150 }} class="absolute right-1 bottom-1">
-			{#if status === 'completed'}
-				<Badge rounded class="px-2.5 py-0.5" color="blue"
-					><Indicator size="xs" class="mr-1" color="blue" />Completed</Badge
-				>
-			{:else if status === 'watching'}
-				<Badge rounded class="px-2.5 py-0.5" color="green"
-					><Indicator size="xs" class="mr-1" color="green" />Watching</Badge
-				>
-			{:else if status === 'plan_to_watch'}
-				<Badge rounded class="px-2.5 py-0.5" color="dark"
-					><Indicator size="xs" class="mr-1" color="dark" />Plan to watch</Badge
-				>
-			{:else if status === 'dropped'}
-				<Badge rounded class="px-2.5 py-0.5" color="red"
-					><Indicator size="xs" class="mr-1" color="red" />Dropped</Badge
-				>
-			{:else if status === 'on_hold'}
-				<Badge rounded class="px-2.5 py-0.5" color="yellow"
-					><Indicator size="xs" class="mr-1" color="yellow" />On hold</Badge
-				>
-			{/if}
+	{#if statusHandler}
+		<div transition:fade={{ duration: 150 }} class="absolute right-0 bottom-0">
+			<AnimeStatusSelect {...statusHandler} />
 		</div>
 	{/if}
 </div>

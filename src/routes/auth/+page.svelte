@@ -15,8 +15,9 @@
 
 		const expectedState = MALOauth.getState();
 
-		function failAuth() {
+		function failAuth(e?: any) {
 			console.error('Error on authentication');
+			console.error(e);
 			$toast = { message: 'Unexpected error. Please try again.', level: 'error' };
 			goto('/');
 		}
@@ -34,7 +35,7 @@
 
 				goto(`/recommendations/${authUser.username}`);
 			} catch {
-				failAuth();
+				failAuth(e);
 			}
 		}
 	});

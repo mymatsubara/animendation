@@ -1,5 +1,6 @@
 import { animeStatus, type AnimeStatus } from '$lib/clients/myanimelist';
 import type { UserAnimeListEdge } from '$lib/clients/myanimelist/generated/models/UserAnimeListEdge';
+import { db } from '$lib/server/db';
 import { router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import { TRPCError } from '@trpc/server';
@@ -13,7 +14,7 @@ export const animelistRouter = router({
 			z
 				.object({
 					sinceUtc: z.string().min(1).optional(),
-					username: z.string().min(1).optional()
+					username: z.string().min(1).optional(),
 				})
 				.optional()
 		)
@@ -32,7 +33,7 @@ export const animelistRouter = router({
 			} else {
 				animes = await client.getUserFullAnimeList(username, {
 					fields: 'list_status',
-					sort: 'list_updated_at'
+					sort: 'list_updated_at',
 				});
 			}
 
@@ -42,15 +43,36 @@ export const animelistRouter = router({
 		.input(
 			z.object({
 				animeId: z.number().int().positive(),
-				status: z.enum(animeStatus)
+				status: z.enum(animeStatus),
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
-			return ctx.malClient.updateMyanimelistStatus({
+			const num_watched_episodes =
+				input.status !== 'completed'
+					? undefined
+					: (
+							await db
+								.selectFrom('Anime')
+								.select('episodes')
+								.where('id', '=', input.animeId)
+								.executeTakeFirst()
+					  )?.episodes;
+
+			return ctx.malClient.updateAnimeStatusOnList({
 				animeId: input.animeId,
-				status: input.status
+				status: input.status,
+				...(num_watched_episodes ? { num_watched_episodes } : {}),
 			});
-		})
+		}),
+	remove: authProcedure
+		.input(
+			z.object({
+				animeId: z.number().int().positive(),
+			})
+		)
+		.mutation(async ({ ctx, input }) => {
+			return ctx.malClient.removeAnimeFromList(input.animeId);
+		}),
 });
 
 function mapListAnime(anime: UserAnimeListEdge) {
@@ -63,6 +85,6 @@ function mapListAnime(anime: UserAnimeListEdge) {
 		score: anime?.list_status?.score as number,
 		updatedAt: anime?.list_status?.updated_at as string,
 		startDate: anime?.list_status?.start_date as string,
-		finishDate: anime?.list_status?.finish_date as string
+		finishDate: anime?.list_status?.finish_date as string,
 	};
 }

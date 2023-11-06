@@ -387,6 +387,7 @@
 		{/each}
 	{:else}
 		{#each filteredAnimes as anime (anime.id)}
+			{@const statusHandler = $user ? { animeId: anime.id, animelist } : undefined}
 			{@const isRecommended = $recommendations?.has(anime.id)}
 			{@const isLoading = loadingRecommendations.has(anime.id)}
 
@@ -403,8 +404,8 @@
 						<AnimeDisplay
 							title={anime.title}
 							pictureUrl={anime.pictureLarge}
-							status={anime.status}
 							{isRecommended}
+							{statusHandler}
 						/>
 						{#if isLoading}
 							<div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2">
@@ -413,7 +414,7 @@
 						{/if}
 					</button>
 				{:else}
-					<AnimeDisplay title={anime.title} pictureUrl={anime.pictureLarge} status={anime.status} />
+					<AnimeDisplay title={anime.title} pictureUrl={anime.pictureLarge} {statusHandler} />
 				{/if}
 
 				<div class="h-11 flex justify-between items-start gap-1">

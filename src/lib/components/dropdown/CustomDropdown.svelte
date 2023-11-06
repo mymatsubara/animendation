@@ -6,11 +6,14 @@
 	let buttonDiv: HTMLElement;
 
 	const notypecheck = (e: any) => e as any;
+	function toggle() {
+		open = !open;
+	}
 </script>
 
-<div class="relative">
+<div class="relative w-max">
 	<div bind:this={buttonDiv}>
-		<slot name="button" toggle={() => (open = !open)} />
+		<slot name="button" {toggle} />
 	</div>
 
 	{#if open}
@@ -27,17 +30,17 @@
 		>
 			{#if $$slots.header}
 				<div class="py-1 overflow-hidden rounded-t-lg">
-					<slot name="header" />
+					<slot name="header" {toggle} />
 				</div>
 			{/if}
 
 			<div class="py-1">
-				<slot />
+				<slot {toggle} />
 			</div>
 
 			{#if $$slots.footer}
 				<div class="py-1 overflow-hidden rounded-t-lg">
-					<slot name="footer" />
+					<slot name="footer" {toggle} />
 				</div>
 			{/if}
 		</div>

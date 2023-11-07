@@ -35,10 +35,13 @@
 	}
 </script>
 
-<CustomDropdown class="-bottom-1" let:toggle>
+<CustomDropdown class="-bottom-1 shadow-md" let:toggle>
 	<svelte:fragment slot="button" let:toggle>
 		<button class="w-max p-2 group" on:click={toggle}>
-			<Badge rounded class="px-2.5 py-0.5 group-focus:ring-2" color={display.color}>
+			<Badge
+				class="border border-gray-200 rounded-md px-2.5 py-0.5 group-focus:ring-2"
+				color={display.color}
+			>
 				{#if status}
 					<Indicator size="xs" class="mr-1" color={unchecked(display.color)} />{:else}
 					<PlusIcon stroke-width="2.0" class="h-3 mr-1" />
@@ -52,7 +55,7 @@
 		{#each Object.entries(statusDisplay) as [value, display] (value)}
 			{@const color = display.color === 'dark' ? 'gray' : display.color}
 			<button
-				class="flex items-center p-2 hover:bg-{color}-100 text-{color}-800 focus:ring-2 text-xs font-medium {status ===
+				class="flex items-center px-3 py-2 hover:bg-{color}-100 text-{color}-800 focus:ring-2 text-xs font-medium {status ===
 				value
 					? `bg-${color}-100`
 					: ''}"
@@ -64,7 +67,7 @@
 		{/each}
 		{#if status !== undefined}
 			<button
-				class="flex items-center p-2 hover:bg-red-100 text-red-800 text-xs font-medium"
+				class="flex items-center px-3 py-2 hover:bg-red-100 text-red-800 text-xs font-medium"
 				on:click={() => changeStatus(undefined, toggle)}
 			>
 				<CloseIcon class="h-3 mr-2" />

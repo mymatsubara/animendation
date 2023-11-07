@@ -116,7 +116,7 @@
 				<RecommendationList {username} onAddRecommendations={() => (edit = true)} />
 			</div>
 		{:else if $user?.username}
-			<div class="text-gray-500 text-sm">Click to recommend/unrecommend an anime</div>
+			<div class="text-gray-500 text-sm">Click on the heart to recommend/unrecommend an anime</div>
 			<div class="mt-3">
 				<EditRecommendations />
 			</div>

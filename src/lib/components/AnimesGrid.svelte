@@ -8,6 +8,7 @@
 	import MultiSelectChips from '$lib/components/forms/MultiSelectChips.svelte';
 	import AdjustmentIcon from '$lib/components/icons/AdjustmentIcon.svelte';
 	import CloseIcon from '$lib/components/icons/CloseIcon.svelte';
+	import HeartIcon from '$lib/components/icons/HeartIcon.svelte';
 	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
 	import VerticalEllipsisIcon from '$lib/components/icons/VerticalEllipsisIcon.svelte';
@@ -387,32 +388,37 @@
 		{/each}
 	{:else}
 		{#each filteredAnimes as anime (anime.id)}
-			{@const statusHandler = $user ? { animeId: anime.id, animelist } : undefined}
+			{@const statusHandler = $animelist ? { animeId: anime.id, animelist } : undefined}
 			{@const isRecommended = $recommendations?.has(anime.id)}
 			{@const isLoading = loadingRecommendations.has(anime.id)}
 
 			<div transition:fade={{ duration: 150 }} class="flex flex-col gap-1">
 				{#if recommend}
-					<button
-						type="button"
-						class="rounded w-full border hover:shadow-lg relative {isLoading
-							? 'brightness-75'
-							: ''}"
-						on:click={() => toggleRecommendation(anime.id)}
-						disabled={isLoading}
-					>
-						<AnimeDisplay
-							title={anime.title}
-							pictureUrl={anime.pictureLarge}
-							{isRecommended}
-							{statusHandler}
-						/>
-						{#if isLoading}
-							<div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2">
-								<Spinner size="14" />
-							</div>
-						{/if}
-					</button>
+					<div class="relative">
+						<AnimeDisplay title={anime.title} pictureUrl={anime.pictureLarge} {statusHandler} />
+						<div class="absolute top-2 right-2">
+							<button
+								class="rounded-lg focus:ring-2 p-3 flex items-center justify-center h-11 min-w-[2.75rem] {isRecommended
+									? 'bg-primary-600'
+									: 'bg-primary-800'}"
+								on:click={() => toggleRecommendation(anime.id)}
+								disabled={isLoading}
+								title={isRecommended ? 'Click to unrecommend' : 'Click to recommend'}
+							>
+								{#if isLoading}
+									<div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2">
+										<Spinner size="4" />
+									</div>
+								{:else}
+									<HeartIcon
+										class="text-primary-50 {isRecommended ? 'fill-primary-50' : ''} h-5"
+									/>{#if isRecommended}<span class="ml-2 text-xs font-medium text-primary-50"
+											>Recommended</span
+										>{/if}
+								{/if}
+							</button>
+						</div>
+					</div>
 				{:else}
 					<AnimeDisplay title={anime.title} pictureUrl={anime.pictureLarge} {statusHandler} />
 				{/if}

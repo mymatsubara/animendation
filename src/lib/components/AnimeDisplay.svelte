@@ -1,5 +1,5 @@
 <script lang="ts">
-	import AnimeStatusSelect from '$lib/components/selects/AnimeStatusSelect.svelte';
+	import AnimeStatusSelect from '$lib/components/selects/SerieStatusSelect.svelte';
 	import type { Myanimelist } from '$lib/stores/animelist';
 	import type { SerieType } from '$lib/types';
 	import { fade } from 'svelte/transition';

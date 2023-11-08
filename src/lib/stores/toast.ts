@@ -5,5 +5,15 @@ export type ToastMessage = {
 	message: string;
 	level?: ToastLevel;
 };
+type StoreData = ToastMessage | undefined;
 
-export const toast = writable<ToastMessage | undefined>();
+const store = writable<StoreData>();
+
+export const toast = {
+	subscribe: store.subscribe,
+	set: (data: StoreData) => {
+		store.set(undefined);
+		setTimeout(() => store.set(data), 100);
+	},
+	update: store.update,
+};

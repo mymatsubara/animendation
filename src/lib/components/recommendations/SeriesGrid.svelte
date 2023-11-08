@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { AnimeService } from '$lib/clients/jikan/generated';
-	import type { AnimeStatus } from '$lib/clients/myanimelist';
+	import { animeStatusDisplay, mangaStatusDisplay } from '$lib/client/display';
+	import { AnimeService, MangaService, anime, manga } from '$lib/clients/jikan/generated';
+	import type { AnimeStatus, MangaStatus } from '$lib/clients/myanimelist';
 	import AnimeDisplay from '$lib/components/AnimeDisplay.svelte';
 	import Placeholder from '$lib/components/Placeholder.svelte';
 	import CustomDropdown from '$lib/components/dropdowns/CustomDropdown.svelte';
@@ -12,11 +13,13 @@
 	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
 	import VerticalEllipsisIcon from '$lib/components/icons/VerticalEllipsisIcon.svelte';
-	import { getMyanimelist, type Animelist } from '$lib/stores/animelist';
+	import { getMyanimelist, type Lists } from '$lib/stores/animelist';
 	import { getMyRecommendations } from '$lib/stores/my-recommendations';
 	import { toast } from '$lib/stores/toast';
 	import { user } from '$lib/stores/user';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
+	import type { MangaInfo } from '$lib/trpc/routes/manga';
+	import type { SerieType } from '$lib/types';
 	import { titleCase } from '$lib/utils/string';
 	import {
 		Badge,
@@ -31,37 +34,36 @@
 	import Fuse from 'fuse.js';
 	import { fade } from 'svelte/transition';
 
+	type SerieStatus = AnimeStatus | MangaStatus;
 	type Filter = {
 		search?: string;
 		hideSequels: boolean;
-		status?: Set<AnimeStatus>;
+		status?: Set<SerieStatus>;
 		genres?: Set<string>;
 		years?: Set<number>;
 		seasons?: Set<string>;
 		mediaTypes?: Set<string>;
 	};
-	type AnimeWithStatus = AnimeInfo & { status?: AnimeStatus };
+	type SerieWitStatus = Serie & { status?: SerieStatus };
 	type Fuzzy = typeof fuzzySearch;
 	type StatusOption = {
-		value: AnimeStatus;
+		value: SerieStatus;
 		label: string;
 		color: string;
 	};
+	type Serie = AnimeInfo | MangaInfo;
 
-	export let animes: AnimeInfo[] | undefined;
+	export let series: Serie[] | undefined;
+	export let type: SerieType;
 	export let startFilter: Partial<Filter> = {};
 	export let recommend = false;
 
-	const animelist = getMyanimelist();
+	const myanimelist = getMyanimelist();
 	const recommendations = getMyRecommendations();
-	const statusOptions: StatusOption[] = [
-		{ value: 'completed', label: 'Completed', color: 'blue' },
-		{ value: 'watching', label: 'Watching', color: 'green' },
-		{ value: 'plan_to_watch', label: 'Plan to watch', color: 'dark' },
-		{ value: 'on_hold', label: 'On hold', color: 'yellow' },
-		{ value: 'dropped', label: 'Dropped', color: 'red' },
-		{ value: undefined as any, label: 'No status', color: 'gray' },
-	];
+	const statusDisplay = type === 'Anime' ? animeStatusDisplay : mangaStatusDisplay;
+	const statusOptions: StatusOption[] = Object.entries(statusDisplay).map(
+		([value, { label, color }]) => ({ value: value as SerieStatus, color: color as string, label })
+	);
 	const seasonOptions = [
 		{ value: 'winter', label: 'Winter' },
 		{ value: 'spring', label: 'Spring' },
@@ -76,99 +78,112 @@
 	let showFilter = false;
 	let loadingMal = false;
 	let malHasNextPage = true;
-	let malPage = 1;
+	let malPageNumber = 1;
 	let loadingRecommendations = new Set<number>();
 
 	$: {
 		if (filter) {
-			malPage = 1;
+			malPageNumber = 1;
 			malHasNextPage = true;
 		}
 	}
 
 	$: yearOptions = (() => {
-		const years = [
-			...new Set(animes?.map((anime) => anime.seasonYear).filter((year) => year) as number[]),
-		];
-		years.sort((y1, y2) => y2 - y1);
-		return years.map((year) => ({ value: year, label: year.toString() }));
+		if (type === 'Anime') {
+			const years = [
+				...new Set(
+					series?.map((anime) => (anime as AnimeInfo).seasonYear).filter((year) => year) as number[]
+				),
+			];
+			years.sort((y1, y2) => y2 - y1);
+			return years.map((year) => ({ value: year, label: year.toString() }));
+		}
 	})();
 	$: genreOptions = (() => {
-		const genres = [...new Set(animes?.flatMap((anime) => anime.genres) ?? [])];
+		const genres = [...new Set(series?.flatMap((serie) => serie.genres) ?? [])];
 		genres.sort((g1, g2) => g1.localeCompare(g2));
 		return genres.map((genre) => ({ value: genre, label: genre }));
 	})();
 	$: mediaOptions = (() => {
-		const genres = [...new Set(animes?.flatMap((anime) => anime.mediaType) ?? [])];
-		genres.sort((g1, g2) => g1.localeCompare(g2));
-		return genres.map((genre) => ({ value: genre, label: titleCase(genre) }));
+		if (type === 'Anime') {
+			const genres = [...new Set(series?.flatMap((anime) => anime.mediaType) ?? [])];
+			genres.sort((g1, g2) => g1.localeCompare(g2));
+			return genres.map((genre) => ({ value: genre, label: titleCase(genre) }));
+		}
 	})();
-	$: animesWithStatus = addStatus(animes ?? [], $animelist);
+	$: animesWithStatus = addStatus(series ?? [], $myanimelist, type);
 	$: fuzzySearch = new Fuse(animesWithStatus, {
 		keys: ['title'],
 		threshold: 0.3,
 	});
-	$: filteredAnimes = filterAnimes(animesWithStatus, filter, fuzzySearch);
+	$: filteredSeries = filterSeries(animesWithStatus, filter, fuzzySearch);
 
-	function addStatus(animes: AnimeInfo[], animelist: Animelist | undefined): AnimeWithStatus[] {
-		return animelist
-			? animes?.map((anime) => ({ ...anime, status: animelist?.get(anime.id)?.status }))
-			: animes;
+	function addStatus(
+		series: Serie[],
+		myanimelist: Lists | undefined,
+		type: SerieType
+	): SerieWitStatus[] {
+		const list = type === 'Anime' ? myanimelist?.animelist : myanimelist?.mangalist;
+
+		return myanimelist
+			? series?.map((serie) => ({ ...serie, status: list?.get(serie.id)?.status }))
+			: series;
 	}
 
-	function filterAnimes(
-		animes: AnimeWithStatus[],
-		filter: Filter,
-		fuzzy: Fuzzy
-	): AnimeWithStatus[] {
+	function filterSeries(series: SerieWitStatus[], filter: Filter, fuzzy: Fuzzy): SerieWitStatus[] {
 		if (filter.search) {
-			animes = fuzzy.search(filter.search).map(({ item }) => item);
+			series = fuzzy.search(filter.search).map(({ item }) => item);
 		}
 
-		if (filter.hideSequels) {
-			animes = animes.filter((anime) => !anime.isSequel);
+		if (filter.hideSequels && type === 'Anime') {
+			series = series.filter((anime) => !(anime as AnimeInfo).isSequel);
 		}
 
 		if (filter.genres?.size) {
-			animes = animes.filter((anime) => anime.genres.some((genre) => filter.genres?.has(genre)));
+			series = series.filter((serie) => serie.genres.some((genre) => filter.genres?.has(genre)));
 		}
 
 		if (filter.status?.size) {
-			animes = animes.filter((anime) => filter.status?.has(anime.status as any));
+			series = series.filter((serie) => filter.status?.has(serie.status as any));
 		}
 
-		if (filter.years?.size) {
-			animes = animes.filter((anime) => filter.years?.has(anime.seasonYear as number));
+		if (filter.years?.size && type === 'Anime') {
+			series = series.filter((anime) =>
+				filter.years?.has((anime as AnimeInfo).seasonYear as number)
+			);
 		}
 
-		if (filter.seasons?.size) {
-			animes = animes.filter((anime) => filter.seasons?.has(anime.season as string));
+		if (filter.seasons?.size && type === 'Anime') {
+			series = series.filter((anime) => filter.seasons?.has((anime as AnimeInfo).season as string));
 		}
 
 		if (filter.mediaTypes?.size) {
-			animes = animes.filter((anime) => filter.seasons?.has(anime.mediaType as string));
+			series = series.filter((serie) => filter.seasons?.has(serie.mediaType as string));
 		}
 
-		return animes;
+		return series;
 	}
 
-	async function toggleRecommendation(animeId: number) {
+	async function toggleRecommendation(serieId: number, type: SerieType) {
+		const prop = type === 'Anime' ? 'animes' : 'mangas';
+
 		try {
-			loadingRecommendations.add(animeId);
+			loadingRecommendations.add(serieId);
 			loadingRecommendations = loadingRecommendations;
 
-			if ($recommendations?.has(animeId)) {
-				await recommendations.remove(animeId);
+			if ($recommendations?.[prop].has(serieId)) {
+				await recommendations.remove(serieId, type);
 			} else {
-				await recommendations.add(animeId);
+				await recommendations.add(serieId, type);
 			}
-		} catch {
+		} catch (e) {
+			console.error(e);
 			$toast = {
-				message: 'Could not modify anime recommendation. Please try again',
+				message: 'Could not modify recommendation. Please try again',
 				level: 'error',
 			};
 		} finally {
-			loadingRecommendations.delete(animeId);
+			loadingRecommendations.delete(serieId);
 			loadingRecommendations = loadingRecommendations;
 		}
 	}
@@ -186,30 +201,35 @@
 		loadingMal = true;
 		try {
 			const limit = 25;
-			const animes = await AnimeService.getAnimeSearch(undefined, malPage, limit, filter.search);
-			malPage += 1;
-			malHasNextPage = animes.pagination?.has_next_page ?? false;
+			const series =
+				type === 'Anime'
+					? await AnimeService.getAnimeSearch(undefined, malPageNumber, limit, filter.search)
+					: await MangaService.getMangaSearch(undefined, malPageNumber, limit, filter.search);
+			malPageNumber += 1;
+			malHasNextPage = series.pagination?.has_next_page ?? false;
 
-			if (animes.data) {
+			if (series.data) {
 				const m = Number.MAX_SAFE_INTEGER;
-				animes.data.sort((a1, a2) => (a1.popularity ?? m) - (a2.popularity ?? m));
-				const filteredIds = new Set(filteredAnimes.map((anime) => anime.id));
-				const foundAnimes: AnimeInfo[] = animes.data
-					.filter((anime) => !filteredIds.has(anime.mal_id as number))
-					.map((anime) => ({
-						id: anime.mal_id ?? 0,
-						genres: anime.genres?.map((genre) => genre.name ?? '') ?? [],
-						title: anime.title ?? 'No title',
+				series.data.sort((a1, a2) => (a1.popularity ?? m) - (a2.popularity ?? m));
+				const filteredIds = new Set(filteredSeries.map((anime) => anime.id));
+				const foundSeries: Serie[] = series.data
+					.filter((serie) => !filteredIds.has(serie.mal_id as number))
+					.map((serie) => ({
+						id: serie.mal_id ?? 0,
+						genres: serie.genres?.map((genre) => genre.name ?? '') ?? [],
+						title: serie.title ?? 'No title',
 						isSequel: null,
-						mediaType: anime.type ?? 'Unknown',
+						mediaType: serie.type ?? 'Unknown',
 						nsfw: 'white',
 						pictureLarge:
-							anime.images?.webp?.large_image_url ?? anime.images?.webp?.image_url ?? null,
-						season: anime.season ?? null,
-						seasonYear: anime.year ?? null,
+							serie.images?.webp?.large_image_url ?? serie.images?.webp?.image_url ?? null,
+						season: (serie as anime).season ?? null,
+						seasonYear: (serie as anime).year ?? null,
+						chapters: (serie as manga).chapters ?? null,
+						volumes: (serie as manga).volumes ?? null,
 					}));
 
-				filteredAnimes = filteredAnimes.concat(addStatus(foundAnimes, $animelist));
+				filteredSeries = filteredSeries.concat(addStatus(foundSeries, $myanimelist, type));
 			}
 		} finally {
 			loadingMal = false;
@@ -342,15 +362,17 @@
 					/>
 				</fieldset>
 
-				<fieldset>
-					<label for="yearFilter">Year</label>
-					<MultiSelectAutocomplete
-						id="yearFilter"
-						options={yearOptions}
-						bind:values={filter.years}
-						placeholder="Select years"
-					/>
-				</fieldset>
+				{#if yearOptions}
+					<fieldset>
+						<label for="yearFilter">Year</label>
+						<MultiSelectAutocomplete
+							id="yearFilter"
+							options={yearOptions}
+							bind:values={filter.years}
+							placeholder="Select years"
+						/>
+					</fieldset>
+				{/if}
 
 				<fieldset>
 					<label for="seasonFilter">Season</label>
@@ -362,15 +384,17 @@
 					/>
 				</fieldset>
 
-				<fieldset>
-					<label for="mediaFilter">Media type</label>
-					<MultiSelectAutocomplete
-						id="mediaFilter"
-						options={mediaOptions}
-						bind:values={filter.mediaTypes}
-						placeholder="Select media type"
-					/>
-				</fieldset>
+				{#if mediaOptions}
+					<fieldset>
+						<label for="mediaFilter">Media type</label>
+						<MultiSelectAutocomplete
+							id="mediaFilter"
+							options={mediaOptions}
+							bind:values={filter.mediaTypes}
+							placeholder="Select media type"
+						/>
+					</fieldset>
+				{/if}
 			</div>
 		</CustomDropdown>
 	</div>
@@ -379,7 +403,7 @@
 <div
 	class="grid gap-3 grid-cols-2 min-[470px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 mt-5"
 >
-	{#if animes === undefined}
+	{#if series === undefined}
 		{#each new Array(25).fill(0) as _}
 			<div class="flex flex-col gap-2">
 				<Placeholder class="rounded w-full aspect-[225/350]" />
@@ -387,21 +411,25 @@
 			</div>
 		{/each}
 	{:else}
-		{#each filteredAnimes as anime (anime.id)}
-			{@const statusHandler = $animelist ? { animeId: anime.id, animelist } : undefined}
-			{@const isRecommended = $recommendations?.has(anime.id)}
-			{@const isLoading = loadingRecommendations.has(anime.id)}
+		{#each filteredSeries as serie (serie.id)}
+			{@const statusHandler = $myanimelist
+				? { serieId: serie.id, animelist: myanimelist, type }
+				: undefined}
+			{@const isRecommended = $recommendations?.[type === 'Anime' ? 'animes' : 'mangas'].has(
+				serie.id
+			)}
+			{@const isLoading = loadingRecommendations.has(serie.id)}
 
 			<div transition:fade={{ duration: 150 }} class="flex flex-col gap-1">
 				{#if recommend}
 					<div class="relative">
-						<AnimeDisplay title={anime.title} pictureUrl={anime.pictureLarge} {statusHandler} />
+						<AnimeDisplay title={serie.title} pictureUrl={serie.pictureLarge} {statusHandler} />
 						<div class="absolute top-2 right-2">
 							<button
 								class="rounded-lg focus:ring-2 p-3 flex items-center justify-center h-11 min-w-[2.75rem] {isRecommended
 									? 'bg-primary-600'
 									: 'bg-primary-800'}"
-								on:click={() => toggleRecommendation(anime.id)}
+								on:click={() => toggleRecommendation(serie.id, type)}
 								disabled={isLoading}
 								title={isRecommended ? 'Click to unrecommend' : 'Click to recommend'}
 							>
@@ -420,17 +448,17 @@
 						</div>
 					</div>
 				{:else}
-					<AnimeDisplay title={anime.title} pictureUrl={anime.pictureLarge} {statusHandler} />
+					<AnimeDisplay title={serie.title} pictureUrl={serie.pictureLarge} {statusHandler} />
 				{/if}
 
 				<div class="h-11 flex justify-between items-start gap-1">
-					<div title={anime.title} class="h-11 overflow-hidden text-sm font-medium text-gray-600">
+					<div title={serie.title} class="h-11 overflow-hidden text-sm font-medium text-gray-600">
 						{#if !recommend}
-							<a href="https://myanimelist.net/anime/{anime.id}" target="_blank">
-								{anime.title}
+							<a href="https://myanimelist.net/anime/{serie.id}" target="_blank">
+								{serie.title}
 							</a>
 						{:else}
-							<div>{anime.title}</div>
+							<div>{serie.title}</div>
 						{/if}
 					</div>
 					{#if $user}
@@ -440,7 +468,7 @@
 						<Dropdown placement="bottom-end">
 							<DropdownItem
 								class={isRecommended ? 'text-red-700' : 'text-primary-700'}
-								on:click={() => toggleRecommendation(anime.id)}
+								on:click={() => toggleRecommendation(serie.id, type)}
 								>{isRecommended ? 'Unrecommend' : 'Recommend'}</DropdownItem
 							>
 						</Dropdown>
@@ -449,7 +477,7 @@
 			</div>
 		{/each}
 
-		{#if recommend && filter.search && filteredAnimes.length > 0 && malHasNextPage}
+		{#if recommend && filter.search && filteredSeries.length > 0 && malHasNextPage}
 			<Button
 				disabled={loadingMal}
 				class="w-full grow flex flex-col items-center justify-center gap-2 aspect-[225/318]"
@@ -468,10 +496,10 @@
 	{/if}
 </div>
 
-{#if animes !== undefined && filteredAnimes.length === 0}
+{#if series !== undefined && filteredSeries.length === 0}
 	<div in:fade={{ duration: 150 }} class="flex flex-col items-center justify-center gap-2">
 		<div class="font-bold text-3xl">(ಠ.ಠ)</div>
-		<div class="text-gray-600">No animes found</div>
+		<div class="text-gray-600">No {type.toLocaleLowerCase()} found</div>
 		{#if recommend}
 			<Button disabled={loadingMal} type="button" class="mt-1 flex" on:click={searchOnMyanimelist}>
 				{#if loadingMal}
@@ -483,7 +511,7 @@
 					class="h-4 mt-0.5"
 				/></Button
 			>
-			<div class="text-sm text-gray-400">Search: {filter.search}</div>
+			<div class="text-sm text-gray-400">Search: {filter.search ?? '""'}</div>
 		{/if}
 	</div>
 {/if}

@@ -1,8 +1,8 @@
-name: Update db animes and mangas
+name: Update db animes
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * 1-6'
   workflow_dispatch:
 
 jobs:

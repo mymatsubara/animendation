@@ -5,11 +5,17 @@ import {
 	type AnimeListForRanking,
 	type AnimeListStatus,
 	type List,
+	type MangaForDetails,
+	type MangaForList,
+	type MangaListForRanking,
 	type User,
 	type UserAnimeList,
-	type UserAnimeListEdge
+	type UserAnimeListEdge,
+	type UserMangaList,
+	type UserMangaListEdge,
 } from '$lib/clients/myanimelist/generated';
-import type { Anime } from '$lib/server/schema';
+import type { Anime, Manga } from '$lib/server/schema';
+import type { SerieType } from '$lib/types';
 import { TRPCError } from '@trpc/server';
 import type { Insertable } from 'kysely';
 
@@ -18,15 +24,26 @@ export const animeStatus = [
 	'completed',
 	'on_hold',
 	'dropped',
-	'plan_to_watch'
+	'plan_to_watch',
 ] as const;
 export type AnimeStatus = typeof animeStatus[number];
 
-type GetUserAnimeListOptions = {
+export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read'] as const;
+export type MangaStatus = typeof mangaStatus[number];
+
+type GetUserAnimelistOptions = {
 	fields?: 'list_status';
 	limit?: number;
-	status?: 'watching' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_watch';
+	status?: AnimeStatus;
 	sort?: 'list_score' | 'list_updated_at' | 'anime_title' | 'anime_start_date' | 'anime_id';
+	offset?: number;
+};
+
+type GetUserMangalistOptions = {
+	fields?: 'list_status';
+	limit?: number;
+	status?: MangaStatus;
+	sort?: 'list_score' | 'list_updated_at' | 'manga_title' | 'manga_start_date' | 'manga_id';
 	offset?: number;
 };
 
@@ -44,11 +61,30 @@ type GetAnimeRankingOptions = {
 	offset?: number;
 };
 
+type GetMangaRankingOptions = {
+	type:
+		| 'all'
+		| 'manga'
+		| 'novels'
+		| 'oneshots'
+		| 'doujin'
+		| 'manhwa'
+		| 'manhua'
+		| 'bypopularity'
+		| 'favorite';
+	limit?: number;
+	offset?: number;
+};
+
 type GetAnimeRankingResponse = {
-	animes: AnimeListEntry[];
+	mangas: AnimeListEntry[];
 } & List;
 
-type UpdateMyanimelistStatus = {
+type GetMangaRankingResponse = {
+	mangas: MangaListEntry[];
+} & List;
+
+type UpdateAnimelistStatus = {
 	animeId: number;
 	status?: AnimeStatus;
 	is_rewatching?: boolean;
@@ -61,6 +97,20 @@ type UpdateMyanimelistStatus = {
 	comments?: string;
 };
 
+type UpdateMangalistStatus = {
+	mangaId: number;
+	status?: MangaStatus;
+	is_rereading?: boolean;
+	score?: number;
+	num_volumes_read?: number;
+	num_chapters_read?: number;
+	prpriority?: number;
+	num_times_reread?: number;
+	reread_value?: number;
+	tags?: string;
+	comments?: string;
+};
+
 type MALClientOptions =
 	| {
 			accessToken: string;
@@ -69,9 +119,11 @@ type MALClientOptions =
 
 export type AnimeListEntry = Omit<Insertable<Anime>, 'genres' | 'isSequel'> & { genres: string[] };
 export type AnimeDetail = AnimeListEntry & { isSequel: boolean };
+export type MangaListEntry = Omit<Insertable<Manga>, 'genres'> & { genres: string[] };
+export type MangaDetail = MangaListEntry;
 
-const animeFields =
-	'start_date,end_date,nsfw,genres,created_at,updated_at,media_type,status,num_episodes,start_season,source,rating';
+const serieFields =
+	'start_date,end_date,nsfw,genres,created_at,updated_at,media_type,status,num_episodes,start_season,source,rating,num_volumes,num_chapters';
 
 export class MALClient {
 	private baseUrl = OpenAPI.BASE;
@@ -80,34 +132,62 @@ export class MALClient {
 	constructor(options: MALClientOptions) {
 		if ('accessToken' in options) {
 			this.headers = {
-				Authorization: `Bearer ${options.accessToken}`
+				Authorization: `Bearer ${options.accessToken}`,
 			};
 		}
 
 		if ('clientId' in options) {
 			this.headers = {
-				'X-MAL-CLIENT-ID': options.clientId
+				'X-MAL-CLIENT-ID': options.clientId,
 			};
 		}
 	}
 
-	async getUserFullAnimeList(
+	async getUserFullAnimelist(
 		username: string,
-		options?: Omit<GetUserAnimeListOptions, 'limit' | 'offset'>
+		options?: Omit<GetUserAnimelistOptions, 'limit' | 'offset'>
 	): Promise<UserAnimeListEdge[]> {
 		const limit = 1000;
 		const opts = {
 			...options,
 			limit,
-			offset: 0
+			offset: 0,
 		};
 
-		let result: UserAnimeListEdge[] = [];
+		return this.getAllPagedResults(async () => {
+			const page = await this.getUserAnimeList(username, opts);
+			opts.offset += limit;
+
+			return page;
+		});
+	}
+
+	async getUserFullMangalist(
+		username: string,
+		options?: Omit<GetUserMangalistOptions, 'limit' | 'offset'>
+	): Promise<UserAnimeListEdge[]> {
+		const limit = 1000;
+		const opts = {
+			...options,
+			limit,
+			offset: 0,
+		};
+
+		return this.getAllPagedResults(async () => {
+			const page = await this.getUserMangalist(username, opts);
+			opts.offset += limit;
+
+			return page;
+		});
+	}
+
+	private async getAllPagedResults<T, P extends List & { data?: T[] }>(fetch: () => Promise<P>) {
+		let result: T[] = [];
 
 		while (true) {
-			const page = await this.getUserAnimeList(username, opts);
+			const page = await fetch();
+
 			result.push(...(page.data ?? []));
-			opts.offset += limit;
 
 			if (!page?.paging?.next) {
 				break;
@@ -117,26 +197,38 @@ export class MALClient {
 		return result;
 	}
 
-	async getUserAnimeListSince(username: string, since: Date) {
+	async getUserMangalistSince(username: string, since: Date) {
+		return this.getUserListSince(username, since, 'Manga') as Promise<UserMangaListEdge[]>;
+	}
+
+	async getUserAnimelistSince(username: string, since: Date) {
+		return this.getUserListSince(username, since, 'Anime') as Promise<UserAnimeListEdge[]>;
+	}
+
+	private async getUserListSince(username: string, since: Date, type: SerieType) {
 		const options = {
 			fields: 'list_status',
 			limit: 10,
 			offset: 0,
-			sort: 'list_updated_at'
-		} satisfies GetUserAnimeListOptions;
+			sort: 'list_updated_at',
+		} satisfies GetUserAnimelistOptions | GetUserMangalistOptions;
 
-		let result: UserAnimeListEdge[] = [];
+		let result: (UserAnimeListEdge | UserMangaListEdge)[] = [];
 		const sinceTime = since.getTime();
 
 		while (true) {
-			const page = await this.getUserAnimeList(username, options);
-			const newAnimes = page.data?.filter(
+			const page =
+				type === 'Anime'
+					? await this.getUserAnimeList(username, options)
+					: await this.getUserMangalist(username, options);
+
+			const newSeries = page.data?.filter(
 				(anime) => new Date(anime?.list_status?.updated_at ?? 0).getTime() >= sinceTime
 			);
 
-			result.push(...(newAnimes ?? []));
+			result.push(...(newSeries ?? []));
 
-			if (newAnimes?.length !== options.limit || !page?.paging?.next) {
+			if (newSeries?.length !== options.limit || !page?.paging?.next) {
 				break;
 			}
 
@@ -150,7 +242,7 @@ export class MALClient {
 	async getAnimeDetail(id: number): Promise<AnimeDetail> {
 		const animes = (await this.getAnimeDetailRaw(
 			id,
-			`${animeFields},related_anime`
+			`${serieFields},related_anime`
 		)) as Required<AnimeForDetails>;
 
 		return mapAnimeDetail(animes);
@@ -160,7 +252,7 @@ export class MALClient {
 		const response = (await this.request({
 			path: `/anime/${id}`,
 			method: 'GET',
-			searchParams: { fields }
+			searchParams: { fields },
 		})) as AnimeForDetails;
 
 		return response;
@@ -170,47 +262,104 @@ export class MALClient {
 		const response = (await this.request({
 			path: `/anime/ranking`,
 			method: 'GET',
-			searchParams: { ...options, fields: animeFields }
+			searchParams: { ...options, fields: serieFields },
 		})) as AnimeListForRanking;
 
 		return {
-			animes: response.data?.map((anime) => mapAnime(anime.node as Required<AnimeForList>)) ?? [],
-			paging: response.paging
+			mangas: response.data?.map((anime) => mapAnime(anime.node as Required<AnimeForList>)) ?? [],
+			paging: response.paging,
 		};
 	}
 
-	getUserAnimeList(username: string, options?: GetUserAnimeListOptions): Promise<UserAnimeList> {
+	async getMangaDetail(id: number): Promise<MangaDetail> {
+		const mangas = (await this.getMangaDetailRaw(id, serieFields)) as Required<MangaForDetails>;
+
+		return mapManga(mangas);
+	}
+
+	async getMangaDetailRaw(id: number, fields?: string): Promise<MangaForDetails> {
+		const response = (await this.request({
+			path: `/anime/${id}`,
+			method: 'GET',
+			searchParams: { fields },
+		})) as AnimeForDetails;
+
+		return response;
+	}
+
+	async getMangaRanking(options: GetAnimeRankingOptions): Promise<GetMangaRankingResponse> {
+		const response = (await this.request({
+			path: `/manga/ranking`,
+			method: 'GET',
+			searchParams: { ...options, fields: serieFields },
+		})) as MangaListForRanking;
+
+		return {
+			mangas: response.data?.map((manga) => mapManga(manga.node as Required<MangaForList>)) ?? [],
+			paging: response.paging,
+		};
+	}
+
+	getUserAnimeList(username: string, options?: GetUserAnimelistOptions): Promise<UserAnimeList> {
 		return this.request({
 			path: `/users/${username}/animelist`,
 			method: 'GET',
-			searchParams: options as any
+			searchParams: options as any,
 		}) as Promise<UserAnimeList>;
+	}
+
+	getUserMangalist(username: string, options?: GetUserMangalistOptions): Promise<UserMangaList> {
+		return this.request({
+			path: `/users/${username}/mangalist`,
+			method: 'GET',
+			searchParams: options as any,
+		}) as Promise<UserMangaList>;
 	}
 
 	getMe(): Promise<User> {
 		return this.request({
 			path: `/users/@me`,
-			method: 'GET'
+			method: 'GET',
 		}) as Promise<User>;
 	}
 
-	updateAnimeStatusOnList(input: UpdateMyanimelistStatus): Promise<AnimeListStatus> {
+	updateAnimeStatusOnList(input: UpdateAnimelistStatus): Promise<AnimeListStatus> {
 		const { animeId, ...body } = input;
 
 		return this.request({
 			path: `/anime/${animeId}/my_list_status`,
 			method: 'PUT',
 			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
+				'Content-Type': 'application/x-www-form-urlencoded',
 			},
-			body: new URLSearchParams(body as any)
+			body: new URLSearchParams(body as any),
+		}) as Promise<AnimeListStatus>;
+	}
+
+	updateMangaStatusOnList(input: UpdateMangalistStatus): Promise<AnimeListStatus> {
+		const { mangaId, ...body } = input;
+
+		return this.request({
+			path: `/manga/${mangaId}/my_list_status`,
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams(body as any),
 		}) as Promise<AnimeListStatus>;
 	}
 
 	removeAnimeFromList(animeId: number) {
 		return this.request({
 			path: `/anime/${animeId}/my_list_status`,
-			method: 'DELETE'
+			method: 'DELETE',
+		});
+	}
+
+	removeMangaFromList(mangaId: number) {
+		return this.request({
+			path: `/manga/${mangaId}/my_list_status`,
+			method: 'DELETE',
 		});
 	}
 
@@ -223,7 +372,7 @@ export class MALClient {
 		const response = await fetch(url, {
 			method: options.method,
 			body: options?.body,
-			headers: { ...this.headers, ...options.headers }
+			headers: { ...this.headers, ...options.headers },
 		});
 
 		if (response.status === 401) {
@@ -258,14 +407,38 @@ function mapAnime(anime: Required<AnimeForList>): AnimeListEntry {
 		nsfw: anime.nsfw,
 		pictureLarge: anime.main_picture?.large,
 		pictureMedium: anime.main_picture?.medium,
-		startDate: startDate ? new Date(startDate).toDateString() : null
+		startDate: startDate ? new Date(startDate).toDateString() : null,
+	};
+}
+
+function mapManga(manga: Required<MangaForList>): MangaDetail {
+	const startDate = manga.start_date;
+	const endDate = manga.end_date;
+	const createdAt = manga.created_at;
+	const updatedAt = manga.updated_at;
+
+	return {
+		id: manga.id,
+		createdAt: createdAt === '1970-01-01T00:00:00+00:00' ? '1970-01-01T00:00:00' : createdAt,
+		updatedAt: updatedAt === '1970-01-01T00:00:00+00:00' ? '1970-01-01T00:00:00' : updatedAt,
+		genres: manga.genres?.map((genre) => genre.name as string) ?? [],
+		mediaType: manga.media_type,
+		status: manga.status,
+		title: manga.title,
+		endDate: endDate ? new Date(endDate).toDateString() : null,
+		nsfw: manga.nsfw,
+		pictureLarge: manga.main_picture?.large,
+		pictureMedium: manga.main_picture?.medium,
+		startDate: startDate ? new Date(startDate).toDateString() : null,
+		chapters: manga.num_chapters,
+		volumes: manga.num_volumes,
 	};
 }
 
 function mapAnimeDetail(anime: Required<AnimeForList>): AnimeDetail {
 	return {
 		...mapAnime(anime),
-		isSequel: isSequel(anime)
+		isSequel: isSequel(anime),
 	};
 }
 

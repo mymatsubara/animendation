@@ -1,6 +1,7 @@
 <script lang="ts">
 	import AnimeStatusSelect from '$lib/components/selects/AnimeStatusSelect.svelte';
 	import type { Myanimelist } from '$lib/stores/animelist';
+	import type { SerieType } from '$lib/types';
 	import { fade } from 'svelte/transition';
 
 	export let title: string;
@@ -8,7 +9,8 @@
 	export let statusHandler:
 		| {
 				animelist: Myanimelist;
-				animeId: number;
+				serieId: number;
+				type: SerieType;
 		  }
 		| undefined;
 </script>

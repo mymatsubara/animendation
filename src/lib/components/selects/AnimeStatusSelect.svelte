@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { statusDisplay } from '$lib/client/display';
+	import { animeStatusDisplay, mangaStatusDisplay } from '$lib/client/display';
 	import type { AnimeStatus } from '$lib/clients/myanimelist';
 	import CustomDropdown from '$lib/components/dropdowns/CustomDropdown.svelte';
 	import ChevronDownIcon from '$lib/components/icons/ChevronDownIcon.svelte';
@@ -7,14 +7,21 @@
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 	import type { Myanimelist } from '$lib/stores/animelist';
 	import { toast } from '$lib/stores/toast';
+	import type { SerieType } from '$lib/types';
 	import { unchecked } from '$lib/utils/types';
 	import { Badge, Indicator } from 'flowbite-svelte';
 
-	export let animeId: number;
+	export let serieId: number;
 	export let animelist: Myanimelist;
+	export let type: SerieType;
 
-	$: status = $animelist?.get(animeId)?.status as AnimeStatus;
-	$: display = statusDisplay[status] ?? { label: 'Add to list', color: 'gray' };
+	const displayMap = type === 'Anime' ? animeStatusDisplay : (mangaStatusDisplay as any);
+	$: status =
+		type === 'Anime'
+			? $animelist?.animelist.get(serieId)?.status
+			: $animelist?.mangalist.get(serieId)?.status;
+
+	$: display = displayMap[status as string] ?? { label: 'Add to list', color: 'gray' };
 
 	async function changeStatus(newStatus: AnimeStatus | undefined, toggle: Function) {
 		toggle();
@@ -24,9 +31,9 @@
 		}
 
 		if (newStatus === undefined) {
-			await animelist.remove(animeId);
+			await animelist.remove(serieId, type);
 		} else {
-			await animelist.upsert(animeId, newStatus);
+			await animelist.upsert(serieId, { type, status: status as any });
 		}
 		$toast = {
 			message: 'Anime status updated',
@@ -52,7 +59,7 @@
 	</svelte:fragment>
 
 	<div class="flex flex-col w-max">
-		{#each Object.entries(statusDisplay) as [value, display] (value)}
+		{#each Object.entries(animeStatusDisplay) as [value, display] (value)}
 			{@const color = display.color === 'dark' ? 'gray' : display.color}
 			<button
 				class="flex items-center px-3 py-2 hover:bg-{color}-100 text-{color}-800 focus:ring-2 text-xs font-medium {status ===

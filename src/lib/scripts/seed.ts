@@ -1,14 +1,22 @@
 import { PUBLIC_MAL_CLIENT_ID } from '$env/static/public';
 import { MALClient, isSequel } from '$lib/clients/myanimelist';
 import { db } from '$lib/server/db';
+import type { SerieType } from '$lib/types';
 import { sql } from 'kysely';
 
-export async function seed() {
+export async function seed(type: 'animes' | 'mangas' | 'all') {
 	console.log('⏳ Starting database seeding...');
 
 	try {
-		await seedAnimes();
-		await checkAnimesSequelRetry();
+		if (type === 'animes' || type === 'all') {
+			await seedSeries('Anime');
+			await checkAnimesSequelRetry();
+		}
+
+		if (type === 'mangas' || type === 'all') {
+			await seedSeries('Manga');
+		}
+
 		console.log('✅ Database seeding completed!');
 	} catch (e) {
 		console.error('❌ Error while seeding database');
@@ -20,49 +28,90 @@ export async function seed() {
 	}
 }
 
-async function seedAnimes() {
+async function seedSeries(type: SerieType) {
 	let offset = 0;
 	const limit = 500;
 	const client = new MALClient({ clientId: PUBLIC_MAL_CLIENT_ID });
 
 	while (true) {
-		console.log(`Ⓜ️  [Ranks: ${offset + 1}-${offset + limit}] Seeding animes from Myanimelist...`);
+		console.log(
+			`Ⓜ️  [Ranks: ${offset + 1}-${
+				offset + limit
+			}] Seeding ${type.toLocaleLowerCase()}s from Myanimelist...`
+		);
 
-		const page = await client.getAnimeRaking({
-			type: 'all',
-			limit,
-			offset
-		});
+		if (type === 'Anime') {
+			const page = await client.getAnimeRaking({
+				type: 'all',
+				limit,
+				offset,
+			});
 
-		await db
-			.insertInto('Anime')
-			.values(
-				page.animes.map((anime) => ({
-					...anime,
-					genres: anime.genres.join(',')
-				}))
-			)
-			.onDuplicateKeyUpdate({
-				createdAt: ({ ref }) => sql`VALUES(${ref('Anime.createdAt')})`,
-				episodes: ({ ref }) => sql`VALUES(${ref('Anime.episodes')})`,
-				genres: ({ ref }) => sql`VALUES(${ref('Anime.genres')})`,
-				mediaType: ({ ref }) => sql`VALUES(${ref('Anime.mediaType')})`,
-				season: ({ ref }) => sql`VALUES(${ref('Anime.season')})`,
-				seasonYear: ({ ref }) => sql`VALUES(${ref('Anime.seasonYear')})`,
-				source: ({ ref }) => sql`VALUES(${ref('Anime.source')})`,
-				status: ({ ref }) => sql`VALUES(${ref('Anime.status')})`,
-				title: ({ ref }) => sql`VALUES(${ref('Anime.title')})`,
-				updatedAt: ({ ref }) => sql`VALUES(${ref('Anime.updatedAt')})`,
-				endDate: ({ ref }) => sql`VALUES(${ref('Anime.endDate')})`,
-				nsfw: ({ ref }) => sql`VALUES(${ref('Anime.nsfw')})`,
-				pictureLarge: ({ ref }) => sql`VALUES(${ref('Anime.pictureLarge')})`,
-				pictureMedium: ({ ref }) => sql`VALUES(${ref('Anime.pictureMedium')})`,
-				startDate: ({ ref }) => sql`VALUES(${ref('Anime.startDate')})`
-			})
-			.execute();
+			await db
+				.insertInto(type)
+				.values(
+					page.mangas.map((anime) => ({
+						...anime,
+						genres: anime.genres.join(','),
+					}))
+				)
+				.onDuplicateKeyUpdate({
+					createdAt: ({ ref }) => sql`VALUES(${ref('createdAt')})`,
+					genres: ({ ref }) => sql`VALUES(${ref('genres')})`,
+					mediaType: ({ ref }) => sql`VALUES(${ref('mediaType')})`,
+					status: ({ ref }) => sql`VALUES(${ref('status')})`,
+					title: ({ ref }) => sql`VALUES(${ref('title')})`,
+					updatedAt: ({ ref }) => sql`VALUES(${ref('updatedAt')})`,
+					endDate: ({ ref }) => sql`VALUES(${ref('endDate')})`,
+					nsfw: ({ ref }) => sql`VALUES(${ref('nsfw')})`,
+					pictureLarge: ({ ref }) => sql`VALUES(${ref('pictureLarge')})`,
+					pictureMedium: ({ ref }) => sql`VALUES(${ref('pictureMedium')})`,
+					startDate: ({ ref }) => sql`VALUES(${ref('startDate')})`,
+					episodes: ({ ref }) => sql`VALUES(${ref('episodes')})`,
+					season: ({ ref }) => sql`VALUES(${ref('season')})`,
+					seasonYear: ({ ref }) => sql`VALUES(${ref('seasonYear')})`,
+					source: ({ ref }) => sql`VALUES(${ref('source')})`,
+				})
+				.execute();
 
-		if (!page?.paging?.next) {
-			break;
+			if (!page?.paging?.next) {
+				break;
+			}
+		} else if (type === 'Manga') {
+			const page = await client.getMangaRanking({
+				type: 'all',
+				limit,
+				offset,
+			});
+
+			await db
+				.insertInto(type)
+				.values(
+					page.mangas.map((manga) => ({
+						...manga,
+						genres: manga.genres.join(','),
+					}))
+				)
+				.onDuplicateKeyUpdate({
+					createdAt: ({ ref }) => sql`VALUES(${ref('createdAt')})`,
+					genres: ({ ref }) => sql`VALUES(${ref('genres')})`,
+					mediaType: ({ ref }) => sql`VALUES(${ref('mediaType')})`,
+					status: ({ ref }) => sql`VALUES(${ref('status')})`,
+					title: ({ ref }) => sql`VALUES(${ref('title')})`,
+					updatedAt: ({ ref }) => sql`VALUES(${ref('updatedAt')})`,
+					endDate: ({ ref }) => sql`VALUES(${ref('endDate')})`,
+					nsfw: ({ ref }) => sql`VALUES(${ref('nsfw')})`,
+					pictureLarge: ({ ref }) => sql`VALUES(${ref('pictureLarge')})`,
+					pictureMedium: ({ ref }) => sql`VALUES(${ref('pictureMedium')})`,
+					startDate: ({ ref }) => sql`VALUES(${ref('startDate')})`,
+					chapters: ({ ref }) => sql`VALUES(${ref('chapters')})`,
+					volumes: ({ ref }) => sql`VALUES(${ref('volumes')})`,
+				})
+				.execute();
+
+			if (!page?.paging?.next) {
+				break;
+			}
 		}
 
 		offset += limit;
@@ -141,7 +190,7 @@ async function saveSequelChecks(sequelCheck: Map<number, boolean>) {
 		await db
 			.updateTable('Anime')
 			.set({
-				isSequel: 1
+				isSequel: 1,
 			})
 			.where('id', 'in', sequelIds)
 			.execute();
@@ -154,7 +203,7 @@ async function saveSequelChecks(sequelCheck: Map<number, boolean>) {
 		await db
 			.updateTable('Anime')
 			.set({
-				isSequel: 0
+				isSequel: 0,
 			})
 			.where('id', 'in', notSequelIds)
 			.execute();
@@ -164,5 +213,3 @@ async function saveSequelChecks(sequelCheck: Map<number, boolean>) {
 async function wait(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
-seed();

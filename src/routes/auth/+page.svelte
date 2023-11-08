@@ -28,13 +28,13 @@
 			try {
 				const authUser = await trpc.auth.login.mutate({
 					authCode: code,
-					codeVerifier: expectedState.codeVerifier
+					codeVerifier: expectedState.codeVerifier,
 				});
 
 				$user = authUser;
 
 				goto(`/recommendations/${authUser.username}`);
-			} catch {
+			} catch (e) {
 				failAuth(e);
 			}
 		}

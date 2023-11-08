@@ -23,10 +23,33 @@ export type Anime = {
 	genres: string;
 	isSequel: number | null;
 };
-export type Recommendation = {
+export type AnimeRecommendation = {
 	animeId: number;
 	userId: number;
 	createdAt: Generated<Timestamp>;
+};
+export type Manga = {
+	id: number;
+	title: string;
+	pictureMedium: string | null;
+	pictureLarge: string | null;
+	startDate: string | null;
+	endDate: string | null;
+	nsfw: string | null;
+	createdAt: Timestamp;
+	updatedAt: Timestamp;
+	mediaType: string;
+	status: string;
+	volumes: number | null;
+	chapters: number | null;
+	source: string | null;
+	genres: string;
+};
+export type MangaRecommendation = {
+	mangaId: number;
+	userId: number;
+	createdAt: Generated<Timestamp>;
+	animeId: number | null;
 };
 export type User = {
 	id: number;
@@ -35,6 +58,8 @@ export type User = {
 };
 export type DB = {
 	Anime: Anime;
-	Recommendation: Recommendation;
+	AnimeRecommendation: AnimeRecommendation;
+	Manga: Manga;
+	MangaRecommendation: MangaRecommendation;
 	User: User;
 };

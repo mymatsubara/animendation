@@ -1,29 +1,32 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { getAnimes } from '$lib/client/animes';
+	import { getMangas } from '$lib/client/mangas';
+	import { getRecommendations } from '$lib/client/recommendations';
 	import { UsersService, type user_profile } from '$lib/clients/jikan/generated';
-	import EditRecommendations from '$lib/components/EditRecommendations.svelte';
 	import NoProfilePicture from '$lib/components/NoProfilePicture.svelte';
-	import RecommendationList from '$lib/components/RecommendationList.svelte';
 	import ArrowTopRightIcon from '$lib/components/icons/ArrowTopRightIcon.svelte';
 	import CameraIcon from '$lib/components/icons/CameraIcon.svelte';
-	import CheckIcon from '$lib/components/icons/CheckIcon.svelte';
 	import ChevronUpIcon from '$lib/components/icons/ChevronUpIcon.svelte';
 	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
-	import PencilSquareIcon from '$lib/components/icons/PencilSquareIcon.svelte';
+	import Recommendations from '$lib/components/recommendations/Recommendations.svelte';
+	import { getMyRecommendations } from '$lib/stores/my-recommendations';
 	import { user } from '$lib/stores/user';
-	import { Button, Spinner, Tooltip } from 'flowbite-svelte';
+	import type { AnimeInfo } from '$lib/trpc/routes/anime';
+	import type { MangaInfo } from '$lib/trpc/routes/manga';
+	import { Button, Spinner, TabItem, Tabs, Tooltip } from 'flowbite-svelte';
+	import { onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
 
 	const pictureClass = 'w-[100px] aspect-square flex items-center justify-center';
 
 	let userProfile: user_profile | null | undefined = undefined;
-	let edit = false;
 	let scrollY: number;
 	let showSpinner = false;
 
 	setTimeout(() => (showSpinner = true), 300);
-	$: username = $page.params.username;
+	const username = $page.params.username;
 	$: isMe = $user?.username?.toLowerCase() === username.toLocaleLowerCase();
 	$: displayUsername = userProfile?.username ?? username;
 	$: {
@@ -33,6 +36,32 @@
 				.catch(() => (userProfile = null));
 		}
 	}
+
+	// Fetch recommendated animes and mangas
+	let animes: AnimeInfo[];
+	let mangas: MangaInfo[];
+
+	const myRecommendations = getMyRecommendations();
+	let isMyRecommendations = username.toLowerCase() === $user?.username.toLocaleLowerCase();
+	$: isMyRecommendations = username.toLowerCase() === $user?.username.toLocaleLowerCase();
+
+	if (!isMyRecommendations) {
+		getRecommendations(username).then((result) => {
+			animes = result.animes;
+			mangas = result.mangas;
+		});
+	}
+
+	const unsubscribe = myRecommendations.subscribe(async (recommendations) => {
+		if (recommendations && isMyRecommendations) {
+			[animes, mangas] = await Promise.all([
+				getAnimes([...recommendations.animes]),
+				getMangas([...recommendations.mangas]),
+			]);
+		}
+	});
+
+	onDestroy(unsubscribe);
 </script>
 
 <svelte:window bind:scrollY />
@@ -85,44 +114,27 @@
 	</div>
 </div>
 
-<section class="container mt-4 pb-2">
-	<div class="flex gap-1 items-center">
-		<h1 class="text-xl tracking-tight font-medium">
-			{edit ? 'Edit recommendations' : 'Recommendations'}
-		</h1>
-		{#if username.toLocaleLowerCase() === $user?.username?.toLocaleLowerCase()}
-			<Button
-				outline
-				class="border-0 p-3 hover:bg-gray-200 rounded-full"
-				on:click={() => (edit = !edit)}
-			>
-				{#if !edit}
-					<PencilSquareIcon class="h-4 text-gray-800" />
-				{:else}
-					<CheckIcon class="h-4 text-gray-800" />
-				{/if}
-			</Button>
-			{#if edit}
-				<Tooltip>Save</Tooltip>
-			{:else}
-				<Tooltip>Edit</Tooltip>
-			{/if}
-		{/if}
-	</div>
-
-	<div class="mb-3">
-		{#if !edit}
-			<div class="mt-3">
-				<RecommendationList {username} onAddRecommendations={() => (edit = true)} />
-			</div>
-		{:else if $user?.username}
-			<div class="text-gray-500 text-sm">Click on the heart to recommend/unrecommend an anime</div>
-			<div class="mt-3">
-				<EditRecommendations />
-			</div>
-		{/if}
-	</div>
-</section>
+<div class="container">
+	<Tabs contentClass="bg-transparent mt-4" style="underline">
+		<TabItem open title="Animes">
+			<Recommendations
+				type="Anime"
+				series={animes}
+				{username}
+				myRecommendations={isMyRecommendations}
+			/>
+		</TabItem>
+		<TabItem title="Mangas">
+			<Recommendations
+				type="Manga"
+				series={mangas}
+				{username}
+				myRecommendations={isMyRecommendations}
+			/>
+		</TabItem>
+		<TabItem title="Friends" />
+	</Tabs>
+</div>
 
 {#if scrollY > 300}
 	<div transition:fade={{ duration: 150 }} class="fixed bottom-5 right-5">

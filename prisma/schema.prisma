@@ -21,8 +21,8 @@ model Anime {
   startDate     String?
   endDate       String?
   nsfw          String?
-  createdAt     DateTime @db.DateTime()
-  updatedAt     DateTime @db.DateTime()
+  createdAt     DateTime
+  updatedAt     DateTime
   mediaType     String
   status        String
   episodes      Int
@@ -32,7 +32,29 @@ model Anime {
   genres        String
   isSequel      Boolean?
 
-  Recommendation Recommendation[]
+  AnimeRecommendation AnimeRecommendation[]
+
+  @@index([isSequel])
+}
+
+model Manga {
+  id            Int      @id
+  title         String   @db.VarChar(511)
+  pictureMedium String?
+  pictureLarge  String?
+  startDate     String?
+  endDate       String?
+  nsfw          String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  mediaType     String
+  status        String
+  volumes       Int?
+  chapters      Int?
+  source        String?
+  genres        String
+
+  MangaRecommendation MangaRecommendation[]
 }
 
 model User {
@@ -40,10 +62,11 @@ model User {
   name    String  @unique
   picture String?
 
-  Recommendation Recommendation[]
+  Recommendation      AnimeRecommendation[]
+  MangaRecommendation MangaRecommendation[]
 }
 
-model Recommendation {
+model AnimeRecommendation {
   animeId   Int
   userId    Int
   createdAt DateTime @default(now())
@@ -53,5 +76,19 @@ model Recommendation {
 
   @@id([animeId, userId])
   @@index([animeId])
+  @@index([userId])
+}
+
+model MangaRecommendation {
+  mangaId   Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  manga   Manga @relation(fields: [mangaId], references: [id])
+  user    User  @relation(fields: [userId], references: [id])
+  animeId Int?
+
+  @@id([mangaId, userId])
+  @@index([mangaId])
   @@index([userId])
 }

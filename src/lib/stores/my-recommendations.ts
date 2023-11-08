@@ -1,14 +1,23 @@
 import { user } from '$lib/stores/user';
 import { trpc } from '$lib/trpc/client';
+import type { SerieType } from '$lib/types';
 import { writable } from 'svelte/store';
 
+type Recommendations = {
+	animes: Set<number>;
+	mangas: Set<number>;
+};
+
 export type MyRecommendations = ReturnType<typeof getMyRecommendations>;
-const recommendations = writable<Set<number> | undefined>();
+const recommendations = writable<Recommendations | undefined>();
 
 async function fetchMyRecommendations() {
 	const dbRecommendations = await trpc.recommendation.mine.query();
 
-	recommendations.set(new Set(dbRecommendations));
+	recommendations.set({
+		animes: new Set(dbRecommendations.animes),
+		mangas: new Set(dbRecommendations.mangas),
+	});
 }
 
 user.subscribe(async (user) => {
@@ -20,17 +29,29 @@ user.subscribe(async (user) => {
 });
 
 export function getMyRecommendations() {
-	async function add(animeId: number) {
-		await trpc.recommendation.add.mutate({ animeId });
+	async function add(serieId: number, type: SerieType) {
+		await trpc.recommendation.add.mutate({ serieId, type });
 
 		// Add anime as the first element of the set
-		recommendations.update((rec) => (rec !== undefined ? new Set([animeId, ...rec]) : undefined));
+		recommendations.update((rec) => {
+			if (rec !== undefined) {
+				return {
+					...rec,
+					...(type === 'Anime'
+						? { animes: new Set([serieId, ...rec.animes]) }
+						: { mangas: new Set([serieId, ...rec.mangas]) }),
+				};
+			}
+		});
 	}
 
-	async function remove(animeId: number) {
-		await trpc.recommendation.remove.mutate({ animeId });
+	async function remove(animeId: number, type: SerieType) {
+		await trpc.recommendation.remove.mutate({ serieId: animeId, type });
+
 		recommendations.update((rec) => {
-			rec?.delete(animeId);
+			const set = type === 'Anime' ? rec?.animes : rec?.mangas;
+			set?.delete(animeId);
+
 			return rec;
 		});
 	}

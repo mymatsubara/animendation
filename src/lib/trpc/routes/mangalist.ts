@@ -1,14 +1,14 @@
-import { animeStatus, type AnimeStatus } from '$lib/clients/myanimelist';
-import type { UserAnimeListEdge } from '$lib/clients/myanimelist/generated/models/UserAnimeListEdge';
+import { mangaStatus, type MangaStatus } from '$lib/clients/myanimelist';
+import type { UserMangaListEdge } from '$lib/clients/myanimelist/generated/models/UserMangaListEdge';
 import { db } from '$lib/server/db';
 import { router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-export type ListAnime = ReturnType<typeof mapListAnime>;
+export type ListManga = ReturnType<typeof mapListManga>;
 
-export const animelistRouter = router({
+export const mangaListRouter = router({
 	mine: authProcedure
 		.input(
 			z
@@ -22,66 +22,66 @@ export const animelistRouter = router({
 			const client = ctx.malClient;
 			const username = input?.username ?? '@me';
 
-			let animes: UserAnimeListEdge[];
+			let mangas: UserMangaListEdge[];
 			if (input?.sinceUtc) {
 				const sinceUtc = new Date(input.sinceUtc);
 				if (isNaN(sinceUtc as any)) {
 					throw new TRPCError({ code: 'BAD_REQUEST' });
 				}
 
-				animes = await client.getUserAnimelistSince(username, sinceUtc);
+				mangas = await client.getUserMangalistSince(username, sinceUtc);
 			} else {
-				animes = await client.getUserFullAnimelist(username, {
+				mangas = await client.getUserFullMangalist(username, {
 					fields: 'list_status',
 					sort: 'list_updated_at',
 				});
 			}
 
-			return animes.map(mapListAnime);
+			return mangas.map(mapListManga);
 		}),
 	upsert: authProcedure
 		.input(
 			z.object({
-				animeId: z.number().int().positive(),
-				status: z.enum(animeStatus),
+				mangaId: z.number().int().positive(),
+				status: z.enum(mangaStatus),
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
-			const num_watched_episodes =
+			const read =
 				input.status !== 'completed'
 					? undefined
-					: (
-							await db
-								.selectFrom('Anime')
-								.select('episodes')
-								.where('id', '=', input.animeId)
-								.executeTakeFirst()
-					  )?.episodes;
+					: await db
+							.selectFrom('Manga')
+							.select(['volumes', 'chapters'])
+							.where('id', '=', input.mangaId)
+							.executeTakeFirst();
 
-			return ctx.malClient.updateAnimeStatusOnList({
-				animeId: input.animeId,
+			return ctx.malClient.updateMangaStatusOnList({
+				mangaId: input.mangaId,
 				status: input.status,
-				...(num_watched_episodes ? { num_watched_episodes } : {}),
+				...(typeof read?.chapters === 'number' && typeof read?.volumes === 'number'
+					? { num_volumes_read: read.volumes, num_chapters_read: read.chapters }
+					: {}),
 			});
 		}),
 	remove: authProcedure
 		.input(
 			z.object({
-				animeId: z.number().int().positive(),
+				mangaId: z.number().int().positive(),
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
-			return ctx.malClient.removeAnimeFromList(input.animeId);
+			return ctx.malClient.removeMangaFromList(input.mangaId);
 		}),
 });
 
-function mapListAnime(anime: UserAnimeListEdge) {
+function mapListManga(anime: UserMangaListEdge) {
 	return {
 		id: anime?.node?.id as number,
 		largePicture: anime.node?.main_picture?.large as string,
 		mediumPicture: anime.node?.main_picture?.medium as string,
 		title: anime.node?.title as string,
-		status: anime?.list_status?.status as AnimeStatus,
+		status: anime?.list_status?.status as MangaStatus,
 		score: anime?.list_status?.score as number,
 		updatedAt: anime?.list_status?.updated_at as string,
 		startDate: anime?.list_status?.start_date as string,

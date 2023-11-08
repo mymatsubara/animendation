@@ -1,12 +1,12 @@
 import { browser } from '$app/environment';
 import { indexedDb } from '$lib/idb';
 import { trpc } from '$lib/trpc/client';
-import type { AnimeInfo } from '$lib/trpc/routes/anime';
+import type { MangaInfo } from '$lib/trpc/routes/manga';
 
-let memCache: AnimeMemCache = new Map();
-type AnimeMemCache = Map<number, AnimeInfo>;
+let memCache: MangaMemCache = new Map();
+type MangaMemCache = Map<number, MangaInfo>;
 
-export async function getAnimes(ids: number[]): Promise<AnimeInfo[]> {
+export async function getMangas(ids: number[]): Promise<MangaInfo[]> {
 	if (!browser) {
 		return [];
 	}
@@ -18,12 +18,12 @@ export async function getAnimes(ids: number[]): Promise<AnimeInfo[]> {
 		const idb = await indexedDb();
 
 		// When a lot of series are being fetched, it is faster to getAll series from idb instead
-		const store = idb.transaction('animes', 'readonly').store;
+		const store = idb.transaction('mangas', 'readonly').store;
 		const idbCachedSeries =
 			notMemCachedIds.length > 2000
-				? await idb.getAll('animes')
+				? await idb.getAll('mangas')
 				: (await Promise.all(notMemCachedIds.map((id) => store.get(Number(id))))).filter(
-						(anime) => anime
+						(manga) => manga
 				  );
 
 		idbCachedSeries.forEach((serie) => {
@@ -34,17 +34,17 @@ export async function getAnimes(ids: number[]): Promise<AnimeInfo[]> {
 
 		// Check backend for idb cache misses
 		if (notIdbCachedIds.length > 0) {
-			const animesToCache = await trpc.anime.info.mutate({
+			const mangasToCache = await trpc.manga.info.mutate({
 				ids: notIdbCachedIds,
 			});
 
-			await Promise.all(animesToCache.map((anime) => idb.put('animes', anime)));
+			await Promise.all(mangasToCache.map((manga) => idb.put('mangas', manga)));
 
-			animesToCache.forEach((anime) => {
-				memCache.set(anime.id, anime);
+			mangasToCache.forEach((manga) => {
+				memCache.set(manga.id, manga);
 			});
 		}
 	}
 
-	return ids.map((id) => memCache.get(id)).filter((anime) => anime) as AnimeInfo[];
+	return ids.map((id) => memCache.get(id)).filter((manga) => manga) as MangaInfo[];
 }

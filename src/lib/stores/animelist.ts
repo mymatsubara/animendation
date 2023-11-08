@@ -1,13 +1,17 @@
-import type { AnimeStatus } from '$lib/clients/myanimelist';
-import { indexedDb, type AnimelistAnime } from '$lib/idb';
+import type { AnimeStatus, MangaStatus } from '$lib/clients/myanimelist';
+import { indexedDb, type AnimeFromList, type IDB, type MangaFromList } from '$lib/idb';
 import { toast } from '$lib/stores/toast';
 import { user } from '$lib/stores/user';
 import { trpc } from '$lib/trpc/client';
+import type { SerieType } from '$lib/types';
 import { maxStr, toMap } from '$lib/utils/array';
 import { writable } from 'svelte/store';
 
 export type Myanimelist = ReturnType<typeof getMyanimelist>;
-let store = writable<Animelist | undefined>();
+type UpsertOptions =
+	| { status: AnimeStatus; type: 'Anime' }
+	| { status: MangaStatus; type: 'Manga' };
+let store = writable<Lists | undefined>();
 
 user.subscribe(async (user) => {
 	if (user) {
@@ -17,13 +21,16 @@ user.subscribe(async (user) => {
 	}
 });
 
-export type Animelist = Map<number, AnimelistAnime>;
+export type Lists = {
+	animelist: Map<number, AnimeFromList>;
+	mangalist: Map<number, MangaFromList>;
+};
 
 export function getMyanimelist() {
 	return {
 		subscribe: store.subscribe,
 		upsert,
-		remove
+		remove,
 	};
 }
 
@@ -31,7 +38,18 @@ async function updateStore(username: string) {
 	console.log(`Fetching ${username}'s animelist...`);
 	const idb = await indexedDb();
 
-	// Get the most recent anime for the myanimelist
+	const [animes, mangas] = await Promise.all([
+		getAnimelist(username, idb),
+		getMangalist(username, idb),
+	]);
+
+	store.set({
+		animelist: toMap(animes, (anime) => anime.id),
+		mangalist: toMap(mangas, (manga) => manga.id),
+	});
+}
+
+async function getAnimelist(username: string, idb: IDB) {
 	const userAnimelist = await idb.getAllFromIndex(
 		'animelist',
 		'username',
@@ -39,54 +57,77 @@ async function updateStore(username: string) {
 	);
 	const mostRecentAnime = maxStr(userAnimelist, (anime) => anime.updatedAt);
 
-	// Fetch animes since the most recent anime
 	const animelist = await trpc.animelist.mine.query({
 		sinceUtc: mostRecentAnime?.updatedAt,
-		username
+		username,
 	});
 
-	// Update the idb with new animes
 	const trx = idb.transaction('animelist', 'readwrite').store;
 	await Promise.all(animelist.map((anime) => trx.put({ ...anime, username })));
 
 	const animes = await idb.getAll('animelist');
-	store.set(toMap(animes, (anime) => anime.id));
+	return animes;
 }
 
-async function upsert(animeId: number, status: AnimeStatus) {
-	let previousState: Animelist | undefined;
+async function getMangalist(username: string, idb: IDB) {
+	const userAnimelist = await idb.getAllFromIndex(
+		'mangalist',
+		'username',
+		IDBKeyRange.only(username)
+	);
+	const mostRecentAnime = maxStr(userAnimelist, (anime) => anime.updatedAt);
+
+	const mangalist = await trpc.mangalist.mine.query({
+		sinceUtc: mostRecentAnime?.updatedAt,
+		username,
+	});
+
+	const trx = idb.transaction('mangalist', 'readwrite').store;
+	await Promise.all(mangalist.map((anime) => trx.put({ ...anime, username })));
+
+	const animes = await idb.getAll('mangalist');
+	return animes;
+}
+
+async function upsert(serieId: number, { type, status }: UpsertOptions) {
+	let previousState: Lists | undefined;
 	try {
-		const malUpdate = trpc.animelist.upsert.mutate({ animeId, status });
+		const malUpdate =
+			type === 'Anime'
+				? trpc.animelist.upsert.mutate({ animeId: serieId, status })
+				: trpc.mangalist.upsert.mutate({ mangaId: serieId, status });
 
 		// Optmistic update
-		store.update((animelist) => {
-			if (!animelist) {
+		store.update((list) => {
+			if (!list) {
 				return;
 			}
 
-			previousState = new Map(animelist);
+			previousState = clone(list);
 
-			const anime = animelist.get(animeId);
+			const map = type === 'Anime' ? list.animelist : list.mangalist;
+			const serie = map.get(serieId);
+
 			const updatedAt = new Date().toISOString().replace('Z', '+00:00');
-			if (anime) {
-				anime.status = status;
-				anime.updatedAt = updatedAt;
+			if (serie) {
+				serie.status = status as any;
+				serie.updatedAt = updatedAt;
 			} else {
-				animelist.set(animeId, {
-					id: animeId,
+				map.set(serieId, {
+					id: serieId,
 					updatedAt,
-					status: status,
+					status: status as any,
 					title: 'Pending',
 					finishDate: '',
 					largePicture: '',
 					mediumPicture: '',
 					score: 0,
 					startDate: '',
-					username: ''
+					username: '',
 				});
 			}
 
-			return animelist;
+			return list;
 		});
 
 		await malUpdate;
@@ -97,21 +138,24 @@ async function upsert(animeId: number, status: AnimeStatus) {
 	}
 }
 
-async function remove(animeId: number) {
-	let previousState: Animelist | undefined;
+async function remove(serieId: number, type: SerieType) {
+	let previousState: Lists | undefined;
 	try {
-		const malUpdate = trpc.animelist.remove.mutate({ animeId });
+		const malUpdate =
+			type === 'Anime'
+				? trpc.animelist.remove.mutate({ animeId: serieId })
+				: trpc.mangalist.remove.mutate({ mangaId: serieId });
 
 		// Optmistic update
-		store.update((animelist) => {
-			if (!animelist) {
+		store.update((list) => {
+			if (!list) {
 				return;
 			}
 
-			previousState = new Map(animelist);
-			animelist.delete(animeId);
+			previousState = clone(list);
+			type === 'Anime' ? list.animelist.delete(serieId) : list.mangalist.delete(serieId);
 
-			return animelist;
+			return list;
 		});
 
 		await malUpdate;
@@ -120,4 +164,11 @@ async function remove(animeId: number) {
 		store.set(previousState);
 		toast.set({ message: 'Failed to remove anime from list', level: 'error' });
 	}
+}
+
+function clone(list: Lists): Lists {
+	return {
+		animelist: new Map(list.animelist),
+		mangalist: new Map(list.mangalist),
+	};
 }

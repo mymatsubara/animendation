@@ -14,7 +14,8 @@
 		"test": "vitest",
 		"client:mal:generate": "openapi --input src/lib/clients/myanimelist/openapi.json --output src/lib/clients/myanimelist/generated",
 		"client:jikan:generate": "openapi --input src/lib/clients/jikan/openapi.json --output src/lib/clients/jikan/generated",
-		"seed": "vite-node --options.transformMode.ssr=.* src/lib/scripts/seed.ts",
+		"seed": "vite-node --options.transformMode.ssr=.* src/lib/scripts/seed-all.ts",
+		"seed:animes": "vite-node --options.transformMode.ssr=.* src/lib/scripts/seed-animes.ts",
 		"migration:push": "prisma db push",
 		"clear:sourcemaps": "find .svelte-kit/cloudflare -name *.js.map -delete"
 	},

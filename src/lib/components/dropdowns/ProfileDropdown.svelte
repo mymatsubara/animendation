@@ -12,7 +12,7 @@
 		{#if profilePicture}
 			<!-- svelte-ignore a11y-img-redundant-alt -->
 			<img
-				class="h-8 object-top object-cover rounded-full aspect-square border border-primary-300"
+				class="h-8 object-top object-cover rounded-full aspect-square border border-primary-700"
 				src={profilePicture}
 				alt="My profile picture"
 			/>

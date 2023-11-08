@@ -1,13 +1,13 @@
 import { dev } from '$app/environment';
 import { PUBLIC_SENTRY_DSN } from '$env/static/public';
-import type { Handle, HandleServerError } from '@sveltejs/kit';
+import type { HandleServerError } from '@sveltejs/kit';
 import { Toucan } from 'toucan-js';
 
-export const handle: Handle = async ({ event, resolve }) => {
-	console.log({ url: event.url.toString() });
+// export const handle: Handle = async ({ event, resolve }) => {
+// 	console.log({ url: event.url.toString() });
 
-	return resolve(event);
-};
+// 	return resolve(event);
+// };
 
 export const handleError: HandleServerError = async ({ error, event }) => {
 	const is404 = (error as Error).message.startsWith('Not found:');

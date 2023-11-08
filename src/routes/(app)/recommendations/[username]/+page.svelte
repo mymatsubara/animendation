@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { getAnimes } from '$lib/client/animes';
 	import { getMangas } from '$lib/client/mangas';
@@ -11,19 +12,24 @@
 	import ChevronUpIcon from '$lib/components/icons/ChevronUpIcon.svelte';
 	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
 	import Recommendations from '$lib/components/recommendations/Recommendations.svelte';
+	import Tabs from '$lib/components/tabs/Tabs.svelte';
 	import { getMyRecommendations } from '$lib/stores/my-recommendations';
 	import { user } from '$lib/stores/user';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { MangaInfo } from '$lib/trpc/routes/manga';
-	import { Button, Spinner, TabItem, Tabs, Tooltip } from 'flowbite-svelte';
+	import { Button, Spinner, Tooltip } from 'flowbite-svelte';
 	import { onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
 
+	type TabName = typeof tabs[number];
 	const pictureClass = 'w-[100px] aspect-square flex items-center justify-center';
+	const tabs = ['Animes', 'Mangas', 'Friends'] as const;
 
 	let userProfile: user_profile | null | undefined = undefined;
 	let scrollY: number;
 	let showSpinner = false;
+	const tabSearchParam = $page.url.searchParams.get('tab');
+	let tab = tabs.includes(tabSearchParam as any) ? tabSearchParam : (tabs[0] as TabName);
 
 	setTimeout(() => (showSpinner = true), 300);
 	const username = $page.params.username;
@@ -62,6 +68,20 @@
 	});
 
 	onDestroy(unsubscribe);
+
+	// Tab
+	function tabChanged(e: Event) {
+		const target = e.target as HTMLInputElement;
+		if (!target?.value) {
+			return;
+		}
+
+		let query = new URLSearchParams($page.url.searchParams.toString());
+
+		query.set('tab', target.value);
+
+		goto(`?${query.toString()}`);
+	}
 </script>
 
 <svelte:window bind:scrollY />
@@ -109,31 +129,31 @@
 				target="_blank"
 				><MyanimelistLogoIcon class="h-3" /><ArrowTopRightIcon class="h-3 mb-[3px]" /></a
 			>
-			<h2 class="text-primary-50 text-xl font-medium">{displayUsername}</h2>
+			<h2 class="text-primary-100 text-xl font-medium">{displayUsername}</h2>
 		</div>
+	</div>
+
+	<div class="container">
+		<Tabs tabs={['Animes', 'Mangas', 'Friends']} bind:selected={tab} on:change={tabChanged} />
 	</div>
 </div>
 
-<div class="container">
-	<Tabs contentClass="bg-transparent mt-4" style="underline">
-		<TabItem open title="Animes">
-			<Recommendations
-				type="Anime"
-				series={animes}
-				{username}
-				myRecommendations={isMyRecommendations}
-			/>
-		</TabItem>
-		<TabItem title="Mangas">
-			<Recommendations
-				type="Manga"
-				series={mangas}
-				{username}
-				myRecommendations={isMyRecommendations}
-			/>
-		</TabItem>
-		<TabItem title="Friends" />
-	</Tabs>
+<div class="container mt-4">
+	{#if tab === 'Animes'}
+		<Recommendations
+			type="Anime"
+			series={animes}
+			{username}
+			myRecommendations={isMyRecommendations}
+		/>
+	{:else if tab === 'Mangas'}
+		<Recommendations
+			type="Manga"
+			series={mangas}
+			{username}
+			myRecommendations={isMyRecommendations}
+		/>
+	{:else if tab === 'Friends'}{/if}
 </div>
 
 {#if scrollY > 300}

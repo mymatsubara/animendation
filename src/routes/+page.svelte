@@ -10,13 +10,17 @@
 	$: {
 		if ($user) {
 			const username = $user.username;
-			goto(`/recommendations/${username}`);
+			goto(`/profile/${username}`);
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>Animendation - Make your own anime recommendation list</title>
+	<meta
+		name="description"
+		content="Make and share anime and manga recommendations lists. Link to your Myanimelist account and start recommending."
+	/>
+	<title>Animendation - Make your own anime and manga recommendation list</title>
 </svelte:head>
 
 {#if $user === undefined}
@@ -38,7 +42,7 @@
 		>
 			<div class="mb-20 mt-10 md:mb-20 md:mt-5">
 				<h2 class="mb-1 md:mb-3 text-3xl lg:text-5xl font-semibold tracking-tight">
-					Make your own anime recommendation list
+					Make your own anime/manga recommendation list
 				</h2>
 				<p class="mb-4 text-primary-300 md:text-md md:mb-6">
 					Link to your Myanimelist account and start recommending

@@ -60,7 +60,7 @@
 	<div class="gap-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 pb-4">
 		{#if friends !== undefined}
 			{#each friends as friend (friend?.user?.username)}
-				{@const href = `/recommendations/${friend?.user?.username}`}
+				{@const href = `/profile/${friend?.user?.username}`}
 
 				<Card padding="sm">
 					<div class="flex flex-col justify-center items-center">

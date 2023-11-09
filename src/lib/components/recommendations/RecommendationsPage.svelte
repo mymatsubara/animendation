@@ -91,7 +91,8 @@
 <svelte:window bind:scrollY />
 
 <svelte:head>
-	<title>{displayUsername}'s recommendations - Animendation</title>
+	<meta name="description" content="{displayUsername}'s profile page" />
+	<title>{displayUsername}'s profile - Animendation</title>
 </svelte:head>
 
 <div class="bg-gradient-to-t from-primary-800 to-primary-900 w-full">

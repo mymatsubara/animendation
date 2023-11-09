@@ -11,14 +11,14 @@
 
 <nav class="bg-primary-900 py-3">
 	<div class="container flex justify-between items-center">
-		<a href={$user ? `/recommendations/${$user.username}` : '/'}>
+		<a href={$user ? `/profile/${$user.username}` : '/'}>
 			<Logo class="text-[28px]" />
 		</a>
 		<div>
 			{#if $user}
 				<ProfileDropdown
 					profilePicture={$profilePicture}
-					recommendationsUrl="/recommendations/{$user.username}"
+					recommendationsUrl="/profile/{$user.username}"
 				/>
 			{:else}
 				<LoginLink><Button class="font-semibold py-1.5">Login</Button></LoginLink>

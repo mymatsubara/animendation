@@ -11,7 +11,9 @@
 
 <nav class="bg-primary-900 py-3">
 	<div class="container flex justify-between items-center">
-		<Logo class="text-[28px]" />
+		<a href={$user ? `/recommendations/${$user.username}` : '/'}>
+			<Logo class="text-[28px]" />
+		</a>
 		<div>
 			{#if $user}
 				<ProfileDropdown

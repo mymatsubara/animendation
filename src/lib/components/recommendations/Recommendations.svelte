@@ -26,6 +26,7 @@
 				outline
 				class="border-0 p-3 hover:bg-gray-200 rounded-full"
 				on:click={() => (edit = !edit)}
+				aria-label={edit ? 'Save recommendations' : 'Edit recommendations'}
 			>
 				{#if !edit}
 					<PencilSquareIcon class="h-4 text-gray-800" />

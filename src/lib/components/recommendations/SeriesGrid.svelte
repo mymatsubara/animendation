@@ -260,6 +260,7 @@
 				on:input={updateSearchDebounce}
 				placeholder="Search"
 				size="lg"
+				name="search"
 			>
 				<svelte:fragment slot="left">
 					<SearchIcon class="h-5" />
@@ -274,6 +275,7 @@
 				bind:values={filter.status}
 				placeholder="Status"
 				let:option
+				name="status"
 			>
 				<Badge
 					class="border-2 border-transparent hover:shadow"
@@ -293,6 +295,7 @@
 				placeholder="Genres"
 				options={genreOptions}
 				bind:values={filter.genres}
+				name="genre"
 			/>
 		</div>
 	</div>
@@ -300,7 +303,8 @@
 	<div class="ml-2 mt-2 items-start hidden sm:flex">
 		<Toggle
 			class="whitespace-nowrap font-medium text-gray-500 w-max"
-			bind:checked={filter.hideSequels}>Hide sequels</Toggle
+			bind:checked={filter.hideSequels}
+			name="hide-sequels">Hide sequels</Toggle
 		>
 	</div>
 
@@ -313,6 +317,7 @@
 					outline
 					size="lg"
 					on:click={toggle}
+					aria-label="Filters"
 					><AdjustmentIcon class="h-6" />
 				</Button>
 			</svelte:fragment>
@@ -329,7 +334,8 @@
 			<div class="flex flex-col gap-4 pt-2 pb-4 px-4">
 				<Toggle
 					class="sm:hidden whitespace-nowrap font-medium text-gray-500 w-max"
-					bind:checked={filter.hideSequels}>Hide sequels</Toggle
+					bind:checked={filter.hideSequels}
+					name="hide-sequels">Hide sequels</Toggle
 				>
 
 				<div class="md:hidden text-sm font-medium text-gray-900 dark:text-gray-300">
@@ -462,7 +468,7 @@
 						{/if}
 					</div>
 					{#if $user}
-						<button class="px-2 pt-0.5 pb-2 text-primary-700"
+						<button class="px-2 pt-0.5 pb-2 text-primary-700" aria-label="Extra actions"
 							><VerticalEllipsisIcon class="h-5" /></button
 						>
 						<Dropdown placement="bottom-end">
@@ -482,6 +488,7 @@
 				disabled={loadingMal}
 				class="w-full grow flex flex-col items-center justify-center gap-2 aspect-[225/318]"
 				type="button"
+				aria-label="Search on myanimelist"
 				on:click={searchOnMyanimelist}
 			>
 				{#if loadingMal}
@@ -501,7 +508,13 @@
 		<div class="font-bold text-3xl">(ಠ.ಠ)</div>
 		<div class="text-gray-600">No {type.toLocaleLowerCase()} found</div>
 		{#if recommend}
-			<Button disabled={loadingMal} type="button" class="mt-1 flex" on:click={searchOnMyanimelist}>
+			<Button
+				disabled={loadingMal}
+				type="button"
+				class="mt-1 flex"
+				on:click={searchOnMyanimelist}
+				aria-label="Search on myanimelist"
+			>
 				{#if loadingMal}
 					<Spinner size="5" class="mr-2" />
 				{:else}

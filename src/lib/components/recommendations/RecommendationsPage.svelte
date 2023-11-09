@@ -131,6 +131,7 @@
 				class="flex gap-1 items-center py-1 text-primary-100 hover:text-white"
 				href="https://myanimelist.net/profile/{username}"
 				target="_blank"
+				aria-label="Myanimelist profile link"
 				><MyanimelistLogoIcon class="h-3" /><ArrowTopRightIcon class="h-3 mb-[3px]" /></a
 			>
 			<h2 class="text-primary-100 text-xl font-medium">{displayUsername}</h2>

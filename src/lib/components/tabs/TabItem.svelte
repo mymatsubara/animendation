@@ -5,7 +5,7 @@
 
 <label class="relative font-medium text-primary-300 px-5 pb-2 pt-3 m-0 cursor-pointer">
 	{name}
-	<input class="absolute inset-0 opacity-0" type="radio" value={name} bind:group />
+	<input name={`${name}`} class="absolute inset-0 opacity-0" type="radio" value={name} bind:group />
 </label>
 
 <style lang="postcss">

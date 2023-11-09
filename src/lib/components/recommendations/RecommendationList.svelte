@@ -18,7 +18,7 @@
 		<div class="font-bold text-3xl">(ಠ.ಠ)</div>
 		<div class="text-gray-600">No {type.toLocaleLowerCase()} recommendations</div>
 		{#if myRecommendations}
-			<Button class="mt-2 flex gap-1" on:click={onAddRecommendations}
+			<Button class="mt-2 flex gap-1" on:click={onAddRecommendations} label="Add recommendations"
 				><PlusIcon class="h-5" /><span class="whitespace-nowrap">Add recommendations</span></Button
 			>
 		{/if}

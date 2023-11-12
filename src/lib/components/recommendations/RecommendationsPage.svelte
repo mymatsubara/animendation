@@ -140,11 +140,11 @@
 		<div class="ml-auto">
 			{#if $user && userProfile && !isMyRecommendations}
 				<a
-					class="block text-primary-200 hover:text-primary-50 hover:bg-primary-800 rounded p-2"
+					class="block text-primary-200 hover:text-primary-50 p-1"
 					href="https://myanimelist.net/myfriends.php?go=add&id={userProfile.mal_id}"
 					target="_blank"
 				>
-					<AddUserIcon class="h-6" target="_blank" />
+					<AddUserIcon class="h-5" target="_blank" />
 				</a>
 				<Tooltip>Add as friend</Tooltip>
 			{/if}

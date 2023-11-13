@@ -464,13 +464,9 @@
 
 				<div class="h-11 flex justify-between items-start gap-1">
 					<div title={serie.title} class="h-11 overflow-hidden text-sm font-medium text-gray-600">
-						{#if !recommend}
-							<a href="https://myanimelist.net/anime/{serie.id}" target="_blank">
-								{serie.title}
-							</a>
-						{:else}
-							<div>{serie.title}</div>
-						{/if}
+						<a href="https://myanimelist.net/{type.toLocaleLowerCase()}/{serie.id}" target="_blank">
+							{serie.title}
+						</a>
 					</div>
 					{#if $user}
 						<button class="px-2 pt-0.5 pb-2 text-primary-700" aria-label="Extra actions"

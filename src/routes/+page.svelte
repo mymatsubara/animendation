@@ -63,7 +63,7 @@
 					<LaptopMockup>
 						<img
 							class="h-full w-full object-fill"
-							src="/mockup-pc.png"
+							src="/imgs/mockup-pc.png"
 							alt="Animendation in a computer screen"
 						/>
 					</LaptopMockup>
@@ -72,7 +72,7 @@
 					<MobileMockup>
 						<img
 							class="h-full w-full object-fill"
-							src="/mockup-mobile.png"
+							src="/imgs/mockup-mobile.png"
 							alt="Animendation in a mobile screen"
 						/>
 					</MobileMockup>

@@ -26,6 +26,10 @@
 		-webkit-appearance: none;
 		background: url('/close-circle.svg') content-box;
 	}
+
+	body:has(.custom-modal-open) {
+		overflow: hidden;
+	}
 }
 
 @layer utilities {

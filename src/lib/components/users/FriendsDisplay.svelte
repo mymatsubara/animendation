@@ -3,7 +3,8 @@
 	import Placeholder from '$lib/components/Placeholder.svelte';
 	import ArrowTopRightIcon from '$lib/components/icons/ArrowTopRightIcon.svelte';
 	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
-	import { Card } from 'flowbite-svelte';
+	import { toast } from '$lib/stores/toast';
+	import { Card, Spinner } from 'flowbite-svelte';
 	import { fade } from 'svelte/transition';
 
 	type Friend = {
@@ -24,12 +25,19 @@
 	loadMoreFriends();
 
 	function loadMoreFriends() {
-		UsersService.getUserFriends(username, page).then((result) => {
-			pageData = result;
-			friends = (friends ?? []).concat(pageData.data ?? []);
-			loading = false;
-			page++;
-		});
+		UsersService.getUserFriends(username, page)
+			.then((result) => {
+				pageData = result;
+				friends = (friends ?? []).concat(pageData.data ?? []);
+				loading = false;
+				page++;
+			})
+			.catch(() => {
+				toast.set({
+					message: 'Could not get friends. Maybe the services are temporarily down.',
+					level: 'error',
+				});
+			});
 	}
 
 	function setupInfiniteScroll(e: HTMLElement) {
@@ -93,9 +101,13 @@
 				</div>
 			{/each}
 		{/if}
-
-		<span use:setupInfiniteScroll />
 	</div>
+
+	{#if pageData?.pagination?.has_next_page}
+		<div class="py-4" use:setupInfiniteScroll>
+			<Spinner />
+		</div>
+	{/if}
 
 	{#if friends?.length === 0}
 		<div in:fade={{ duration: 150 }} class="flex flex-col items-center justify-center gap-2">

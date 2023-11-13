@@ -5,6 +5,7 @@ import { user } from '$lib/stores/user';
 import { trpc } from '$lib/trpc/client';
 import type { SerieType } from '$lib/types';
 import { maxStr, toMap } from '$lib/utils/array';
+import type { inferAsyncReturnType } from '@trpc/server';
 import { writable } from 'svelte/store';
 
 export type Myanimelist = ReturnType<typeof getMyanimelist>;
@@ -57,10 +58,19 @@ async function getAnimelist(username: string, idb: IDB) {
 	);
 	const mostRecentAnime = maxStr(userAnimelist, (anime) => anime.updatedAt);
 
-	const animelist = await trpc.animelist.mine.query({
-		sinceUtc: mostRecentAnime?.updatedAt,
-		username,
-	});
+	let animelist: inferAsyncReturnType<typeof trpc.animelist.mine.query> = [];
+	try {
+		animelist = await trpc.animelist.mine.query({
+			sinceUtc: mostRecentAnime?.updatedAt,
+			username,
+		});
+		console.log('Animelist fetch');
+	} catch (e) {
+		toast.set({
+			message: 'Could not get updated animelist. Using old results...',
+			level: 'warning',
+		});
+	}
 
 	const trx = idb.transaction('animelist', 'readwrite').store;
 	await Promise.all(animelist.map((anime) => trx.put({ ...anime, username })));
@@ -77,10 +87,18 @@ async function getMangalist(username: string, idb: IDB) {
 	);
 	const mostRecentAnime = maxStr(userAnimelist, (anime) => anime.updatedAt);
 
-	const mangalist = await trpc.mangalist.mine.query({
-		sinceUtc: mostRecentAnime?.updatedAt,
-		username,
-	});
+	let mangalist: inferAsyncReturnType<typeof trpc.mangalist.mine.query> = [];
+	try {
+		mangalist = await trpc.mangalist.mine.query({
+			sinceUtc: mostRecentAnime?.updatedAt,
+			username,
+		});
+	} catch (e) {
+		toast.set({
+			message: 'Could not get updated mangalist. Using old results...',
+			level: 'warning',
+		});
+	}
 
 	const trx = idb.transaction('mangalist', 'readwrite').store;
 	await Promise.all(mangalist.map((anime) => trx.put({ ...anime, username })));

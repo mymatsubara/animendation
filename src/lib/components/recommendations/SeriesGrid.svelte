@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onVisible } from '$lib/actions/on-visible';
 	import { animeStatusDisplay, mangaStatusDisplay } from '$lib/client/display';
 	import { AnimeService, MangaService, anime, manga } from '$lib/clients/jikan/generated';
 	import type { AnimeStatus, MangaStatus } from '$lib/clients/myanimelist';
@@ -58,6 +59,9 @@
 	export let startFilter: Partial<Filter> = {};
 	export let recommend = false;
 
+	let page = 1;
+
+	const pageSize = 35;
 	const myanimelist = getMyanimelist();
 	const recommendations = getMyRecommendations();
 	const statusDisplay = type === 'Anime' ? animeStatusDisplay : mangaStatusDisplay;
@@ -85,6 +89,7 @@
 		if (filter) {
 			malPageNumber = 1;
 			malHasNextPage = true;
+			page = 1;
 		}
 	}
 
@@ -417,7 +422,7 @@
 			</div>
 		{/each}
 	{:else}
-		{#each filteredSeries as serie (serie.id)}
+		{#each filteredSeries.slice(0, page * pageSize) as serie (serie.id)}
 			{@const statusHandler = $myanimelist
 				? { serieId: serie.id, animelist: myanimelist, type }
 				: undefined}
@@ -426,7 +431,7 @@
 			)}
 			{@const isLoading = loadingRecommendations.has(serie.id)}
 
-			<div transition:fade={{ duration: 150 }} class="flex flex-col gap-1">
+			<div class="flex flex-col gap-1">
 				{#if recommend}
 					<div class="relative">
 						<AnimeDisplay title={serie.title} pictureUrl={serie.pictureLarge} {statusHandler} />
@@ -502,6 +507,23 @@
 		{/if}
 	{/if}
 </div>
+
+{#if page * pageSize <= filteredSeries.length}
+	<div
+		class="py-5 flex justify-center"
+		use:onVisible={{
+			callback: () => {
+				page = page + 1;
+			},
+			options: {
+				threshold: 0.1,
+				rootMargin: '150px',
+			},
+		}}
+	>
+		<Spinner />
+	</div>
+{/if}
 
 {#if series !== undefined && filteredSeries.length === 0}
 	<div in:fade={{ duration: 150 }} class="flex flex-col items-center justify-center gap-2">

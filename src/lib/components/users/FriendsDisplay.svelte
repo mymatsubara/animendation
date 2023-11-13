@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onVisible } from '$lib/actions/on-visible';
 	import { UsersService, type user_friends, type user_meta } from '$lib/clients/jikan/generated';
 	import Placeholder from '$lib/components/Placeholder.svelte';
 	import ArrowTopRightIcon from '$lib/components/icons/ArrowTopRightIcon.svelte';
@@ -38,27 +39,6 @@
 					level: 'error',
 				});
 			});
-	}
-
-	function setupInfiniteScroll(e: HTMLElement) {
-		let observer = new IntersectionObserver(
-			() => {
-				if (!loading && pageData.pagination?.has_next_page) {
-					loadMoreFriends();
-				}
-			},
-			{
-				threshold: 0.1,
-				rootMargin: '150px',
-			}
-		);
-		observer.observe(e);
-
-		return {
-			destroy() {
-				observer.disconnect();
-			},
-		};
 	}
 </script>
 
@@ -104,7 +84,20 @@
 	</div>
 
 	{#if pageData?.pagination?.has_next_page}
-		<div class="py-4" use:setupInfiniteScroll>
+		<div
+			class="py-4 flex justify-center"
+			use:onVisible={{
+				callback: () => {
+					if (!loading && pageData.pagination?.has_next_page) {
+						loadMoreFriends();
+					}
+				},
+				options: {
+					threshold: 0.1,
+					rootMargin: '150px',
+				},
+			}}
+		>
 			<Spinner />
 		</div>
 	{/if}

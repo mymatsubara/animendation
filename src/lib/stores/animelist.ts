@@ -64,7 +64,6 @@ async function getAnimelist(username: string, idb: IDB) {
 			sinceUtc: mostRecentAnime?.updatedAt,
 			username,
 		});
-		console.log('Animelist fetch');
 	} catch (e) {
 		toast.set({
 			message: 'Could not get updated animelist. Using old results...',

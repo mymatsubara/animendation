@@ -17,10 +17,6 @@
 </script>
 
 <svelte:head>
-	<meta
-		name="description"
-		content="Make and share anime and manga recommendations lists. Link to your Myanimelist account and start recommending."
-	/>
 	<title>Animendation - Make your own anime and manga recommendation list</title>
 </svelte:head>
 

@@ -91,7 +91,6 @@
 <svelte:window bind:scrollY />
 
 <svelte:head>
-	<meta name="description" content="{displayUsername}'s profile page" />
 	<title>{displayUsername}'s profile - Animendation</title>
 </svelte:head>
 

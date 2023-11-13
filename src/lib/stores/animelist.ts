@@ -74,7 +74,7 @@ async function getAnimelist(username: string, idb: IDB) {
 	const trx = idb.transaction('animelist', 'readwrite').store;
 	await Promise.all(animelist.map((anime) => trx.put({ ...anime, username })));
 
-	const animes = await idb.getAll('animelist');
+	const animes = await idb.getAllFromIndex('animelist', 'username', IDBKeyRange.only(username));
 	return animes;
 }
 
@@ -102,8 +102,8 @@ async function getMangalist(username: string, idb: IDB) {
 	const trx = idb.transaction('mangalist', 'readwrite').store;
 	await Promise.all(mangalist.map((anime) => trx.put({ ...anime, username })));
 
-	const animes = await idb.getAll('mangalist');
-	return animes;
+	const mangas = await idb.getAllFromIndex('mangalist', 'username', IDBKeyRange.only(username));
+	return mangas;
 }
 
 async function upsert(serieId: number, { type, status }: UpsertOptions) {

@@ -155,7 +155,7 @@
 	</div>
 </div>
 
-<div class="container mt-3">
+<div class="container mt-4">
 	{#if tab === 'Animes'}
 		<Recommendations
 			type="Anime"

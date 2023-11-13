@@ -8,6 +8,8 @@
 	import { fade } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
 
+	export let iconClass: string = '';
+
 	let search: string = '';
 	let searchInput: HTMLInputElement;
 	let users: users_search | undefined;
@@ -59,7 +61,7 @@
 		class={twMerge('hover:text-primary-50 rounded p-2', $$restProps.class)}
 		on:click={() => {
 			open = !open;
-		}}><SearchIcon class="text-primary-200 h-5" /></button
+		}}><SearchIcon class={twMerge('text-primary-200 h-5', iconClass)} /></button
 	>
 
 	<div

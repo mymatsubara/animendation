@@ -4,6 +4,7 @@
 	import Logo from '$lib/components/logos/Logo.svelte';
 	import LaptopMockup from '$lib/components/mockups/LaptopMockup.svelte';
 	import MobileMockup from '$lib/components/mockups/MobileMockup.svelte';
+	import UserSearch from '$lib/components/searchs/UserSearch.svelte';
 	import { user } from '$lib/stores/user';
 	import { Button } from 'flowbite-svelte';
 
@@ -35,7 +36,12 @@
 	<div class="md:h-[100vh] flex flex-col container">
 		<div class="flex justify-between py-6 items-center">
 			<Logo class="text-3xl md:text-5xl" />
-			<LoginLink><Button class="md:text-md font-semibold text-primary-50">Login</Button></LoginLink>
+			<div class="flex gap-3 items-center">
+				<UserSearch iconClass="h-6" />
+				<LoginLink
+					><Button class="md:text-md font-semibold text-primary-50">Login</Button></LoginLink
+				>
+			</div>
 		</div>
 		<div
 			class="grow grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[3fr_4fr] text-primary-50 items-center"

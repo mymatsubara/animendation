@@ -65,9 +65,13 @@
 	const myanimelist = getMyanimelist();
 	const recommendations = getMyRecommendations();
 	const statusDisplay = type === 'Anime' ? animeStatusDisplay : mangaStatusDisplay;
-	const statusOptions: StatusOption[] = Object.entries(statusDisplay).map(
-		([value, { label, color }]) => ({ value: value as SerieStatus, color: color as string, label })
-	);
+	const statusOptions: StatusOption[] = Object.entries(statusDisplay)
+		.map(([value, { label, color }]) => ({
+			value: value as SerieStatus,
+			color: color as string,
+			label,
+		}))
+		.concat({ value: undefined as any, color: 'gray', label: 'Not in my list' });
 	const seasonOptions = [
 		{ value: 'winter', label: 'Winter' },
 		{ value: 'spring', label: 'Spring' },

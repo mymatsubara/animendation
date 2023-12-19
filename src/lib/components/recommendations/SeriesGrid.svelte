@@ -163,7 +163,7 @@
 		}
 
 		if (filter.mediaTypes?.size) {
-			series = series.filter((serie) => filter.seasons?.has(serie.mediaType as string));
+			series = series.filter((serie) => filter.mediaTypes?.has(serie.mediaType as string));
 		}
 
 		return series;

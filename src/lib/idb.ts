@@ -32,11 +32,11 @@ export interface IDBSchema extends DBSchema {
 }
 
 export type IDB = IDBPDatabase<IDBSchema>;
-let db: IDB;
+let db: Promise<IDB>;
 
-export const indexedDb = async () => {
+export const indexedDb = () => {
 	if (!db) {
-		db = await openDB<IDBSchema>('animendation', 4, {
+		db = openDB<IDBSchema>('animendation', 4, {
 			upgrade: async (db, oldVersion, newVersion, transaction, event) => {
 				console.log('upgrade triggered');
 				for (let store of db.objectStoreNames) {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import LoginLink from '$lib/components/LoginLink.svelte';
+	import GithubRepoLink from '$lib/components/links/GithubRepoLink.svelte';
 	import Logo from '$lib/components/logos/Logo.svelte';
 	import LaptopMockup from '$lib/components/mockups/LaptopMockup.svelte';
 	import MobileMockup from '$lib/components/mockups/MobileMockup.svelte';
@@ -32,8 +33,11 @@
 	<div class="md:h-[100vh] flex flex-col container">
 		<div class="flex justify-between py-6 items-center">
 			<Logo class="text-3xl md:text-5xl" />
-			<div class="flex gap-3 items-center">
-				<UserSearch iconClass="h-6" />
+			<div class="flex items-center">
+				<div class="mr-2">
+					<GithubRepoLink />
+				</div>
+				<UserSearch iconClass="h-6 mr-3" />
 				<LoginLink
 					><Button class="md:text-md font-semibold text-primary-50">Login</Button></LoginLink
 				>

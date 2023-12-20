@@ -7,7 +7,7 @@
 	import { getRecommendations } from '$lib/client/recommendations';
 	import { UsersService, type user_profile } from '$lib/clients/jikan/generated';
 	import NoProfilePicture from '$lib/components/NoProfilePicture.svelte';
-	import AddUserIcon from '$lib/components/icons/AddUserIcon.svelte';
+	import FollowButton from '$lib/components/buttons/FollowButton.svelte';
 	import ArrowTopRightIcon from '$lib/components/icons/ArrowTopRightIcon.svelte';
 	import CameraIcon from '$lib/components/icons/CameraIcon.svelte';
 	import ChevronUpIcon from '$lib/components/icons/ChevronUpIcon.svelte';
@@ -86,6 +86,19 @@
 
 		goto(`?${query.toString()}`);
 	}
+
+	function usernameTextSize(displayUsername: string) {
+		const length = displayUsername.length;
+		if (length > 17) {
+			return 'text-sm';
+		} else if (length > 14) {
+			return 'text-base';
+		} else if (length > 10) {
+			return 'text-lg';
+		} else {
+			return 'text-xl';
+		}
+	}
 </script>
 
 <svelte:window bind:scrollY />
@@ -134,19 +147,12 @@
 				aria-label="Myanimelist profile link"
 				><MyanimelistLogoIcon class="h-3" /><ArrowTopRightIcon class="h-3 mb-[3px]" /></a
 			>
-			<h2 class="text-primary-100 text-xl font-medium">{displayUsername}</h2>
+			<h2 class="text-primary-100 {usernameTextSize(displayUsername)} sm:text-xl font-medium">
+				{displayUsername}
+			</h2>
 		</div>
-		<div class="ml-auto">
-			{#if $user && userProfile && !isMyRecommendations}
-				<a
-					class="block text-primary-200 hover:text-primary-50 p-1"
-					href="https://myanimelist.net/myfriends.php?go=add&id={userProfile.mal_id}"
-					target="_blank"
-				>
-					<AddUserIcon class="h-5" target="_blank" />
-				</a>
-				<Tooltip>Add as friend</Tooltip>
-			{/if}
+		<div>
+			<FollowButton {username} />
 		</div>
 	</div>
 

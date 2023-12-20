@@ -78,6 +78,11 @@
 					bind:value={search}
 					bind:this={searchInput}
 					use:clickOutside={() => (open = false)}
+					on:keydown={(event) => {
+						if (event.key === 'Escape') {
+							open = false;
+						}
+					}}
 				/>
 				<button
 					class="absolute -translate-y-1/2 top-1/2 right-2 p-1 text-gray-300 hover:text-gray-50"

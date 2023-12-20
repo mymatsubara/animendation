@@ -10,7 +10,7 @@ export const userRoute = router({
 	me: authProcedure.query(({ ctx }) => {
 		return ctx.user as AuthUser;
 	}),
-	isFollowing: authProcedure
+	imFollowing: authProcedure
 		.input(
 			z.object({
 				username: z.string(),
@@ -131,36 +131,5 @@ export const userRoute = router({
 			}
 
 			return users;
-		}),
-	feed: authProcedure
-		.input(
-			z.object({
-				type: z.enum(['anime', 'manga']),
-				offset: z.number().finite().positive().default(0),
-				limit: z.number().finite().positive().default(10),
-			})
-		)
-		.query(async ({ input, ctx }) => {
-			const recommendationTable =
-				input.type === 'anime' ? 'AnimeRecommendation' : 'MangaRecommendation';
-			const serieTable = input.type === 'anime' ? 'Anime' : 'Manga';
-
-			return await db
-				.selectFrom(`${recommendationTable} as Recommendation`)
-				.innerJoin('User', 'User.id', 'Recommendation.userId')
-				.innerJoin(
-					`${serieTable} as Serie`,
-					'Serie.id',
-					input.type === 'anime' ? 'Recommendation.animeId' : 'Recommendation.mangaId'
-				)
-				.select([
-					'User.name as username',
-					'Serie.title',
-					'Serie.pictureLarge',
-					'Recommendation.createdAt',
-				])
-				.limit(input.limit)
-				.offset(input.offset)
-				.execute();
 		}),
 });

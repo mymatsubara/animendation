@@ -28,6 +28,11 @@ export type AnimeRecommendation = {
 	userId: number;
 	createdAt: Generated<Timestamp>;
 };
+export type Follower = {
+	userId: number;
+	followedUserId: number;
+	createdAt: Generated<Timestamp>;
+};
 export type Manga = {
 	id: number;
 	title: string;
@@ -55,10 +60,14 @@ export type User = {
 	id: number;
 	name: string;
 	picture: string | null;
+	followersCount: Generated<number>;
+	followingCount: Generated<number>;
+	createdAt: Generated<Timestamp>;
 };
 export type DB = {
 	Anime: Anime;
 	AnimeRecommendation: AnimeRecommendation;
+	Follower: Follower;
 	Manga: Manga;
 	MangaRecommendation: MangaRecommendation;
 	User: User;

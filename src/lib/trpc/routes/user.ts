@@ -91,4 +91,45 @@ export const userRoute = router({
 				await Promise.all([incrementFollowing, incrementFollowers, modifyFollowerTable]);
 			});
 		}),
+	randomWithRecommendation: authProcedure
+		.input(
+			z.object({
+				limit: z.number().finite().positive(),
+			})
+		)
+		.query(async ({ ctx, input }) => {
+			const random = await db
+				.selectNoFrom(sql<number>`CEIL(RAND() * (select MAX(id) from User))`.as('id'))
+				.executeTakeFirst();
+
+			if (!random) {
+				throw new TRPCError({
+					code: 'INTERNAL_SERVER_ERROR',
+					message: 'Could not generate random id',
+				});
+			}
+
+			let limit = input.limit;
+			const createQuery = (limit: number, cmp: '>=' | '<') =>
+				db
+					.selectFrom('User')
+					.select(['User.name'])
+					.innerJoin('AnimeRecommendation', 'AnimeRecommendation.userId', 'User.id')
+					.where('User.id', cmp, random.id)
+					.where('User.id', '<>', ctx.user.userId)
+					.having(sql`COUNT(*)`, '>', 0)
+					.groupBy('User.id')
+					.orderBy('User.id')
+					.limit(input.limit);
+
+			let users = await createQuery(limit, '>=').execute();
+			limit -= users.length;
+
+			if (limit > 0) {
+				const moreUsers = await createQuery(limit, '<').execute();
+				users = [...users, ...moreUsers];
+			}
+
+			return users;
+		}),
 });

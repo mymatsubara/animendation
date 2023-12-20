@@ -2,6 +2,7 @@ import { PUBLIC_MAL_CLIENT_ID } from '$env/static/public';
 import { MALClient, type AnimeDetail } from '$lib/clients/myanimelist';
 import { db } from '$lib/server/db';
 import { publicProcedure, router } from '$lib/trpc';
+import { authProcedure } from '$lib/trpc/procedures';
 import { TRPCError, type inferAsyncReturnType } from '@trpc/server';
 import { z } from 'zod';
 
@@ -9,7 +10,7 @@ export const animeRoute = router({
 	info: publicProcedure
 		.input(
 			z.object({
-				ids: z.coerce.number().int().positive().array()
+				ids: z.coerce.number().int().positive().array(),
 			})
 		)
 		.mutation(async ({ input }) => {
@@ -43,7 +44,7 @@ export const animeRoute = router({
 							newAnimes.map((anime) => ({
 								...anime,
 								genres: anime.genres.join(','),
-								isSequel: anime.isSequel ? 1 : 0
+								isSequel: anime.isSequel ? 1 : 0,
 							}))
 						)
 						.execute();
@@ -60,13 +61,41 @@ export const animeRoute = router({
 						season: anime.season ?? null,
 						seasonYear: anime.seasonYear ?? null,
 						source: anime.source ?? null,
-						startDate: anime.startDate ?? null
+						startDate: anime.startDate ?? null,
 					}))
 				);
 			}
 
 			return animes;
-		})
+		}),
+	feed: authProcedure
+		.input(
+			z.object({
+				offset: z.number().finite().positive().default(0),
+				limit: z.number().finite().positive().default(10),
+			})
+		)
+		.query(async ({ input, ctx }) => {
+			return db
+				.selectFrom('AnimeRecommendation')
+				.innerJoin('Follower', (join) =>
+					join
+						.on('Follower.userId', '=', ctx.user.userId)
+						.onRef('Follower.followedUserId', '=', 'AnimeRecommendation.userId')
+				)
+				.innerJoin('User', 'User.id', 'AnimeRecommendation.userId')
+				.innerJoin('Anime', 'Anime.id', 'AnimeRecommendation.animeId')
+				.select([
+					'User.name as username',
+					'Anime.title',
+					'Anime.pictureLarge',
+					'AnimeRecommendation.createdAt',
+				])
+				.limit(input.limit)
+				.offset(input.offset)
+				.orderBy('AnimeRecommendation.createdAt desc')
+				.execute();
+		}),
 });
 
 export type AnimeInfo = inferAsyncReturnType<typeof getAnimesInfo>[number];
@@ -83,13 +112,13 @@ async function getAnimesInfo(ids: number[]) {
 			'nsfw',
 			'genres',
 			'pictureLarge',
-			'isSequel'
+			'isSequel',
 		])
 		.where('id', 'in', ids)
 		.execute();
 
 	return animes.map((anime) => ({
 		...anime,
-		genres: anime.genres.split(',')
+		genres: anime.genres.split(','),
 	}));
 }

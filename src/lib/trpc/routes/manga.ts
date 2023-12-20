@@ -2,6 +2,7 @@ import { PUBLIC_MAL_CLIENT_ID } from '$env/static/public';
 import { MALClient, type MangaDetail } from '$lib/clients/myanimelist';
 import { db } from '$lib/server/db';
 import { publicProcedure, router } from '$lib/trpc';
+import { authProcedure } from '$lib/trpc/procedures';
 import { TRPCError, type inferAsyncReturnType } from '@trpc/server';
 import { z } from 'zod';
 
@@ -63,6 +64,34 @@ export const mangaRoute = router({
 			}
 
 			return mangas;
+		}),
+	feed: authProcedure
+		.input(
+			z.object({
+				offset: z.number().finite().positive().default(0),
+				limit: z.number().finite().positive().default(10),
+			})
+		)
+		.query(async ({ input, ctx }) => {
+			return db
+				.selectFrom('MangaRecommendation')
+				.innerJoin('Follower', (join) =>
+					join
+						.on('Follower.userId', '=', ctx.user.userId)
+						.onRef('Follower.followedUserId', '=', 'MangaRecommendation.userId')
+				)
+				.innerJoin('User', 'User.id', 'MangaRecommendation.userId')
+				.innerJoin('Manga', 'Manga.id', 'MangaRecommendation.animeId')
+				.select([
+					'User.name as username',
+					'Manga.title',
+					'Manga.pictureLarge',
+					'MangaRecommendation.createdAt',
+				])
+				.limit(input.limit)
+				.offset(input.offset)
+				.orderBy('MangaRecommendation.createdAt desc')
+				.execute();
 		}),
 });
 

@@ -18,18 +18,16 @@
 			<a href={$user ? `/profile/${$user.username}` : '/'}>
 				<Logo class="text-[26px]" />
 			</a>
-			<div class="flex">
-				<div class="hidden sm:flex items-center mr-3">
+			<div class="flex gap-3">
+				<div class="hidden sm:flex items-center">
 					<GithubRepoLink />
 				</div>
 				<UserSearch class="p-2.5" />
 				{#if $user}
-					<div class="mr-2">
-						<ProfileDropdown
-							profilePicture={$profilePicture}
-							recommendationsUrl="/profile/{$user.username}"
-						/>
-					</div>
+					<ProfileDropdown
+						profilePicture={$profilePicture}
+						recommendationsUrl="/profile/{$user.username}"
+					/>
 				{:else}
 					<LoginLink><Button class="font-semibold py-2.5">Login</Button></LoginLink>
 				{/if}

@@ -12,7 +12,7 @@
 	$: {
 		if ($user) {
 			const username = $user.username;
-			goto(`/profile/${username}`);
+			goto(`/home`);
 		}
 	}
 </script>
@@ -34,7 +34,7 @@
 		<div class="flex justify-between py-6 items-center">
 			<Logo class="text-3xl md:text-5xl" />
 			<div class="flex items-center">
-				<div class="mr-2">
+				<div class="mr-2 hidden sm:block">
 					<GithubRepoLink />
 				</div>
 				<UserSearch iconClass="h-6 mr-3" />

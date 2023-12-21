@@ -5,7 +5,7 @@
 	import { getAnimes } from '$lib/client/animes';
 	import { getMangas } from '$lib/client/mangas';
 	import { getRecommendations } from '$lib/client/recommendations';
-	import { UsersService, type user_profile } from '$lib/clients/jikan/generated';
+	import type { user_profile } from '$lib/clients/jikan/generated';
 	import NoProfilePicture from '$lib/components/NoProfilePicture.svelte';
 	import FollowButton from '$lib/components/buttons/FollowButton.svelte';
 	import ArrowTopRightIcon from '$lib/components/icons/ArrowTopRightIcon.svelte';
@@ -16,6 +16,7 @@
 	import Tabs from '$lib/components/tabs/Tabs.svelte';
 	import FriendsDisplay from '$lib/components/users/FriendsDisplay.svelte';
 	import { getMyRecommendations } from '$lib/stores/my-recommendations';
+	import { getUserProfile } from '$lib/stores/profile-picture';
 	import { user } from '$lib/stores/user';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { MangaInfo } from '$lib/trpc/routes/manga';
@@ -41,8 +42,8 @@
 	$: displayUsername = userProfile?.username ?? username;
 	$: {
 		if (username && browser) {
-			UsersService.getUserProfile(username)
-				.then((result) => (userProfile = result?.data ?? null))
+			getUserProfile(username)
+				.then((result) => (userProfile = result ?? null))
 				.catch(() => (userProfile = null));
 		}
 	}
@@ -157,7 +158,7 @@
 	</div>
 
 	<div class="container">
-		<Tabs tabs={['Animes', 'Mangas', 'Friends']} bind:selected={tab} on:change={tabChanged} />
+		<Tabs {tabs} bind:selected={tab} on:change={tabChanged} />
 	</div>
 </div>
 

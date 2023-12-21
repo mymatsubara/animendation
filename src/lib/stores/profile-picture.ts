@@ -1,29 +1,29 @@
-import { UsersService } from '$lib/clients/jikan/generated';
-import { user } from '$lib/stores/user';
-import { writable } from 'svelte/store';
+import { UsersService, type user_profile } from '$lib/clients/jikan/generated';
 
-const profilePicture = writable<string | undefined>();
+const cache: Map<string, Promise<user_profile | undefined>> = new Map();
 
-async function fetchProfilePicture(username: string) {
+async function fetchProfile(username: string) {
 	const profile = await UsersService.getUserProfile(username);
 
-	return profile.data?.images?.webp?.image_url;
+	return profile?.data;
 }
 
-user.subscribe(async (user) => {
-	if (user) {
-		const pictureUrl = await fetchProfilePicture(user.username);
-		if (pictureUrl) {
-			profilePicture.set(pictureUrl);
-			return;
-		}
+export async function getUserProfile(username: string) {
+	if (!username) {
+		return undefined;
 	}
 
-	profilePicture.set(undefined);
-});
+	const key = username.toLowerCase();
+	const cacheHit = cache.get(key);
 
-export function getProfilePicture() {
-	return {
-		subscribe: profilePicture.subscribe
-	};
+	if (cacheHit) {
+		return cacheHit;
+	}
+
+	const userProfile = fetchProfile(username);
+	if (userProfile) {
+		cache.set(key, userProfile);
+	}
+
+	return userProfile;
 }

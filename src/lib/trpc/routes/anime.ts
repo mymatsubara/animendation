@@ -90,6 +90,7 @@ export const animeRoute = router({
 					'Anime.title',
 					'Anime.pictureLarge',
 					'AnimeRecommendation.createdAt',
+					'Anime.id as serieId',
 				])
 				.limit(input.limit)
 				.offset(input.offset)

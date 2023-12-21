@@ -1,29 +1,26 @@
 <script lang="ts">
 	import { logout } from '$lib/client/logout';
+	import HomeIcon from '$lib/components/icons/HomeIcon.svelte';
 	import LeaveIcon from '$lib/components/icons/LeaveIcon.svelte';
-	import { Avatar, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
+	import UserIcon from '$lib/components/icons/UserIcon.svelte';
+	import ProfilePicture from '$lib/components/users/ProfilePicture.svelte';
+	import { Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 
-	export let profilePicture: string | undefined;
-	export let recommendationsUrl: string;
+	export let pictureUrl: string | undefined;
+	export let profileUrl: string;
 </script>
 
 <div class="h-8">
 	<button class="border-0 p-1 w-max rounded-full bg-transparent group">
-		{#if profilePicture}
-			<!-- svelte-ignore a11y-img-redundant-alt -->
-			<img
-				class="h-8 object-top object-cover rounded-full aspect-square border border-primary-700 group-focus:ring-2"
-				src={profilePicture}
-				alt="My profile picture"
-			/>
-		{:else}
-			<Avatar border size="sm" />
-		{/if}
+		<ProfilePicture size="sm" class="group-focus:ring-primary-700" {pictureUrl} />
 	</button>
 	<Dropdown class="py-2" placement="bottom-start">
-		<DropdownItem href={recommendationsUrl}>My recommendations</DropdownItem>
+		<DropdownItem class="flex gap-3" href="/home"><HomeIcon class="h-5" />Home</DropdownItem>
+		<DropdownItem class="flex gap-3" href={profileUrl}
+			><UserIcon class="h-5" /> Profile</DropdownItem
+		>
 		<DropdownDivider />
-		<DropdownItem class="flex gap-2 text-red-500" on:click={logout}
+		<DropdownItem class="flex gap-3 text-red-500" on:click={logout}
 			><LeaveIcon class="h-5" /> Log out</DropdownItem
 		>
 	</Dropdown>

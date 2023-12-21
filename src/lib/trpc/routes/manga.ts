@@ -87,6 +87,7 @@ export const mangaRoute = router({
 					'Manga.title',
 					'Manga.pictureLarge',
 					'MangaRecommendation.createdAt',
+					'Manga.id as serieId',
 				])
 				.limit(input.limit)
 				.offset(input.offset)

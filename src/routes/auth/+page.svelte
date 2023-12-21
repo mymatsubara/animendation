@@ -33,7 +33,7 @@
 
 				$user = authUser;
 
-				goto(`/profile/${authUser.username}`);
+				goto('/home');
 			} catch (e) {
 				failAuth(e);
 			}

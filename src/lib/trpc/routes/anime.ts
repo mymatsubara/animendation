@@ -71,7 +71,7 @@ export const animeRoute = router({
 	feed: authProcedure
 		.input(
 			z.object({
-				offset: z.number().finite().positive().default(0),
+				offset: z.number().finite().min(0).default(0),
 				limit: z.number().finite().positive().default(10),
 			})
 		)

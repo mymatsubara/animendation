@@ -6,8 +6,8 @@
 	export let tabs: readonly T[];
 	export let selected: T = tabs[0];
 	export let fieldsetClass: string = '';
-	export let selectedClass: string = 'text-primary-50 border-b-2 border-primary-50';
-	export let underline = false;
+	export let selectedClass: string = 'text-primary-50';
+	export let underline = true;
 	export let underlineClass: string | undefined = undefined;
 </script>
 

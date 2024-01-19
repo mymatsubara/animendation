@@ -13,7 +13,7 @@
 <div class="relative">
 	<label
 		class={twMerge(
-			'relative font-medium text-primary-300 px-5 pb-2 pt-3 m-0 cursor-pointer',
+			'relative font-medium text-primary-200 px-5 pb-2 pt-3 m-0 cursor-pointer',
 			$$restProps.class,
 			selected ? selectedClass : ''
 		)}
@@ -31,7 +31,7 @@
 	{#if underline && selected}
 		<div
 			class={twMerge(
-				'absolute bottom-0 -translate-x-1/2 left-1/2 h-0.5 w-8 rounded-full bg-primary-800',
+				'absolute bottom-0.5 -translate-x-1/2 left-1/2 h-0.5 w-8 rounded-full bg-primary-50',
 				underlineClass
 			)}
 		/>

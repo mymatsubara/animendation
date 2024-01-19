@@ -58,6 +58,7 @@
 
 <div>
 	<button
+		title="Search user"
 		class={twMerge('hover:text-primary-50 rounded p-2', $$restProps.class)}
 		on:click={() => {
 			open = !open;

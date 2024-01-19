@@ -1,50 +1,29 @@
 <script lang="ts">
+	import Feed from '$lib/components/feed/Feed.svelte';
 	import Tabs from '$lib/components/tabs/Tabs.svelte';
-	import UserSignature from '$lib/components/users/UserSignature.svelte';
-	import { Button, ButtonGroup, RadioButton } from 'flowbite-svelte';
-	import { feedType } from './feed-type';
+	import { currentHomeTab, homeTabs } from './current-tab';
 
-	const tabs = ['Feed', 'Suggestion'] as const;
-
-	let tab = tabs[0];
-	const feed = feedType();
+	const tab = currentHomeTab();
 </script>
 
-<div class="px-3 max-w-xl mx-auto mt-1">
-	<div class="mb-5">
+<div class="bg-primary-900 sm:bg-transparent">
+	<div class="px-3 max-w-xl mx-auto">
 		<Tabs
-			class="text-base font-medium text-gray-500 py-3 text-center w-full px-1"
-			selectedClass="text-primary-800 font-semibold"
-			fieldsetClass="grid grid-cols-3"
-			bind:selected={tab}
-			{tabs}
-			underline
+			class="sm:text-gray-600"
+			selectedClass="sm:text-gray-800"
+			underlineClass="sm:bg-gray-800"
+			bind:selected={$tab}
+			tabs={homeTabs}
 		/>
 	</div>
+</div>
 
-	{#if tab === 'Feed'}
-		<div class="my-6">
-			<UserSignature contentClass="w-full" size="lg" username="XDmuriloXD">
-				<Button outline class="mt-2 bg-primary-800 text-primary-50 hover:bg-primary-900" size="sm"
-					>Recommend</Button
-				>
-			</UserSignature>
-		</div>
-		<hr class="border my-3" />
-
-		<div class="flex justify-center mb-4">
-			<ButtonGroup>
-				<RadioButton class="mb-0" value="anime" bind:group={$feed}>Animes</RadioButton>
-				<RadioButton class="mb-0" value="manga" bind:group={$feed}>Mangas</RadioButton>
-			</ButtonGroup>
-		</div>
-
-		<div>
-			<UserSignature username="XDmuriloXD">
-				<div class="text-sm font-medium text-gray-600 ml-2" slot="side-signature">2h</div>
-			</UserSignature>
-		</div>
-	{:else if tab === 'Suggestion'}
+<div class="px-3 max-w-xl mx-auto mt-5">
+	{#if $tab === 'Animes'}
+		<Feed type="anime" />
+	{:else if $tab === 'Mangas'}
+		<Feed type="manga" />
+	{:else if $tab === 'Suggestion'}
 		Suggestion
 	{/if}
 </div>

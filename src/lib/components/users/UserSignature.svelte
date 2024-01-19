@@ -31,10 +31,12 @@
 </script>
 
 <div class={twMerge(`flex items-start ${gap[size]}`, $$restProps.class)}>
-	<a href={profileUrl}><ProfilePicture {pictureUrl} {size} /></a>
+	<a title="{username}'s profile" href={profileUrl}><ProfilePicture {pictureUrl} {size} /></a>
 	<div class={contentClass}>
-		<div class="flex items-baseline">
-			<a class="font-semibold {textSize[size]}" href={profileUrl}>{username}</a>
+		<div class="flex">
+			<a class="font-semibold {textSize[size]}" title="{username}'s profile" href={profileUrl}
+				>{username}</a
+			>
 			<slot name="side-signature" />
 		</div>
 

@@ -33,5 +33,5 @@
 		/>
 	</div>
 {:else}
-	<Avatar class={twMerge('ring-1 ring-gray-300', $$restProps.class)} border {size} />
+	<Avatar class={twMerge('ring-1 ring-gray-300', $$restProps.class)} {size} />
 {/if}

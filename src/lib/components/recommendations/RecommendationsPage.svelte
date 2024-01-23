@@ -35,6 +35,7 @@
 	let showSpinner = false;
 	const tabSearchParam = $page.url.searchParams.get('tab');
 	let tab = tabs.includes(tabSearchParam as any) ? tabSearchParam : (tabs[0] as TabName);
+	let edit = !!$user && !!$page.url.searchParams.get('edit');
 
 	setTimeout(() => (showSpinner = true), 300);
 
@@ -169,6 +170,7 @@
 			series={animes}
 			{username}
 			myRecommendations={isMyRecommendations}
+			{edit}
 		/>
 	{:else if tab === 'Mangas'}
 		<Recommendations
@@ -176,6 +178,7 @@
 			series={mangas}
 			{username}
 			myRecommendations={isMyRecommendations}
+			{edit}
 		/>
 	{:else if tab === 'Friends'}
 		<FriendsDisplay {username} />

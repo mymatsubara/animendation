@@ -10,14 +10,14 @@
 	export let myRecommendations: boolean;
 	export let series: Serie[] | undefined;
 	export let type: SerieType;
-
-	let edit = false;
+	export let edit = false;
 </script>
 
 <section class="pb-2">
 	<div class="flex gap-1 items-center">
 		{#if edit}
-			<button class="p-1" on:click={() => (edit = false)}><ArrowLeftIcon class="h-4" /></button>
+			<button class="p-1 mr-1" on:click={() => (edit = false)}><ArrowLeftIcon class="h-4" /></button
+			>
 		{/if}
 		<h1 class="text-xl tracking-tight font-medium">
 			{edit ? 'Edit recommendations' : 'Recommendations'}
@@ -46,8 +46,9 @@
 				/>
 			</div>
 		{:else if $user?.username}
-			<div class="text-gray-500 text-sm">
-				Click on the heart to recommend/unrecommend an {type.toLocaleLowerCase()}
+			<div class="text-gray-500 text-sm mt-0.5">
+				Click on the heart to recommend/unrecommend {type === 'Anime' ? 'an' : 'a'}
+				{type.toLocaleLowerCase()}
 			</div>
 			<div class="mt-3">
 				<EditRecommendations {type} />

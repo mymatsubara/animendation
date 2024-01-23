@@ -1,6 +1,6 @@
 const hourInSecs = 60 * 60;
 
-export function formatPostDate(date: Date) {
+export function formatTimeElapsed(date: Date) {
 	const now = Date.now();
 	const diffSecs = Math.ceil(Math.max(now - date.getTime(), 0) / 1000);
 
@@ -15,6 +15,16 @@ export function formatPostDate(date: Date) {
 			year: isCurrentYear(date) ? 'numeric' : undefined,
 		});
 	}
+}
+
+export function formatPostDate(date: Date) {
+	return date.toLocaleTimeString('en-US', {
+		day: 'numeric',
+		month: 'short',
+		year: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit',
+	});
 }
 
 export function isCurrentYear(date: Date) {

@@ -8,7 +8,7 @@
 	import { user } from '$lib/stores/user';
 	import { trpc } from '$lib/trpc/client';
 	import { getMyanimelistSeriesUrl } from '$lib/utils/myanimelist';
-	import { formatPostDate } from '$lib/utils/time';
+	import { formatPostDate, formatTimeElapsed } from '$lib/utils/time';
 	import type { inferAsyncReturnType } from '@trpc/server';
 	import { Spinner } from 'flowbite-svelte';
 
@@ -64,7 +64,9 @@
 					<UserSignature username={entry.username}>
 						<svelte:fragment slot="side-signature">
 							<div class="text-sm text-gray-500 ml-1 mt-[1.5px]">
-								· {formatPostDate(new Date(entry.createdAt))}
+								· <span title={formatPostDate(new Date(entry.createdAt))}
+									>{formatTimeElapsed(new Date(entry.createdAt))}</span
+								>
 							</div>
 						</svelte:fragment>
 

@@ -8,9 +8,9 @@
 	import type { user_profile } from '$lib/clients/jikan/generated';
 	import NoProfilePicture from '$lib/components/NoProfilePicture.svelte';
 	import FollowButton from '$lib/components/buttons/FollowButton.svelte';
+	import GoToTopButton from '$lib/components/buttons/GoToTopButton.svelte';
 	import ArrowTopRightIcon from '$lib/components/icons/ArrowTopRightIcon.svelte';
 	import CameraIcon from '$lib/components/icons/CameraIcon.svelte';
-	import ChevronUpIcon from '$lib/components/icons/ChevronUpIcon.svelte';
 	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
 	import Recommendations from '$lib/components/recommendations/Recommendations.svelte';
 	import Tabs from '$lib/components/tabs/Tabs.svelte';
@@ -20,7 +20,7 @@
 	import { user } from '$lib/stores/user';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { MangaInfo } from '$lib/trpc/routes/manga';
-	import { Button, Spinner, Tooltip } from 'flowbite-svelte';
+	import { Spinner } from 'flowbite-svelte';
 	import { onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
 
@@ -183,13 +183,5 @@
 </div>
 
 {#if scrollY > 300}
-	<div transition:fade={{ duration: 150 }} class="fixed bottom-5 right-5">
-		<Button
-			class="rounded-full aspect-square p-3"
-			on:click={() => {
-				window.scrollTo({ top: 0, behavior: 'smooth' });
-			}}><ChevronUpIcon class="h-8 -translate-y-0.5" /></Button
-		>
-		<Tooltip class="whitespace-nowrap">Go to top</Tooltip>
-	</div>
+	<GoToTopButton />
 {/if}

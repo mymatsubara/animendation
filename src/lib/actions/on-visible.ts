@@ -1,5 +1,5 @@
 type Input = {
-	callback: () => void;
+	callback: IntersectionObserverCallback;
 	options?: IntersectionObserverInit;
 };
 

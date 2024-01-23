@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { onVisible } from '$lib/actions/on-visible';
 	import AnimeDisplay from '$lib/components/AnimeDisplay.svelte';
 	import UserPortrait from '$lib/components/feed/UserPortrait.svelte';
 	import UserSignature from '$lib/components/users/UserSignature.svelte';
 	import { getMyanimelist } from '$lib/stores/animelist';
+	import { toast } from '$lib/stores/toast';
 	import { user } from '$lib/stores/user';
 	import { trpc } from '$lib/trpc/client';
 	import { getMyanimelistSeriesUrl } from '$lib/utils/myanimelist';
@@ -15,6 +17,7 @@
 	export let type: 'anime' | 'manga';
 
 	let loading = false;
+	let hasNextPage = true;
 	const limit = 10;
 	let offset = 0;
 	let entries: FeedEntry;
@@ -23,9 +26,9 @@
 	$: entryType = type === 'anime' ? ('Anime' as const) : ('Manga' as const);
 
 	const myanimelist = getMyanimelist();
-	fetchMore();
 
-	async function fetchMore() {
+	async function loadNextPage() {
+		console.log('loadMore');
 		loading = true;
 		try {
 			const newEntries =
@@ -35,6 +38,12 @@
 
 			entries = [...(entries ?? []), ...newEntries];
 			offset += limit;
+			hasNextPage = newEntries.length >= limit;
+		} catch (err) {
+			$toast = {
+				level: 'error',
+				message: 'Error while loading feed. Please refresh the page.',
+			};
 		} finally {
 			loading = false;
 		}
@@ -83,8 +92,22 @@
 			{/each}
 		</div>
 	{/if}
-
-	{#if loading}
-		<Spinner class="w-full mx-auto mt-3" />
-	{/if}
 </div>
+
+{#if hasNextPage}
+	<div
+		class="py-3 flex justify-center"
+		use:onVisible={{
+			callback: (elements) => {
+				const target = elements[0];
+				target.isIntersecting && !loading && hasNextPage && loadNextPage();
+			},
+			options: {
+				threshold: 0.1,
+				rootMargin: '250px',
+			},
+		}}
+	>
+		<Spinner />
+	</div>
+{/if}

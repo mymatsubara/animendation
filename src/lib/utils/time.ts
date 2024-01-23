@@ -2,7 +2,7 @@ const hourInSecs = 60 * 60;
 
 export function formatPostDate(date: Date) {
 	const now = Date.now();
-	const diffSecs = Math.ceil(Math.max(now - date.getTime(), 0) / 60);
+	const diffSecs = Math.ceil(Math.max(now - date.getTime(), 0) / 1000);
 
 	if (diffSecs < 60) {
 		return `${diffSecs}s`;

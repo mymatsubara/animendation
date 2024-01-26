@@ -25,9 +25,9 @@
 			<Spinner class="mt-2" />
 		</div>
 	{:else if users.length === 0}
-		<div in:fade={{ duration: 150 }} class="mt-5 flex flex-col items-center justify-center gap-2">
+		<div in:fade={{ duration: 150 }} class="mt-10 flex flex-col items-center justify-center gap-2">
 			<div class="font-bold text-3xl">(╥_╥)</div>
-			<div class="text-gray-600">No suggested users yet.</div>
+			<div class="text-gray-600">No suggested users yet</div>
 		</div>
 	{:else}
 		{#each users as user, i (user.id)}

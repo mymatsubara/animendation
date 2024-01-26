@@ -110,9 +110,9 @@
 	{/if}
 
 	{#if followers?.length === 0}
-		<div in:fade={{ duration: 150 }} class="flex flex-col items-center justify-center gap-2">
+		<div in:fade={{ duration: 150 }} class=" mt-10 flex flex-col items-center justify-center gap-2">
 			<div class="font-bold text-3xl">(╥_╥)</div>
-			<div class="text-gray-600">No {type} yet.</div>
+			<div class="text-gray-600">No {type} yet</div>
 		</div>
 	{/if}
 </div>

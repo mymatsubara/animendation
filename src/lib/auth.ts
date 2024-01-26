@@ -7,6 +7,7 @@ import type { JwtPayload } from 'jsonwebtoken';
 export type AuthUser = {
 	userId: number;
 	username: string;
+	picture: string | null;
 };
 
 export module Auth {
@@ -51,15 +52,19 @@ export module AuthCookies {
 		secure: !dev,
 		sameSite: 'lax' as const,
 		path: '/',
-		maxAge: 2 * 30 * 24 * 60 * 60
+		maxAge: 2 * 30 * 24 * 60 * 60,
 	};
 
 	export function setCookies(input: SetCookiesInput) {
 		const cookies = input.cookies;
 
-		cookies.set(BACKEND_ACCESS_TOKEN_COOKIE, input.backend.accessToken, cookiesOptions);
+		setBackendAccessTokenCookie(cookies, input.backend.accessToken);
 		cookies.set(MAL_REFRESH_TOKEN_COOKIE, input.mal.refreshToken, cookiesOptions);
 		cookies.set(MAL_ACCESS_TOKEN_COOKIE, input.mal.accessToken, cookiesOptions);
+	}
+
+	export function setBackendAccessTokenCookie(cookies: Cookies, token: string) {
+		cookies.set(BACKEND_ACCESS_TOKEN_COOKIE, token, cookiesOptions);
 	}
 
 	export function getCookies(cookies: Cookies) {
@@ -70,11 +75,11 @@ export module AuthCookies {
 		return {
 			mal: {
 				accessToken: malAccessToken,
-				refreshToken: malRefreshToken
+				refreshToken: malRefreshToken,
 			},
 			backend: {
-				accessToken: backendAccessToken
-			}
+				accessToken: backendAccessToken,
+			},
 		};
 	}
 

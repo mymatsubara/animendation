@@ -6,6 +6,8 @@ export function formatTimeElapsed(date: Date) {
 
 	if (diffSecs < 60) {
 		return `${diffSecs}s`;
+	} else if (diffSecs < hourInSecs) {
+		return `${Math.floor(diffSecs / 60)}m`;
 	} else if (diffSecs < 24 * hourInSecs) {
 		return `${Math.floor(diffSecs / hourInSecs)}h`;
 	} else {

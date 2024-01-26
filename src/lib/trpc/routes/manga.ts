@@ -3,6 +3,7 @@ import { MALClient, type MangaDetail } from '$lib/clients/myanimelist';
 import { db } from '$lib/server/db';
 import { publicProcedure, router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
+import type { PaginatedData } from '$lib/trpc/types';
 import { TRPCError, type inferAsyncReturnType } from '@trpc/server';
 import { z } from 'zod';
 
@@ -68,12 +69,12 @@ export const mangaRoute = router({
 	feed: authProcedure
 		.input(
 			z.object({
-				offset: z.number().finite().min(0).default(0),
 				limit: z.number().finite().positive().default(10),
+				nextPageToken: z.number().optional(),
 			})
 		)
 		.query(async ({ input, ctx }) => {
-			return db
+			const data = await db
 				.selectFrom('MangaRecommendation')
 				.innerJoin('Follower', (join) =>
 					join
@@ -83,16 +84,27 @@ export const mangaRoute = router({
 				.innerJoin('User', 'User.id', 'MangaRecommendation.userId')
 				.innerJoin('Manga', 'Manga.id', 'MangaRecommendation.animeId')
 				.select([
+					'MangaRecommendation.id',
 					'User.name as username',
 					'Manga.title',
 					'Manga.pictureLarge',
 					'MangaRecommendation.createdAt',
 					'Manga.id as serieId',
 				])
+				.orderBy('MangaRecommendation.id desc')
+				.$if(input.nextPageToken !== undefined, (qb) =>
+					qb.where('MangaRecommendation.id', '<', input.nextPageToken as number)
+				)
 				.limit(input.limit)
-				.offset(input.offset)
-				.orderBy('MangaRecommendation.createdAt desc')
 				.execute();
+
+			const result: PaginatedData<typeof data[number]> = {
+				data,
+				hasNextPage: data.length >= input.limit,
+				nextPageToken: data.at(-1)?.id ?? 0,
+			};
+
+			return result;
 		}),
 });
 

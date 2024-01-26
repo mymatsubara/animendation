@@ -4,10 +4,9 @@ import type { AuthUser } from '$lib/auth';
 import { Auth, AuthCookies } from '$lib/auth';
 import { MALClient } from '$lib/clients/myanimelist';
 import { MALOauth } from '$lib/clients/myanimelist/oauth';
-import { db } from '$lib/server/db';
 import { publicProcedure, router } from '$lib/trpc';
+import { upsertUser } from '$lib/trpc/routes/user';
 import { TRPCError } from '@trpc/server';
-import { sql } from 'kysely';
 import { z } from 'zod';
 
 export const authRoute = router({
@@ -15,14 +14,14 @@ export const authRoute = router({
 		.input(
 			z.object({
 				authCode: z.string().min(1),
-				codeVerifier: z.string().min(1)
+				codeVerifier: z.string().min(1),
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
 			const malTokens = await MALOauth.getTokens({
 				clientId: PUBLIC_MAL_CLIENT_ID,
 				clientSecret: env.MAL_CLIENT_SECRET,
-				...input
+				...input,
 			});
 
 			if (!malTokens) {
@@ -30,30 +29,12 @@ export const authRoute = router({
 			}
 
 			const client = new MALClient({ accessToken: malTokens.access_token });
-			const { id, name, picture } = await client.getMe();
-
-			if (!id || !name) {
-				throw new TRPCError({
-					code: 'UNAUTHORIZED'
-				});
-			}
-
-			await db
-				.insertInto('User')
-				.values({
-					id,
-					name,
-					picture
-				})
-				.onDuplicateKeyUpdate({
-					name: ({ ref }) => sql`VALUES(${ref('User.name')})`,
-					picture: ({ ref }) => sql`VALUES(${ref('User.picture')})`
-				})
-				.execute();
+			const malUser = await upsertUser(client);
 
 			const user: AuthUser = {
-				userId: id,
-				username: name
+				userId: malUser.id,
+				username: malUser.name,
+				picture: malUser.picture ?? null,
 			};
 			const backendAccessToken = await Auth.signBackendAccessToken(user);
 
@@ -61,16 +42,16 @@ export const authRoute = router({
 				cookies: ctx.event.cookies,
 				mal: {
 					accessToken: malTokens.access_token,
-					refreshToken: malTokens.refresh_token
+					refreshToken: malTokens.refresh_token,
 				},
 				backend: {
-					accessToken: backendAccessToken
-				}
+					accessToken: backendAccessToken,
+				},
 			});
 
 			return user;
 		}),
 	logout: publicProcedure.mutation(({ ctx }) => {
 		AuthCookies.deleteCookies(ctx.event.cookies);
-	})
+	}),
 });

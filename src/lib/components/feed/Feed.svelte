@@ -12,33 +12,32 @@
 	import type { inferAsyncReturnType } from '@trpc/server';
 	import { Spinner } from 'flowbite-svelte';
 
-	type FeedEntry = inferAsyncReturnType<typeof trpc.anime.feed.query>;
+	type FeedPage = inferAsyncReturnType<typeof trpc.anime.feed.query>;
+	type FeedEntry = FeedPage['data'][number];
 
 	export let type: 'anime' | 'manga';
 
 	let loading = false;
-	let hasNextPage = true;
+	let data: FeedPage;
 	const limit = 10;
-	let offset = 0;
-	let entries: FeedEntry;
+	let entries: FeedEntry[];
 
 	$: username = $user?.username;
 	$: entryType = type === 'anime' ? ('Anime' as const) : ('Manga' as const);
 
 	const myanimelist = getMyanimelist();
 
+	loadNextPage();
+
 	async function loadNextPage() {
-		console.log('loadMore');
 		loading = true;
 		try {
-			const newEntries =
+			data =
 				type === 'anime'
-					? await trpc.anime.feed.query({ limit, offset })
-					: await trpc.manga.feed.query({ limit, offset });
+					? await trpc.anime.feed.query({ limit, nextPageToken: data?.nextPageToken })
+					: await trpc.manga.feed.query({ limit, nextPageToken: data?.nextPageToken });
 
-			entries = [...(entries ?? []), ...newEntries];
-			offset += limit;
-			hasNextPage = newEntries.length >= limit;
+			entries = [...(entries ?? []), ...data.data];
 		} catch (err) {
 			$toast = {
 				level: 'error',
@@ -59,7 +58,7 @@
 <div class="mt-3 mb-2">
 	{#if entries}
 		<div>
-			{#each entries as entry, i (entry.username + entry.serieId)}
+			{#each entries as entry, i (entry.id)}
 				<div class="py-3 {i !== entries.length - 1 ? 'border-b' : ''}">
 					<UserSignature username={entry.username}>
 						<svelte:fragment slot="side-signature">
@@ -96,13 +95,13 @@
 	{/if}
 </div>
 
-{#if hasNextPage}
+{#if data?.hasNextPage}
 	<div
 		class="py-3 flex justify-center"
 		use:onVisible={{
 			callback: (elements) => {
 				const target = elements[0];
-				target.isIntersecting && !loading && hasNextPage && loadNextPage();
+				target.isIntersecting && !loading && data.hasNextPage && loadNextPage();
 			},
 			options: {
 				threshold: 0.1,

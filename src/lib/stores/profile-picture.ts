@@ -1,11 +1,22 @@
 import { UsersService, type user_profile } from '$lib/clients/jikan/generated';
+import { trpc } from '$lib/trpc/client';
+import type { inferAsyncReturnType } from '@trpc/server';
 
-const cache: Map<string, Promise<user_profile | undefined>> = new Map();
+type FollowersCount = inferAsyncReturnType<typeof trpc.user.followersCount.query>;
+export type UserProfile = user_profile & FollowersCount;
+const cache: Map<string, Promise<UserProfile | undefined>> = new Map();
 
 async function fetchProfile(username: string) {
-	const profile = await UsersService.getUserProfile(username);
+	const [profile, followersCount] = await Promise.all([
+		UsersService.getUserProfile(username),
+		trpc.user.followersCount.query({ username }),
+	]);
 
-	return profile?.data;
+	if (!profile?.data) {
+		return undefined;
+	}
+
+	return { ...profile.data, ...followersCount };
 }
 
 export async function getUserProfile(username: string) {

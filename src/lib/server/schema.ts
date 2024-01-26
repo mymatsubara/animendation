@@ -24,11 +24,13 @@ export type Anime = {
 	isSequel: number | null;
 };
 export type AnimeRecommendation = {
+	id: Generated<number>;
 	animeId: number;
 	userId: number;
 	createdAt: Generated<Timestamp>;
 };
 export type Follower = {
+	id: Generated<number>;
 	userId: number;
 	followedUserId: number;
 	createdAt: Generated<Timestamp>;
@@ -51,6 +53,7 @@ export type Manga = {
 	genres: string;
 };
 export type MangaRecommendation = {
+	id: Generated<number>;
 	mangaId: number;
 	userId: number;
 	createdAt: Generated<Timestamp>;

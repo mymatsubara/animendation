@@ -5,7 +5,6 @@
 	import { getAnimes } from '$lib/client/animes';
 	import { getMangas } from '$lib/client/mangas';
 	import { getRecommendations } from '$lib/client/recommendations';
-	import type { user_profile } from '$lib/clients/jikan/generated';
 	import NoProfilePicture from '$lib/components/NoProfilePicture.svelte';
 	import FollowButton from '$lib/components/buttons/FollowButton.svelte';
 	import GoToTopButton from '$lib/components/buttons/GoToTopButton.svelte';
@@ -14,10 +13,11 @@
 	import MyanimelistLogoIcon from '$lib/components/icons/MyanimelistLogoIcon.svelte';
 	import Recommendations from '$lib/components/recommendations/Recommendations.svelte';
 	import Tabs from '$lib/components/tabs/Tabs.svelte';
-	import FriendsDisplay from '$lib/components/users/FriendsDisplay.svelte';
+	import FollowersDisplay from '$lib/components/users/FollowersDisplay.svelte';
 	import { getMyRecommendations } from '$lib/stores/my-recommendations';
-	import { getUserProfile } from '$lib/stores/profile-picture';
+	import { getUserProfile, type UserProfile } from '$lib/stores/profile-picture';
 	import { user } from '$lib/stores/user';
+	import { trpc } from '$lib/trpc/client';
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { MangaInfo } from '$lib/trpc/routes/manga';
 	import { Spinner } from 'flowbite-svelte';
@@ -28,13 +28,14 @@
 
 	type TabName = typeof tabs[number];
 	const pictureClass = 'w-[100px] aspect-square flex items-center justify-center';
-	const tabs = ['Animes', 'Mangas', 'Friends'] as const;
+	const allTabs = ['Animes', 'Mangas', 'Followers', 'Following'] as const;
+	const tabs = [allTabs[0], allTabs[1]] as const;
 
-	let userProfile: user_profile | null | undefined = undefined;
+	let userProfile: UserProfile | null | undefined = undefined;
 	let scrollY: number;
 	let showSpinner = false;
 	const tabSearchParam = $page.url.searchParams.get('tab');
-	let tab = tabs.includes(tabSearchParam as any) ? tabSearchParam : (tabs[0] as TabName);
+	let tab = allTabs.includes(tabSearchParam as any) ? tabSearchParam : (tabs[0] as TabName);
 	let edit = !!$user && !!$page.url.searchParams.get('edit');
 
 	setTimeout(() => (showSpinner = true), 300);
@@ -46,6 +47,15 @@
 			getUserProfile(username)
 				.then((result) => (userProfile = result ?? null))
 				.catch(() => (userProfile = null));
+		}
+	}
+
+	// Refresh profile in the server when the profile picture changes
+	$: {
+		const profilePicture = userProfile?.images?.webp?.image_url;
+		if ($user && profilePicture && isMe && $user.picture !== profilePicture) {
+			console.log({ picture: $user.picture, profilePicture });
+			trpc.user.refreshMyProfile.mutate();
 		}
 	}
 
@@ -82,9 +92,13 @@
 			return;
 		}
 
+		updateTabQueryParam(target.value);
+	}
+
+	function updateTabQueryParam(tab: string) {
 		let query = new URLSearchParams($page.url.searchParams.toString());
 
-		query.set('tab', target.value);
+		query.set('tab', tab);
 
 		goto(`?${query.toString()}`);
 	}
@@ -149,9 +163,27 @@
 				aria-label="Myanimelist profile link"
 				><MyanimelistLogoIcon class="h-3" /><ArrowTopRightIcon class="h-3 mb-[3px]" /></a
 			>
-			<h2 class="text-primary-100 {usernameTextSize(displayUsername)} sm:text-xl font-medium">
+			<h2 class="text-primary-100 {usernameTextSize(displayUsername)} sm:text-xl font-semibold">
 				{displayUsername}
 			</h2>
+			<div class="mt-1 flex gap-3 text-sm text-primary-200">
+				<button
+					class="hover:underline"
+					on:click={() => {
+						tab = 'Following';
+						updateTabQueryParam(tab);
+					}}
+					><span class="font-medium text-primary-100">{userProfile?.followingCount ?? ' '}</span> following</button
+				>
+				<button
+					class="hover:underline"
+					on:click={() => {
+						tab = 'Followers';
+						updateTabQueryParam(tab);
+					}}
+					><span class="font-medium text-primary-100">{userProfile?.followersCount ?? ' '}</span> followers</button
+				>
+			</div>
 		</div>
 		<div>
 			<FollowButton {username} />
@@ -180,8 +212,10 @@
 			myRecommendations={isMyRecommendations}
 			{edit}
 		/>
-	{:else if tab === 'Friends'}
-		<FriendsDisplay {username} />
+	{:else if tab === 'Following'}
+		<FollowersDisplay type="following" {username} />
+	{:else if tab === 'Followers'}
+		<FollowersDisplay type="followers" {username} />
 	{/if}
 </div>
 

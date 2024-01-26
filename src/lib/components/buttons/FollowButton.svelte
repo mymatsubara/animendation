@@ -13,7 +13,7 @@
 	let imFollowing: boolean | undefined = undefined;
 
 	$: if ($user) {
-		trpc.user.imFollowing.query({ username }).then((result) => (imFollowing = result));
+		trpc.user.amIFollowing.query({ username }).then((result) => (imFollowing = result));
 	}
 
 	async function toggleFollow() {

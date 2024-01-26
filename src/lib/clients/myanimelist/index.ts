@@ -323,6 +323,13 @@ export class MALClient {
 		}) as Promise<User>;
 	}
 
+	getUser(userId: number): Promise<User> {
+		return this.request({
+			path: `/users/${userId}`,
+			method: 'GET',
+		}) as Promise<User>;
+	}
+
 	updateAnimeStatusOnList(input: UpdateAnimelistStatus): Promise<AnimeListStatus> {
 		const { animeId, ...body } = input;
 

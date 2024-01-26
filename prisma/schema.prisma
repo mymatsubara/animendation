@@ -72,6 +72,7 @@ model User {
 }
 
 model AnimeRecommendation {
+  id        Int      @id @default(autoincrement())
   animeId   Int
   userId    Int
   createdAt DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp()
@@ -79,13 +80,13 @@ model AnimeRecommendation {
   anime Anime @relation(fields: [animeId], references: [id])
   user  User  @relation(fields: [userId], references: [id])
 
-  @@id([animeId, userId])
+  @@unique([animeId, userId])
   @@index([animeId])
   @@index([userId])
-  @@index([createdAt])
 }
 
 model MangaRecommendation {
+  id        Int      @id @default(autoincrement())
   mangaId   Int
   userId    Int
   createdAt DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp()
@@ -94,13 +95,13 @@ model MangaRecommendation {
   user    User  @relation(fields: [userId], references: [id])
   animeId Int?
 
-  @@id([mangaId, userId])
+  @@unique([mangaId, userId])
   @@index([mangaId])
   @@index([userId])
-  @@index([createdAt])
 }
 
 model Follower {
+  id             Int      @id @default(autoincrement())
   userId         Int
   followedUserId Int
   createdAt      DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp()
@@ -108,8 +109,7 @@ model Follower {
   user         User @relation(name: "follower", fields: [userId], references: [id])
   followedUser User @relation(name: "followedUser", fields: [followedUserId], references: [id])
 
-  @@id([userId, followedUserId])
+  @@unique([userId, followedUserId])
   @@index([userId])
   @@index([followedUserId])
-  @@index([createdAt])
 }

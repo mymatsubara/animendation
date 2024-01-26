@@ -8,11 +8,11 @@
 
 	export let username: string;
 	export let size: ButtonProps['size'] = 'xs';
+	export let imFollowing: boolean | undefined = undefined;
 
 	let loading = false;
-	let imFollowing: boolean | undefined = undefined;
 
-	$: if ($user) {
+	$: if ($user && imFollowing === undefined) {
 		trpc.user.amIFollowing.query({ username }).then((result) => (imFollowing = result));
 	}
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import GoToTopButton from '$lib/components/buttons/GoToTopButton.svelte';
 	import Feed from '$lib/components/feed/Feed.svelte';
+	import UserSuggestions from '$lib/components/feed/UserSuggestions.svelte';
 	import Tabs from '$lib/components/tabs/Tabs.svelte';
 	import { currentHomeTab, homeTabs } from './current-tab';
 
@@ -27,8 +28,8 @@
 		<Feed type="anime" />
 	{:else if $tab === 'Mangas'}
 		<Feed type="manga" />
-	{:else if $tab === 'Suggestion'}
-		Suggestion
+	{:else if $tab === 'Suggestions'}
+		<UserSuggestions />
 	{/if}
 </div>
 

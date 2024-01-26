@@ -205,23 +205,29 @@ export const userRoute = router({
 			}
 
 			let limit = input.limit;
-			const createQuery = (limit: number, cmp: '>=' | '<') =>
+			const createQuery = (cmp: '>=' | '<') =>
 				db
 					.selectFrom('User')
-					.select(['User.name'])
+					.select(['User.name', 'User.id'])
 					.innerJoin('AnimeRecommendation', 'AnimeRecommendation.userId', 'User.id')
+					.leftJoin('Follower', (join) =>
+						join
+							.onRef('Follower.followedUserId', '=', 'User.id')
+							.on('Follower.userId', '=', ctx.user.userId)
+					)
+					.where('Follower.id', 'is', null) // Fetch only user that I'm not following
 					.where('User.id', cmp, random.id)
 					.where('User.id', '<>', ctx.user.userId)
 					.having(sql`COUNT(*)`, '>', 0)
 					.groupBy('User.id')
 					.orderBy('User.id')
-					.limit(input.limit);
+					.limit(limit);
 
-			let users = await createQuery(limit, '>=').execute();
+			let users = await createQuery('>=').execute();
 			limit -= users.length;
 
 			if (limit > 0) {
-				const moreUsers = await createQuery(limit, '<').execute();
+				const moreUsers = await createQuery('<').execute();
 				users = [...users, ...moreUsers];
 			}
 

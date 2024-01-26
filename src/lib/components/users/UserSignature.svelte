@@ -32,7 +32,7 @@
 
 <div class={twMerge(`flex items-start ${gap[size]}`, $$restProps.class)}>
 	<a title="{username}'s profile" href={profileUrl}><ProfilePicture {pictureUrl} {size} /></a>
-	<div class={contentClass}>
+	<div class={twMerge('w-full', contentClass)}>
 		<div class="flex">
 			<a class="font-semibold {textSize[size]}" title="{username}'s profile" href={profileUrl}
 				>{username}</a

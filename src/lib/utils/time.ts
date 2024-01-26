@@ -14,7 +14,7 @@ export function formatTimeElapsed(date: Date) {
 		return date.toLocaleDateString('en-US', {
 			day: 'numeric',
 			month: 'short',
-			year: isCurrentYear(date) ? 'numeric' : undefined,
+			year: isCurrentYear(date) ? undefined : 'numeric',
 		});
 	}
 }

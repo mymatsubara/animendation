@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
 
-export const homeTabs = ['Animes', 'Mangas', 'Suggestion'] as const;
+export const homeTabs = ['Animes', 'Mangas', 'Suggestions'] as const;
 type Tab = typeof homeTabs[number];
 
 const localStorageKey = 'animendation-home-tab';

@@ -13,7 +13,7 @@ export type AuthUser = {
 export module Auth {
 	export function signBackendAccessToken(
 		user: AuthUser,
-		options?: JwtSignOptions & { expiresIn?: number }
+		options?: JwtSignOptions<{}> & { expiresIn?: number }
 	) {
 		const exp =
 			options?.expiresIn !== undefined

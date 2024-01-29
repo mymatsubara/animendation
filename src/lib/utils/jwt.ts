@@ -4,7 +4,7 @@ export module JwtUtils {
 	export function isExpired(token: string) {
 		const { payload } = decode(token);
 
-		if (payload.exp === undefined) {
+		if (payload?.exp === undefined) {
 			return false;
 		}
 

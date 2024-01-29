@@ -8,6 +8,7 @@
 		md: 'w-10',
 		lg: 'w-20',
 		xl: 'w-36',
+		none: 'w-10',
 	} satisfies Record<Size, string>;
 </script>
 

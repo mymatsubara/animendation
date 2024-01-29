@@ -1,38 +1,18 @@
-# create-svelte
+[![Animendation logo](/static/banner.svg)](https://animendation.net/)
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+[Animendation](https://animendation.net/) is a platform to get and share anime and manga recommendations.
 
-## Creating a project
+## About
 
-If you're seeing this, you've probably already done this step. Congrats!
+Animendation is a social network which allows you to:
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+- Link to your [Myanimelist](https://myanimelist.net/) account
+- Build your own anime and manga recommendation lists
+- Follow other users to be updated on their anime and manga recommendations
+- Change the status of a series (plan to watch, watching, dropped, ...)
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+PS: most of the data is obtained from the [Myanimelist API](https://myanimelist.net/apiconfig/references/api/v2) and the [Jikan API](https://github.com/jikan-me/jikan). I want to thank for both of them, without them this project wouldn't be possible.
 
-## Developing
+## Bugs and feature requests
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+Feel free to create an issue [here](https://github.com/mymatsubara/animendation/issues/new) if you found a bug or if you want to request a new feature!

@@ -11,7 +11,9 @@ const store = writable<Tab>(getCurrentTab());
 function getCurrentTab() {
 	if (browser) {
 		const tab = window.localStorage.getItem(localStorageKey);
-		return tab as Tab;
+		if (tab && homeTabs.includes(tab as any)) {
+			return tab as Tab;
+		}
 	}
 
 	return homeTabs[0];

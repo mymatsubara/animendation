@@ -14,6 +14,7 @@ export type Anime = {
 	nsfw: string | null;
 	createdAt: Timestamp;
 	updatedAt: Timestamp;
+	largePictureUpdatedAt: Generated<Timestamp>;
 	mediaType: string;
 	status: string;
 	episodes: number;
@@ -45,6 +46,7 @@ export type Manga = {
 	nsfw: string | null;
 	createdAt: Timestamp;
 	updatedAt: Timestamp;
+	largePictureUpdatedAt: Generated<Timestamp>;
 	mediaType: string;
 	status: string;
 	volumes: number | null;

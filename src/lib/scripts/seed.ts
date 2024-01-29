@@ -71,6 +71,10 @@ async function seedSeries(type: SerieType) {
 					season: ({ ref }) => sql`VALUES(${ref('season')})`,
 					seasonYear: ({ ref }) => sql`VALUES(${ref('seasonYear')})`,
 					source: ({ ref }) => sql`VALUES(${ref('source')})`,
+					largePictureUpdatedAt: ({ ref }) =>
+						sql`CASE WHEN VALUES(${ref('pictureLarge')}) = ${ref('pictureLarge')} THEN ${ref(
+							'largePictureUpdatedAt'
+						)} ELSE NOW() END`,
 				})
 				.execute();
 
@@ -106,6 +110,10 @@ async function seedSeries(type: SerieType) {
 					startDate: ({ ref }) => sql`VALUES(${ref('startDate')})`,
 					chapters: ({ ref }) => sql`VALUES(${ref('chapters')})`,
 					volumes: ({ ref }) => sql`VALUES(${ref('volumes')})`,
+					largePictureUpdatedAt: ({ ref }) =>
+						sql`CASE WHEN VALUES(${ref('pictureLarge')}) = ${ref('pictureLarge')} THEN ${ref(
+							'largePictureUpdatedAt'
+						)} ELSE NOW() END`,
 				})
 				.execute();
 

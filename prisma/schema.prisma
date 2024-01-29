@@ -14,47 +14,53 @@ datasource db {
 }
 
 model Anime {
-  id            Int      @id
-  title         String
-  pictureMedium String?
-  pictureLarge  String?
-  startDate     String?
-  endDate       String?
-  nsfw          String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  mediaType     String
-  status        String
-  episodes      Int
-  season        String?
-  seasonYear    Int?
-  source        String?
-  genres        String
-  isSequel      Boolean?
+  id                    Int      @id
+  title                 String
+  pictureMedium         String?
+  pictureLarge          String?
+  startDate             String?
+  endDate               String?
+  nsfw                  String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  largePictureUpdatedAt DateTime @default(now())
+  mediaType             String
+  status                String
+  episodes              Int
+  season                String?
+  seasonYear            Int?
+  source                String?
+  genres                String
+  isSequel              Boolean?
 
   AnimeRecommendation AnimeRecommendation[]
 
-  @@index([isSequel])
+  @@index([createdAt])
+  @@index([largePictureUpdatedAt])
 }
 
 model Manga {
-  id            Int      @id
-  title         String   @db.VarChar(511)
-  pictureMedium String?
-  pictureLarge  String?
-  startDate     String?
-  endDate       String?
-  nsfw          String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  mediaType     String
-  status        String
-  volumes       Int?
-  chapters      Int?
-  source        String?
-  genres        String
+  id                    Int      @id
+  title                 String   @db.VarChar(511)
+  pictureMedium         String?
+  pictureLarge          String?
+  startDate             String?
+  endDate               String?
+  nsfw                  String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  largePictureUpdatedAt DateTime @default(now())
+  mediaType             String
+  status                String
+  volumes               Int?
+  chapters              Int?
+  source                String?
+  genres                String
 
   MangaRecommendation MangaRecommendation[]
+
+  @@index([createdAt])
+  @@index([largePictureUpdatedAt])
 }
 
 model User {

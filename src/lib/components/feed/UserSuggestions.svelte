@@ -16,13 +16,13 @@
 	});
 </script>
 
-<h2 class="text-xl tracking-tight font-medium">Sugestions</h2>
+<h2 class="text-xl tracking-tight font-medium">Suggestions</h2>
 <div class="text-sm text-gray-600">Users to follow to get recommendations</div>
 
 <div class="mt-3 w-full">
 	{#if !users}
 		<div class="flex justify-center">
-			<Spinner class="mt-2" />
+			<Spinner class="mt-5" />
 		</div>
 	{:else if users.length === 0}
 		<div in:fade={{ duration: 150 }} class="mt-10 flex flex-col items-center justify-center gap-2">

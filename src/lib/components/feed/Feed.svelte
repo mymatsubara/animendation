@@ -55,43 +55,49 @@
 
 <hr class="border mt-5" />
 
-<div class="mt-3 mb-2">
+<div class="mt-2 mb-2">
 	{#if entries}
-		<div>
-			{#each entries as entry, i (entry.id)}
-				<div class="py-3 {i !== entries.length - 1 ? 'border-b' : ''}">
-					<UserSignature username={entry.username}>
-						<svelte:fragment slot="side-signature">
-							<div class="text-sm text-gray-500 ml-1 mt-[1.5px]">
-								· <span title={formatPostDate(new Date(entry.createdAt))}
-									>{formatTimeElapsed(new Date(entry.createdAt))}</span
-								>
-							</div>
-						</svelte:fragment>
+		{#if entries.length === 0}
+			<div class="flex flex-col items-center justify-center gap-2 mt-14">
+				<div class="font-bold text-3xl">(╥_╥)</div>
+				<div class="text-gray-600">No recommendations yet</div>
+				<slot name="no-recommendations" />
+			</div>
+		{/if}
 
-						<p class="text-sm mb-2">
-							Recommended: <a
-								class="font-semibold"
-								title="MyAnimelist link"
-								href={getMyanimelistSeriesUrl(entry.serieId, entryType)}
-								target="_blank">{entry.title}</a
+		{#each entries as entry, i (entry.id)}
+			<div class="py-3 {i !== entries.length - 1 ? 'border-b' : ''}">
+				<UserSignature username={entry.username}>
+					<svelte:fragment slot="side-signature">
+						<div class="text-sm text-gray-500 ml-1 mt-[1.5px]">
+							· <span title={formatPostDate(new Date(entry.createdAt))}
+								>{formatTimeElapsed(new Date(entry.createdAt))}</span
 							>
-						</p>
-						<div class="max-w-[250px]">
-							<AnimeDisplay
-								title={entry.title}
-								pictureUrl={entry.pictureLarge}
-								statusHandler={{
-									animelist: myanimelist,
-									serieId: entry.serieId,
-									type: entryType,
-								}}
-							/>
 						</div>
-					</UserSignature>
-				</div>
-			{/each}
-		</div>
+					</svelte:fragment>
+
+					<p class="text-sm mb-2">
+						Recommended: <a
+							class="font-semibold"
+							title="MyAnimelist link"
+							href={getMyanimelistSeriesUrl(entry.serieId, entryType)}
+							target="_blank">{entry.title}</a
+						>
+					</p>
+					<div class="max-w-[250px]">
+						<AnimeDisplay
+							title={entry.title}
+							pictureUrl={entry.pictureLarge}
+							statusHandler={{
+								animelist: myanimelist,
+								serieId: entry.serieId,
+								type: entryType,
+							}}
+						/>
+					</div>
+				</UserSignature>
+			</div>
+		{/each}
 	{/if}
 </div>
 

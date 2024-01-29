@@ -3,6 +3,7 @@
 	import type { Myanimelist } from '$lib/stores/animelist';
 	import type { SerieType } from '$lib/types';
 	import { fade } from 'svelte/transition';
+	import { twMerge } from 'tailwind-merge';
 
 	export let title: string;
 	export let pictureUrl: string | null;
@@ -19,13 +20,19 @@
 	{#if pictureUrl}
 		<img
 			src={pictureUrl}
-			class="object-cover w-full aspect-[225/318] rounded"
+			class={twMerge(
+				'object-cover w-full aspect-[225/318] rounded border border-gray-300',
+				$$restProps.class
+			)}
 			alt="{title} picture"
 			loading="lazy"
 		/>
 	{:else}
 		<div
-			class="gap-2 flex flex-col items-center justify-center bg-gray-300 w-full aspect-[225/318] rounded"
+			class={twMerge(
+				'gap-2 flex flex-col items-center justify-center bg-gray-300 w-full aspect-[225/318] rounded border border-gray-300',
+				$$restProps.class
+			)}
 		>
 			<div class="text-xl font-semibold">(⊙_⊙)</div>
 			<div class="text-gray-600">No picture</div>

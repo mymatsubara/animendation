@@ -10,8 +10,7 @@
 
 <UserSignature contentClass="w-full" size="lg" {username}>
 	<Button
-		outline
-		class="mt-2 bg-primary-800 text-primary-50 hover:bg-primary-900"
+		class="mt-2"
 		size="sm"
 		href="/profile/{username}?tab={type === 'anime' ? 'Animes' : 'Mangas'}&edit=true"
 		>Recommend {titleCase(type)}</Button

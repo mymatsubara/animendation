@@ -16,12 +16,11 @@
 	</button>
 	<Dropdown class="py-2" placement="bottom-start">
 		<DropdownItem class="flex gap-3" href="/home"><HomeIcon class="h-5" />Home</DropdownItem>
-		<DropdownItem class="flex gap-3" href={profileUrl}
-			><UserIcon class="h-5" /> Profile</DropdownItem
+		<DropdownItem class="flex gap-3" href={profileUrl}><UserIcon class="h-5" />Profile</DropdownItem
 		>
 		<DropdownDivider />
 		<DropdownItem class="flex gap-3 text-red-500" on:click={logout}
-			><LeaveIcon class="h-5" /> Log out</DropdownItem
+			><LeaveIcon class="h-5" />Log out</DropdownItem
 		>
 	</Dropdown>
 </div>

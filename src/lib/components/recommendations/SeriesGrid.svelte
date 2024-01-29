@@ -480,7 +480,8 @@
 							<DropdownItem
 								class={isRecommended ? 'text-red-700' : 'text-primary-700'}
 								on:click={() => toggleRecommendation(serie.id, type)}
-								>{isRecommended ? 'Unrecommend' : 'Recommend'}</DropdownItem
+							>
+								{isRecommended ? 'Unrecommend' : 'Recommend'}</DropdownItem
 							>
 						</Dropdown>
 					{/if}

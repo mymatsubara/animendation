@@ -7,7 +7,7 @@
 	import MobileMockup from '$lib/components/mockups/MobileMockup.svelte';
 	import UserSearch from '$lib/components/searchs/UserSearch.svelte';
 	import { user } from '$lib/stores/user';
-	import { Button } from 'flowbite-svelte';
+	import { Button, Spinner } from 'flowbite-svelte';
 
 	$: {
 		if ($user) {
@@ -18,7 +18,7 @@
 </script>
 
 <svelte:head>
-	<title>Animendation - Make your own anime and manga recommendation list</title>
+	<title>Animendation - Get anime and manga recommendations</title>
 </svelte:head>
 
 {#if $user === undefined}
@@ -26,6 +26,7 @@
 		class="z-10 fixed flex-col gap-3 w-full bg-primary-900 flex items-center justify-center h-full"
 	>
 		<Logo class="text-4xl" />
+		<Spinner size="6" />
 	</div>
 {/if}
 
@@ -48,10 +49,10 @@
 		>
 			<div class="mb-20 mt-10 md:mb-20 md:mt-5">
 				<h2 class="mb-1 md:mb-3 text-3xl lg:text-5xl font-semibold tracking-tight">
-					Make your own anime/manga recommendation list
+					Get anime and manga recommendations
 				</h2>
 				<p class="mb-4 text-primary-300 md:text-md md:mb-6">
-					Link to your Myanimelist account and start recommending
+					Link to your Myanimelist account and start getting recommendations from other users.
 				</p>
 				<LoginLink
 					><Button class="px-6 py-3 text-xl font-bold text-primary-50">Join now!</Button></LoginLink

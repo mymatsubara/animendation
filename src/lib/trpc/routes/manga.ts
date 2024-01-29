@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { publicProcedure, router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import type { PaginatedData } from '$lib/trpc/types';
+import { isDateValid } from '$lib/utils/date';
 import { TRPCError, type inferAsyncReturnType } from '@trpc/server';
 import { z } from 'zod';
 
@@ -15,7 +16,7 @@ export const mangaRoute = router({
 			})
 		)
 		.mutation(async ({ input }) => {
-			let mangas = await getMangaInfo(input.ids);
+			let mangas = await getMangaInfo({ ids: input.ids });
 
 			// Fetch new mangas from the MAL api
 			if (mangas.length !== input.ids.length) {
@@ -66,6 +67,22 @@ export const mangaRoute = router({
 
 			return mangas;
 		}),
+
+	withPictureUpdated: authProcedure
+		.input(
+			z.object({
+				since: z.string().min(1),
+			})
+		)
+		.query(async ({ input }) => {
+			const pictureModifiedSince = new Date(input.since);
+
+			if (!isDateValid(pictureModifiedSince)) {
+				return [];
+			}
+
+			return getMangaInfo({ pictureModifiedSince });
+		}),
 	feed: authProcedure
 		.input(
 			z.object({
@@ -110,11 +127,21 @@ export const mangaRoute = router({
 
 export type MangaInfo = inferAsyncReturnType<typeof getMangaInfo>[number];
 
-async function getMangaInfo(ids: number[]) {
+type Filter = {
+	ids?: number[];
+	pictureModifiedSince?: Date;
+};
+
+async function getMangaInfo(filter?: Filter) {
 	const animes = await db
 		.selectFrom('Manga')
 		.select(['id', 'title', 'mediaType', 'nsfw', 'genres', 'pictureLarge', 'chapters', 'volumes'])
-		.where('id', 'in', ids)
+		.$if(!!filter?.ids, (qb) => qb.where('id', 'in', filter?.ids as number[]))
+		.$if(!!filter?.pictureModifiedSince, (qb) =>
+			qb
+				.where('largePictureUpdatedAt', '>=', filter?.pictureModifiedSince as Date)
+				.where('createdAt', '<=', filter?.pictureModifiedSince as Date)
+		)
 		.execute();
 
 	return animes.map((anime) => ({

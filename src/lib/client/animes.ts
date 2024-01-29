@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { setLastIdbUpdateTime, updateIdbCache } from '$lib/client/idb';
 import { indexedDb } from '$lib/idb';
 import { trpc } from '$lib/trpc/client';
 import type { AnimeInfo } from '$lib/trpc/routes/anime';
@@ -11,6 +12,7 @@ export async function getAnimes(ids: number[]): Promise<AnimeInfo[]> {
 		return [];
 	}
 
+	await updateIdbCache('Anime');
 	const notMemCachedIds = ids.filter((id) => !memCache.has(id));
 
 	// Check idb for cache misses
@@ -43,6 +45,8 @@ export async function getAnimes(ids: number[]): Promise<AnimeInfo[]> {
 			animesToCache.forEach((anime) => {
 				memCache.set(anime.id, anime);
 			});
+
+			setLastIdbUpdateTime('Anime', new Date());
 		}
 	}
 

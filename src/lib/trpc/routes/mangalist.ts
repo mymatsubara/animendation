@@ -3,6 +3,7 @@ import type { UserMangaListEdge } from '$lib/clients/myanimelist/generated/model
 import { db } from '$lib/server/db';
 import { router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
+import { isDateValid } from '$lib/utils/date';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
@@ -25,7 +26,7 @@ export const mangaListRouter = router({
 			let mangas: UserMangaListEdge[];
 			if (input?.sinceUtc) {
 				const sinceUtc = new Date(input.sinceUtc);
-				if (isNaN(sinceUtc as any)) {
+				if (!isDateValid(sinceUtc)) {
 					throw new TRPCError({ code: 'BAD_REQUEST' });
 				}
 

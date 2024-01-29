@@ -54,7 +54,6 @@
 	$: {
 		const profilePicture = userProfile?.images?.webp?.image_url;
 		if ($user && profilePicture && isMe && $user.picture !== profilePicture) {
-			console.log({ picture: $user.picture, profilePicture });
 			trpc.user.refreshMyProfile.mutate();
 		}
 	}

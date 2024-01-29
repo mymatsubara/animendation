@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { setLastIdbUpdateTime, updateIdbCache } from '$lib/client/idb';
 import { indexedDb } from '$lib/idb';
 import { trpc } from '$lib/trpc/client';
 import type { MangaInfo } from '$lib/trpc/routes/manga';
@@ -11,6 +12,7 @@ export async function getMangas(ids: number[]): Promise<MangaInfo[]> {
 		return [];
 	}
 
+	await updateIdbCache('Manga');
 	const notMemCachedIds = ids.filter((id) => !memCache.has(id));
 
 	// Check idb for cache misses
@@ -43,6 +45,8 @@ export async function getMangas(ids: number[]): Promise<MangaInfo[]> {
 			mangasToCache.forEach((manga) => {
 				memCache.set(manga.id, manga);
 			});
+
+			setLastIdbUpdateTime('Manga', new Date());
 		}
 	}
 

@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { publicProcedure, router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import type { PaginatedData } from '$lib/trpc/types';
+import { isDateValid } from '$lib/utils/date';
 import { TRPCError, type inferAsyncReturnType } from '@trpc/server';
 import { z } from 'zod';
 
@@ -11,11 +12,11 @@ export const animeRoute = router({
 	info: publicProcedure
 		.input(
 			z.object({
-				ids: z.coerce.number().int().positive().array(),
+				ids: z.coerce.number().int().array(),
 			})
 		)
 		.mutation(async ({ input }) => {
-			let animes = await getAnimesInfo(input.ids);
+			let animes = await getAnimesInfo({ ids: input.ids });
 
 			// Fetch new animes from the MAL api
 			if (animes.length !== input.ids.length) {
@@ -69,6 +70,21 @@ export const animeRoute = router({
 
 			return animes;
 		}),
+	withPictureUpdated: authProcedure
+		.input(
+			z.object({
+				since: z.string().min(1),
+			})
+		)
+		.query(async ({ input }) => {
+			const pictureModifiedSince = new Date(input.since);
+
+			if (!isDateValid(pictureModifiedSince)) {
+				return [];
+			}
+
+			return getAnimesInfo({ pictureModifiedSince });
+		}),
 	feed: authProcedure
 		.input(
 			z.object({
@@ -113,7 +129,12 @@ export const animeRoute = router({
 
 export type AnimeInfo = inferAsyncReturnType<typeof getAnimesInfo>[number];
 
-async function getAnimesInfo(ids: number[]) {
+type Filter = {
+	ids?: number[];
+	pictureModifiedSince?: Date;
+};
+
+async function getAnimesInfo(filter?: Filter) {
 	const animes = await db
 		.selectFrom('Anime')
 		.select([
@@ -127,7 +148,12 @@ async function getAnimesInfo(ids: number[]) {
 			'pictureLarge',
 			'isSequel',
 		])
-		.where('id', 'in', ids)
+		.$if(!!filter?.ids, (qb) => qb.where('id', 'in', filter?.ids as number[]))
+		.$if(!!filter?.pictureModifiedSince, (qb) =>
+			qb
+				.where('largePictureUpdatedAt', '>=', filter?.pictureModifiedSince as Date)
+				.where('createdAt', '<=', filter?.pictureModifiedSince as Date)
+		)
 		.execute();
 
 	return animes.map((anime) => ({

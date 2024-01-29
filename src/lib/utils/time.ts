@@ -32,3 +32,20 @@ export function formatPostDate(date: Date) {
 export function isCurrentYear(date: Date) {
 	return new Date().getUTCFullYear() === date.getUTCFullYear();
 }
+
+const msConversionRate = {
+	milliseconds: 1,
+	seconds: 1000,
+	minutes: 60000,
+	hours: 3.6e6,
+	days: 8.64e7,
+	weeks: 6.048e8,
+	months: 2.628e9,
+	years: 3.154e10,
+} as const;
+
+type TimeUnit = keyof typeof msConversionRate;
+
+export function convertTime(value: number, from: TimeUnit, to: TimeUnit) {
+	return value * msConversionRate[from] * (1 / msConversionRate[to]);
+}

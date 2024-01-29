@@ -165,7 +165,7 @@
 			<h2 class="text-primary-100 {usernameTextSize(displayUsername)} sm:text-xl font-semibold">
 				{displayUsername}
 			</h2>
-			<div class="mt-1 flex gap-3 text-sm text-primary-200">
+			<div class="mt-1 flex gap-3 text-sm max-[400px]:text-xs text-primary-200">
 				<button
 					class="hover:underline"
 					on:click={() => {

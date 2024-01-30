@@ -46,7 +46,7 @@
 		seasons?: Set<string>;
 		mediaTypes?: Set<string>;
 	};
-	type SerieWitStatus = Serie & { status?: SerieStatus };
+	type SerieWithStatus = Serie & { status?: SerieStatus };
 	type Fuzzy = typeof fuzzySearch;
 	type StatusOption = {
 		value: SerieStatus;
@@ -61,6 +61,7 @@
 	export let recommend = false;
 
 	let page = 1;
+	let myanimelistSeries: SerieWithStatus[] = [];
 
 	const pageSize = 35;
 	const myanimelist = getMyanimelist();
@@ -95,6 +96,7 @@
 			malPageNumber = 1;
 			malHasNextPage = true;
 			page = 1;
+			myanimelistSeries = [];
 		}
 	}
 
@@ -126,13 +128,13 @@
 		keys: ['title'],
 		threshold: 0.3,
 	});
-	$: filteredSeries = filterSeries(animesWithStatus, filter, fuzzySearch);
+	$: filteredSeries = filterSeries(animesWithStatus, myanimelistSeries, filter, fuzzySearch);
 
 	function addStatus(
 		series: Serie[],
 		myanimelist: Lists | undefined,
 		type: SerieType
-	): SerieWitStatus[] {
+	): SerieWithStatus[] {
 		const list = type === 'Anime' ? myanimelist?.animelist : myanimelist?.mangalist;
 
 		return myanimelist
@@ -140,7 +142,12 @@
 			: series;
 	}
 
-	function filterSeries(series: SerieWitStatus[], filter: Filter, fuzzy: Fuzzy): SerieWitStatus[] {
+	function filterSeries(
+		series: SerieWithStatus[],
+		myanimelistSeries: SerieWithStatus[],
+		filter: Filter,
+		fuzzy: Fuzzy
+	): SerieWithStatus[] {
 		if (filter.search) {
 			series = fuzzy.search(filter.search).map(({ item }) => item);
 		}
@@ -171,6 +178,7 @@
 			series = series.filter((serie) => filter.mediaTypes?.has(serie.mediaType as string));
 		}
 
+		series = series.concat(myanimelistSeries);
 		series = filterDuplicates(series, (serie) => serie.id);
 
 		return series;
@@ -238,8 +246,8 @@
 					volumes: (serie as manga).volumes ?? null,
 				}));
 
-				filteredSeries = filteredSeries.concat(addStatus(foundSeries, $myanimelist, type));
-				filteredSeries = filterDuplicates(filteredSeries, (serie) => serie.id);
+				myanimelistSeries = myanimelistSeries.concat(addStatus(foundSeries, $myanimelist, type));
+				myanimelistSeries = filterDuplicates(myanimelistSeries, (serie) => serie.id);
 			}
 		} finally {
 			loadingMal = false;

@@ -21,6 +21,7 @@
 	import type { AnimeInfo } from '$lib/trpc/routes/anime';
 	import type { MangaInfo } from '$lib/trpc/routes/manga';
 	import type { SerieType } from '$lib/types';
+	import { filterDuplicates } from '$lib/utils/array';
 	import { titleCase } from '$lib/utils/string';
 	import {
 		Badge,
@@ -170,6 +171,8 @@
 			series = series.filter((serie) => filter.mediaTypes?.has(serie.mediaType as string));
 		}
 
+		series = filterDuplicates(series, (serie) => serie.id);
+
 		return series;
 	}
 
@@ -239,6 +242,7 @@
 					}));
 
 				filteredSeries = filteredSeries.concat(addStatus(foundSeries, $myanimelist, type));
+				filteredSeries = filterDuplicates(filteredSeries, (serie) => serie.id);
 			}
 		} finally {
 			loadingMal = false;

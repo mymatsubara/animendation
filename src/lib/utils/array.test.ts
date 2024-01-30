@@ -1,4 +1,4 @@
-import { groupBy, maxStr, toRecord } from '$lib/utils/array';
+import { filterDuplicates, groupBy, maxStr, toRecord } from '$lib/utils/array';
 import { describe, expect, it } from 'vitest';
 
 describe('Array utils', () => {
@@ -14,7 +14,7 @@ describe('Array utils', () => {
 
 		expect(result).toStrictEqual({
 			male: [person1, person4],
-			female: [person2, person3]
+			female: [person2, person3],
 		});
 	});
 
@@ -30,7 +30,7 @@ describe('Array utils', () => {
 
 		expect(result).toStrictEqual({
 			male: person4,
-			female: person3
+			female: person3,
 		});
 	});
 
@@ -43,5 +43,9 @@ describe('Array utils', () => {
 		const result = maxStr(array, (e) => e.name);
 
 		expect(result).toBe(c);
+	});
+
+	it('should remove duplicates', () => {
+		expect(filterDuplicates([1, 2, 3, 1, 1, 4, 5, 5], (i) => i)).toStrictEqual([1, 2, 3, 4, 5]);
 	});
 });

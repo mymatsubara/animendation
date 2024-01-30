@@ -78,3 +78,18 @@ export function maxStr<T>(array: T[], predicate: (e: T) => string) {
 
 	return max;
 }
+
+export function filterDuplicates<T, K>(array: T[], predicate: (e: T) => K) {
+	const seen = new Set<K>();
+
+	return array.filter((element) => {
+		const key = predicate(element);
+
+		if (seen.has(key)) {
+			return false;
+		}
+
+		seen.add(key);
+		return true;
+	});
+}

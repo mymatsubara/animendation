@@ -155,7 +155,7 @@ async function upsert(serieId: number, { type, status }: UpsertOptions) {
 	}
 }
 
-async function remove(serieId: number, type: SerieType) {
+async function remove(serieId: number, type: SerieType, username: string) {
 	let previousState: Lists | undefined;
 	try {
 		const malUpdate =
@@ -171,6 +171,12 @@ async function remove(serieId: number, type: SerieType) {
 
 			previousState = clone(list);
 			type === 'Anime' ? list.animelist.delete(serieId) : list.mangalist.delete(serieId);
+
+			indexedDb().then(async (idb) => {
+				const key = [serieId, username] as any;
+
+				type === 'Anime' ? await idb.delete('animelist', key) : await idb.delete('mangalist', key);
+			});
 
 			return list;
 		});

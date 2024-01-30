@@ -6,6 +6,7 @@
 	import PlusIcon from '$lib/components/icons/PlusIcon.svelte';
 	import type { Myanimelist } from '$lib/stores/animelist';
 	import { toast } from '$lib/stores/toast';
+	import { user } from '$lib/stores/user';
 	import type { SerieType } from '$lib/types';
 	import { unchecked } from '$lib/utils/types';
 	import { Badge, Dropdown, Indicator } from 'flowbite-svelte';
@@ -29,7 +30,7 @@
 		}
 
 		if (newStatus === undefined) {
-			await animelist.remove(serieId, type);
+			await animelist.remove(serieId, type, $user?.username ?? '');
 		} else {
 			await animelist.upsert(serieId, { type, status: newStatus as any });
 		}

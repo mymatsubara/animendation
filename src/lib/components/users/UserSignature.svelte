@@ -20,11 +20,11 @@
 	export let size: Size = 'md';
 	export let username: string;
 	export let contentClass: string | undefined = undefined;
-	let pictureUrl: string | undefined;
+	let pictureUrl: string | undefined | null;
 
 	$: getUserProfile(username).then((user) => {
 		username = user?.username ?? username;
-		pictureUrl = user?.images?.webp?.image_url ?? undefined;
+		pictureUrl = user?.images?.webp?.image_url ?? null;
 	});
 
 	$: profileUrl = `/profile/${username}`;

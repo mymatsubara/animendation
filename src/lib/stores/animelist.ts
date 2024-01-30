@@ -106,7 +106,7 @@ async function getMangalist(username: string, idb: IDB) {
 	return mangas;
 }
 
-async function upsert(serieId: number, { type, status }: UpsertOptions) {
+async function upsert(serieId: number, { type, status }: UpsertOptions, serieTitle: string) {
 	let previousState: Lists | undefined;
 	try {
 		const malUpdate =
@@ -134,7 +134,7 @@ async function upsert(serieId: number, { type, status }: UpsertOptions) {
 					id: serieId,
 					updatedAt,
 					status: status as any,
-					title: 'Pending',
+					title: serieTitle,
 					finishDate: '',
 					largePicture: '',
 					mediumPicture: '',

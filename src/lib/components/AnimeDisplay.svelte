@@ -44,7 +44,7 @@
 
 	{#if statusHandler}
 		<div transition:fade={{ duration: 150 }} class="absolute right-0 bottom-0">
-			<AnimeStatusSelect {...statusHandler} />
+			<AnimeStatusSelect {...statusHandler} serieTitle={title} />
 		</div>
 	{/if}
 </div>

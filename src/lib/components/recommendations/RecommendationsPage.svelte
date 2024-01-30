@@ -26,7 +26,7 @@
 
 	export let username: string;
 
-	type TabName = typeof tabs[number];
+	type TabName = (typeof tabs)[number];
 	const pictureClass = 'w-[100px] aspect-square flex items-center justify-center';
 	const allTabs = ['Animes', 'Mangas', 'Followers', 'Following'] as const;
 	const tabs = [allTabs[0], allTabs[1]] as const;

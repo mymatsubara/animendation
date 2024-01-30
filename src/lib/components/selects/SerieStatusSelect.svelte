@@ -14,6 +14,7 @@
 	export let serieId: number;
 	export let animelist: Myanimelist;
 	export let type: SerieType;
+	export let serieTitle: string;
 
 	let open = false;
 	const displayMap = type === 'Anime' ? animeStatusDisplay : mangaStatusDisplay;
@@ -32,7 +33,7 @@
 		if (newStatus === undefined) {
 			await animelist.remove(serieId, type, $user?.username ?? '');
 		} else {
-			await animelist.upsert(serieId, { type, status: newStatus as any });
+			await animelist.upsert(serieId, { type, status: newStatus as any }, serieTitle);
 		}
 		$toast = {
 			message: `${type} status updated`,

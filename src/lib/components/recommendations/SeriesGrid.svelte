@@ -223,23 +223,20 @@
 			if (series.data) {
 				const m = Number.MAX_SAFE_INTEGER;
 				series.data.sort((a1, a2) => (a1.popularity ?? m) - (a2.popularity ?? m));
-				const filteredIds = new Set(filteredSeries.map((anime) => anime.id));
-				const foundSeries: Serie[] = series.data
-					.filter((serie) => !filteredIds.has(serie.mal_id as number))
-					.map((serie) => ({
-						id: serie.mal_id ?? 0,
-						genres: serie.genres?.map((genre) => genre.name ?? '') ?? [],
-						title: serie.title ?? 'No title',
-						isSequel: null,
-						mediaType: serie.type ?? 'Unknown',
-						nsfw: 'white',
-						pictureLarge:
-							serie.images?.webp?.large_image_url ?? serie.images?.webp?.image_url ?? null,
-						season: (serie as anime).season ?? null,
-						seasonYear: (serie as anime).year ?? null,
-						chapters: (serie as manga).chapters ?? null,
-						volumes: (serie as manga).volumes ?? null,
-					}));
+				const foundSeries: Serie[] = series.data.map((serie) => ({
+					id: serie.mal_id ?? 0,
+					genres: serie.genres?.map((genre) => genre.name ?? '') ?? [],
+					title: serie.title ?? 'No title',
+					isSequel: null,
+					mediaType: serie.type ?? 'Unknown',
+					nsfw: 'white',
+					pictureLarge:
+						serie.images?.webp?.large_image_url ?? serie.images?.webp?.image_url ?? null,
+					season: (serie as anime).season ?? null,
+					seasonYear: (serie as anime).year ?? null,
+					chapters: (serie as manga).chapters ?? null,
+					volumes: (serie as manga).volumes ?? null,
+				}));
 
 				filteredSeries = filteredSeries.concat(addStatus(foundSeries, $myanimelist, type));
 				filteredSeries = filterDuplicates(filteredSeries, (serie) => serie.id);

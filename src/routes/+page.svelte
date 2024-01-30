@@ -11,14 +11,13 @@
 
 	$: {
 		if ($user) {
-			const username = $user.username;
 			goto(`/home`);
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>Animendation - Get anime and manga recommendations</title>
+	<title>Animendation - The social network for anime and manga recommendations</title>
 </svelte:head>
 
 {#if $user === undefined}

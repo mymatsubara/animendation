@@ -28,11 +28,13 @@
 					<GithubRepoLink />
 				</div>
 				<UserSearch class="p-2.5" />
-				{#if $user}
-					<ProfileDropdown {pictureUrl} profileUrl="/profile/{$user.username}" />
-				{:else}
-					<LoginLink><Button class="font-semibold py-2.5">Login</Button></LoginLink>
-				{/if}
+				<div class="min-w-10">
+					{#if $user}
+						<ProfileDropdown {pictureUrl} profileUrl="/profile/{$user.username}" />
+					{:else if $user === null}
+						<LoginLink><Button class="font-semibold py-2.5">Login</Button></LoginLink>
+					{/if}
+				</div>
 			</div>
 		</div>
 	</nav>

@@ -264,7 +264,7 @@
 	<div class="grid md:grid-cols-2 lg:grid-cols-3 grow gap-5">
 		<div>
 			<Input
-				class="border-0 shadow"
+				class="!border-0 !text-sm !font-medium !shadow h-10"
 				type="search"
 				on:input={updateSearchDebounce}
 				placeholder="Search"
@@ -279,7 +279,7 @@
 
 		<div class="hidden md:block">
 			<MultiSelectAutocomplete
-				class="border-transparent shadow"
+				class="border-0 shadow"
 				options={statusOptions}
 				bind:values={filter.status}
 				placeholder="Status"
@@ -321,10 +321,9 @@
 		<CustomDropdown class=" min-w-[min(calc(100vw-1.5rem),500px)] bg-white" bind:open={showFilter}>
 			<svelte:fragment slot="button" let:toggle>
 				<Button
-					class="!p-1 aspect-square h-10 border-0 shadow"
+					class="!p-2 aspect-square h-10 border-0 shadow"
 					type="button"
 					outline
-					size="lg"
 					on:click={toggle}
 					aria-label="Filters"
 					><AdjustmentIcon class="h-6" />

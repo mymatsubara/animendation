@@ -1,5 +1,12 @@
+<script>
+	import { twMerge } from 'tailwind-merge';
+</script>
+
 <div
-	class="flex justify-center items-center opacity-80 bg-gray-300 rounded-lg pulse dark:bg-gray-700 {$$restProps.class}"
+	class={twMerge(
+		'flex justify-center items-center opacity-80 bg-gray-300 rounded-lg pulse dark:bg-gray-700',
+		$$restProps.class
+	)}
 >
 	<slot />
 </div>

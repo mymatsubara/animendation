@@ -13,14 +13,19 @@
 </script>
 
 <script lang="ts">
+	import Placeholder from '$lib/components/Placeholder.svelte';
 	import { Avatar } from 'flowbite-svelte';
 	import { twMerge } from 'tailwind-merge';
 
-	export let pictureUrl: string | undefined;
+	export let pictureUrl: string | undefined | null;
 	export let size: Size = 'sm';
 </script>
 
-{#if pictureUrl}
+{#if pictureUrl === undefined}
+	<Placeholder
+		class="h-full w-full aspect-square rounded-full ring-gray-300 ring-1 {sizeMap[size]}"
+	/>
+{:else if pictureUrl}
 	<!-- svelte-ignore a11y-img-redundant-alt -->
 	<div class={sizeMap[size]}>
 		<img

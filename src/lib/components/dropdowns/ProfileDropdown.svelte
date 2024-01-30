@@ -6,7 +6,7 @@
 	import ProfilePicture from '$lib/components/users/ProfilePicture.svelte';
 	import { Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 
-	export let pictureUrl: string | undefined;
+	export let pictureUrl: string | undefined | null;
 	export let profileUrl: string;
 </script>
 

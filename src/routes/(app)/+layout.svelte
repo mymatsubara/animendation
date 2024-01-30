@@ -9,11 +9,11 @@
 	import { user } from '$lib/stores/user';
 	import { Button } from 'flowbite-svelte';
 
-	let pictureUrl: string | undefined;
+	let pictureUrl: string | undefined | null;
 
 	$: $user &&
 		getUserProfile($user.username).then(
-			(user) => (pictureUrl = user?.images?.webp?.image_url ?? undefined)
+			(user) => (pictureUrl = user?.images?.webp?.image_url ?? null)
 		);
 </script>
 

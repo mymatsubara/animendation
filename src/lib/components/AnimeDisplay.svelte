@@ -20,8 +20,11 @@
 	{#if pictureUrl}
 		<img
 			src={pictureUrl}
+			on:error={() => {
+				pictureUrl = null;
+			}}
 			class={twMerge(
-				'object-cover w-full aspect-[225/318] rounded border border-gray-300',
+				'object-cover w-full aspect-[225/318] rounded border border-gray-300 image-pulse',
 				$$restProps.class
 			)}
 			alt="{title} picture"
@@ -45,3 +48,16 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	.image-pulse {
+		background-color: #d1d5db44;
+		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	}
+
+	@keyframes pulse {
+		50% {
+			background-color: #d1d5dbcc;
+		}
+	}
+</style>

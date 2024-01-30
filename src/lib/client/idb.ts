@@ -22,6 +22,7 @@ export async function updateIdbCache(type: SerieType) {
 		if (type === 'Anime') {
 			const animes = await trpc.anime.withPictureUpdated.query({ since });
 			await Promise.all(animes.map((anime) => idb.put('animes', anime)));
+			console.log('updating...', animes);
 		} else if (type === 'Manga') {
 			const mangas = await trpc.manga.withPictureUpdated.query({ since });
 			await Promise.all(mangas.map((manga) => idb.put('mangas', manga)));
@@ -29,7 +30,7 @@ export async function updateIdbCache(type: SerieType) {
 
 		setLastIdbUpdateTime(type, new Date());
 	} catch (e) {
-		console.error('Error while updating idb cache');
+		console.error('Error while updating idb cache', e);
 	}
 }
 

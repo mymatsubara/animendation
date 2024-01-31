@@ -2,6 +2,8 @@
 
 [Animendation](https://animendation.net/) is a website to share anime and manga recommendations.
 
+> 🎬 Showcase video: [here](https://www.youtube.com/watch?v=7f6hSI26KzM)
+
 ## About
 
 Animendation is a social network which allows you to:

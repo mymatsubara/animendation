@@ -1,4 +1,3 @@
-import { db } from '$lib/server/db';
 import { publicProcedure, router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import { serieTypes } from '$lib/types';
@@ -11,8 +10,8 @@ export const recommendationRoute = router({
 				username: z.string(),
 			})
 		)
-		.query(async ({ input }) => {
-			const animeRecommendations = db
+		.query(async ({ input, ctx }) => {
+			const animeRecommendations = ctx.db
 				.selectFrom('AnimeRecommendation')
 				.select(['animeId'])
 				.where('userId', '=', (qb) =>
@@ -21,7 +20,7 @@ export const recommendationRoute = router({
 				.orderBy('createdAt desc')
 				.execute();
 
-			const mangaRecommendations = db
+			const mangaRecommendations = ctx.db
 				.selectFrom('MangaRecommendation')
 				.select(['mangaId'])
 				.where('userId', '=', (qb) =>
@@ -36,14 +35,14 @@ export const recommendationRoute = router({
 			};
 		}),
 	mine: authProcedure.query(async ({ ctx, input }) => {
-		const animeRecommendations = db
+		const animeRecommendations = ctx.db
 			.selectFrom('AnimeRecommendation')
 			.select(['animeId'])
 			.where('userId', '=', ctx.user.userId)
 			.orderBy('createdAt desc')
 			.execute();
 
-		const mangaRecommendations = db
+		const mangaRecommendations = ctx.db
 			.selectFrom('MangaRecommendation')
 			.select(['mangaId'])
 			.where('userId', '=', ctx.user.userId)
@@ -64,7 +63,7 @@ export const recommendationRoute = router({
 		)
 		.mutation(async ({ input, ctx }) => {
 			if (input.type === 'Anime') {
-				await db
+				await ctx.db
 					.insertInto(`AnimeRecommendation`)
 					.values({
 						userId: ctx.user.userId,
@@ -72,7 +71,7 @@ export const recommendationRoute = router({
 					})
 					.execute();
 			} else {
-				await db
+				await ctx.db
 					.insertInto(`MangaRecommendation`)
 					.values({
 						userId: ctx.user.userId,
@@ -89,7 +88,7 @@ export const recommendationRoute = router({
 			})
 		)
 		.mutation(async ({ input, ctx }) => {
-			await db
+			await ctx.db
 				.deleteFrom(`${input.type}Recommendation`)
 				.where(input.type === 'Anime' ? 'animeId' : 'mangaId', '=', input.serieId)
 				.where('userId', '=', ctx.user.userId)

@@ -8,9 +8,9 @@ generator kysely {
 }
 
 datasource db {
-  provider     = "mysql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+  // relationMode = "prisma"
 }
 
 model Anime {
@@ -41,7 +41,7 @@ model Anime {
 
 model Manga {
   id                    Int      @id
-  title                 String   @db.VarChar(511)
+  title                 String
   pictureMedium         String?
   pictureLarge          String?
   startDate             String?
@@ -67,9 +67,9 @@ model User {
   id             Int      @id
   name           String   @unique
   picture        String?
-  followersCount Int      @default(0) @db.UnsignedInt
-  followingCount Int      @default(0) @db.UnsignedInt
-  createdAt      DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp()
+  followersCount Int      @default(0)
+  followingCount Int      @default(0)
+  createdAt      DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
 
   Recommendation      AnimeRecommendation[]
   MangaRecommendation MangaRecommendation[]
@@ -81,7 +81,7 @@ model AnimeRecommendation {
   id        Int      @id @default(autoincrement())
   animeId   Int
   userId    Int
-  createdAt DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp()
+  createdAt DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
 
   anime Anime @relation(fields: [animeId], references: [id])
   user  User  @relation(fields: [userId], references: [id])
@@ -95,7 +95,7 @@ model MangaRecommendation {
   id        Int      @id @default(autoincrement())
   mangaId   Int
   userId    Int
-  createdAt DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp()
+  createdAt DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
 
   manga   Manga @relation(fields: [mangaId], references: [id])
   user    User  @relation(fields: [userId], references: [id])
@@ -110,7 +110,7 @@ model Follower {
   id             Int      @id @default(autoincrement())
   userId         Int
   followedUserId Int
-  createdAt      DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp()
+  createdAt      DateTime @default(dbgenerated("CURRENT_TIMESTAMP"))
 
   user         User @relation(name: "follower", fields: [userId], references: [id])
   followedUser User @relation(name: "followedUser", fields: [followedUserId], references: [id])

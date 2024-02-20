@@ -1,11 +1,12 @@
 import { PUBLIC_MAL_CLIENT_ID } from '$env/static/public';
 import { MALClient, type MangaDetail } from '$lib/clients/myanimelist';
-import { db } from '$lib/server/db';
+import type { DB } from '$lib/server/schema';
 import { publicProcedure, router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import type { PaginatedData } from '$lib/trpc/types';
 import { isDateValid } from '$lib/utils/date';
 import { TRPCError, type inferAsyncReturnType } from '@trpc/server';
+import type { Kysely } from 'kysely';
 import { z } from 'zod';
 
 export const mangaRoute = router({
@@ -15,8 +16,8 @@ export const mangaRoute = router({
 				ids: z.coerce.number().int().positive().array(),
 			})
 		)
-		.mutation(async ({ input }) => {
-			let mangas = await getMangaInfo({ ids: input.ids });
+		.mutation(async ({ input, ctx }) => {
+			let mangas = await getMangaInfo(ctx.db, { ids: input.ids });
 
 			// Fetch new mangas from the MAL api
 			if (mangas.length !== input.ids.length) {
@@ -74,14 +75,14 @@ export const mangaRoute = router({
 				since: z.string().min(1),
 			})
 		)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const pictureModifiedSince = new Date(input.since);
 
 			if (!isDateValid(pictureModifiedSince)) {
 				return [];
 			}
 
-			return getMangaInfo({ pictureModifiedSince });
+			return getMangaInfo(ctx.db, { pictureModifiedSince });
 		}),
 	feed: authProcedure
 		.input(
@@ -91,7 +92,7 @@ export const mangaRoute = router({
 			})
 		)
 		.query(async ({ input, ctx }) => {
-			const data = await db
+			const data = await ctx.db
 				.selectFrom('MangaRecommendation')
 				.innerJoin('Follower', (join) =>
 					join
@@ -115,7 +116,7 @@ export const mangaRoute = router({
 				.limit(input.limit)
 				.execute();
 
-			const result: PaginatedData<typeof data[number]> = {
+			const result: PaginatedData<(typeof data)[number]> = {
 				data,
 				hasNextPage: data.length >= input.limit,
 				nextPageToken: data.at(-1)?.id ?? 0,
@@ -132,7 +133,7 @@ type Filter = {
 	pictureModifiedSince?: Date;
 };
 
-async function getMangaInfo(filter?: Filter) {
+async function getMangaInfo(db: Kysely<DB>, filter?: Filter) {
 	const animes = await db
 		.selectFrom('Manga')
 		.select(['id', 'title', 'mediaType', 'nsfw', 'genres', 'pictureLarge', 'chapters', 'volumes'])

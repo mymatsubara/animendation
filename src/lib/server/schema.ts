@@ -12,9 +12,9 @@ export type Anime = {
 	startDate: string | null;
 	endDate: string | null;
 	nsfw: string | null;
-	createdAt: Timestamp;
-	updatedAt: Timestamp;
-	largePictureUpdatedAt: Generated<Timestamp>;
+	createdAt: string;
+	updatedAt: string;
+	largePictureUpdatedAt: Generated<string>;
 	mediaType: string;
 	status: string;
 	episodes: number;
@@ -28,13 +28,13 @@ export type AnimeRecommendation = {
 	id: Generated<number>;
 	animeId: number;
 	userId: number;
-	createdAt: Generated<Timestamp>;
+	createdAt: Generated<string>;
 };
 export type Follower = {
 	id: Generated<number>;
 	userId: number;
 	followedUserId: number;
-	createdAt: Generated<Timestamp>;
+	createdAt: Generated<string>;
 };
 export type Manga = {
 	id: number;
@@ -44,9 +44,9 @@ export type Manga = {
 	startDate: string | null;
 	endDate: string | null;
 	nsfw: string | null;
-	createdAt: Timestamp;
-	updatedAt: Timestamp;
-	largePictureUpdatedAt: Generated<Timestamp>;
+	createdAt: string;
+	updatedAt: string;
+	largePictureUpdatedAt: Generated<string>;
 	mediaType: string;
 	status: string;
 	volumes: number | null;
@@ -58,7 +58,7 @@ export type MangaRecommendation = {
 	id: Generated<number>;
 	mangaId: number;
 	userId: number;
-	createdAt: Generated<Timestamp>;
+	createdAt: Generated<string>;
 	animeId: number | null;
 };
 export type User = {
@@ -67,7 +67,7 @@ export type User = {
 	picture: string | null;
 	followersCount: Generated<number>;
 	followingCount: Generated<number>;
-	createdAt: Generated<Timestamp>;
+	createdAt: Generated<string>;
 };
 export type DB = {
 	Anime: Anime;

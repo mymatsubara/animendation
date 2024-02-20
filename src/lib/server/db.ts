@@ -1,21 +1,34 @@
 import { env } from '$env/dynamic/private';
 import type { DB } from '$lib/server/schema';
-import { Kysely } from 'kysely';
-import { PlanetScaleDialect } from 'kysely-planetscale';
+import { Kysely, SqliteDialect } from 'kysely';
+import { D1Dialect } from 'kysely-d1';
 
-export const db = new Kysely<DB>({
-	dialect: new PlanetScaleDialect({
-		url: env.DATABASE_URL,
+let sqliteDb: Kysely<DB>;
+let d1Db: Kysely<DB>;
 
-		// Make sure cloudflare does not cache planetscale responses
-		fetch: (input, init) => {
-			if (init?.cache) {
-				delete init.cache;
-				init.headers['Cache-Control'] = ' no-store, no-cache, must-revalidate, max-age=0';
-				init.headers['Pragma'] = 'no-cache';
+export async function getDb(platform?: App.Platform) {
+	const d1Env = platform?.env?.DB;
+
+	if (!d1Env) {
+		if (import.meta.env.DEV) {
+			const { default: Database } = await import('better-sqlite3');
+			const path = env.DATABASE_URL.replace('file:./', './prisma/');
+
+			if (!sqliteDb) {
+				sqliteDb = new Kysely<DB>({
+					dialect: new SqliteDialect({
+						database: new Database(path),
+					}),
+				});
 			}
 
-			return fetch(input, init);
+			return sqliteDb;
 		}
-	})
-});
+	} else {
+		d1Db = new Kysely<DB>({
+			dialect: new D1Dialect({ database: d1Env }),
+		});
+	}
+
+	return d1Db;
+}

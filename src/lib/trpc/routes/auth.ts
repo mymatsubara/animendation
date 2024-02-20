@@ -29,7 +29,7 @@ export const authRoute = router({
 			}
 
 			const client = new MALClient({ accessToken: malTokens.access_token });
-			const malUser = await upsertUser(client);
+			const malUser = await upsertUser(ctx.db, client);
 
 			const user: AuthUser = {
 				userId: malUser.id,

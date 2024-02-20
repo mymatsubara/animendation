@@ -1,13 +1,12 @@
 import { Auth, AuthCookies, type AuthUser } from '$lib/auth';
 import { UsersService } from '$lib/clients/jikan/generated';
 import type { MALClient } from '$lib/clients/myanimelist';
-import { db } from '$lib/server/db';
-import type { User } from '$lib/server/schema';
+import type { DB, User } from '$lib/server/schema';
 import { publicProcedure, router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import type { PaginatedData } from '$lib/trpc/types';
 import { TRPCError } from '@trpc/server';
-import { sql, type Insertable } from 'kysely';
+import { Kysely, sql, type Insertable } from 'kysely';
 import { z } from 'zod';
 
 type Follower = {
@@ -27,7 +26,7 @@ export const userRoute = router({
 			})
 		)
 		.query(async ({ ctx, input }) => {
-			return !!(await db
+			return !!(await ctx.db
 				.selectFrom('User')
 				.select(['User.id'])
 				.where('User.name', '=', input.username)
@@ -45,7 +44,7 @@ export const userRoute = router({
 			})
 		)
 		.mutation(async ({ input, ctx }) => {
-			let userToFollow = await db
+			let userToFollow = await ctx.db
 				.selectFrom('User')
 				.select(['id'])
 				.where('name', '=', input.username)
@@ -53,20 +52,20 @@ export const userRoute = router({
 
 			const userIdToFollow = userToFollow
 				? userToFollow.id
-				: (await upsertUser(ctx.malClient, input.username)).id;
+				: (await upsertUser(ctx.db, ctx.malClient, input.username)).id;
 
 			if (userIdToFollow === ctx.user.userId) {
 				throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot follow yourself' });
 			}
 
-			const alreadyFollowing = !!(await db
+			const alreadyFollowing = !!(await ctx.db
 				.selectFrom('Follower')
 				.select('createdAt')
 				.where('userId', '=', ctx.user.userId)
 				.where('followedUserId', '=', userIdToFollow)
 				.executeTakeFirst());
 
-			await db.transaction().execute(async (trx) => {
+			await ctx.db.transaction().execute(async (trx) => {
 				const increment = alreadyFollowing ? -1 : 1;
 				const incrementFollowing = trx
 					.updateTable('User')
@@ -109,8 +108,8 @@ export const userRoute = router({
 				nextPageToken: z.number().optional(),
 			})
 		)
-		.query(async ({ input }) => {
-			const followers = await db
+		.query(async ({ input, ctx }) => {
+			const followers = await ctx.db
 				.selectFrom('Follower')
 				.innerJoin('User as FollowerUser', 'FollowerUser.id', 'Follower.userId')
 				.where('Follower.followedUserId', '=', (qb) =>
@@ -145,8 +144,8 @@ export const userRoute = router({
 				nextPageToken: z.number().optional(),
 			})
 		)
-		.query(async ({ input }) => {
-			const followings = await db
+		.query(async ({ input, ctx }) => {
+			const followings = await ctx.db
 				.selectFrom('Follower')
 				.innerJoin('User as FollowingUser', 'FollowingUser.id', 'Follower.followedUserId')
 				.where('Follower.userId', '=', (qb) =>
@@ -174,7 +173,7 @@ export const userRoute = router({
 			return result;
 		}),
 	refreshMyProfile: authProcedure.mutation(async ({ ctx }) => {
-		const user = await upsertUser(ctx.malClient);
+		const user = await upsertUser(ctx.db, ctx.malClient);
 
 		// Issue a new backend access token
 		const accessToken = await Auth.signBackendAccessToken({
@@ -193,7 +192,7 @@ export const userRoute = router({
 			})
 		)
 		.query(async ({ ctx, input }) => {
-			const random = await db
+			const random = await ctx.db
 				.selectNoFrom(sql<number>`CEIL(RAND() * (select MAX(id) from User))`.as('id'))
 				.executeTakeFirst();
 
@@ -206,7 +205,7 @@ export const userRoute = router({
 
 			let limit = input.limit;
 			const createQuery = (cmp: '>=' | '<') =>
-				db
+				ctx.db
 					.selectFrom('User')
 					.select(['User.name', 'User.id'])
 					.innerJoin('AnimeRecommendation', 'AnimeRecommendation.userId', 'User.id')
@@ -216,11 +215,10 @@ export const userRoute = router({
 							.on('Follower.userId', '=', ctx.user.userId)
 					)
 					.where('Follower.id', 'is', null) // Fetch only user that I'm not following
-					.where('User.id', cmp, random.id)
 					.where('User.id', '<>', ctx.user.userId)
 					.having(sql`COUNT(*)`, '>', 0)
 					.groupBy('User.id')
-					.orderBy('User.id')
+					.orderBy(sql`RANDOM()`)
 					.limit(limit);
 
 			let users = await createQuery('>=').execute();
@@ -239,8 +237,8 @@ export const userRoute = router({
 				username: z.string(),
 			})
 		)
-		.query(async ({ input }) => {
-			const user = await db
+		.query(async ({ input, ctx }) => {
+			const user = await ctx.db
 				.selectFrom('User')
 				.select(['followersCount', 'followingCount'])
 				.where('name', '=', input.username)
@@ -253,7 +251,7 @@ export const userRoute = router({
 		}),
 });
 
-export async function upsertUser(client: MALClient, username?: string) {
+export async function upsertUser(db: Kysely<DB>, client: MALClient, username?: string) {
 	let user: Insertable<User>;
 
 	if (username) {
@@ -291,10 +289,9 @@ export async function upsertUser(client: MALClient, username?: string) {
 	await db
 		.insertInto('User')
 		.values(user)
-		.onDuplicateKeyUpdate({
-			name: ({ ref }) => sql`VALUES(${ref('User.name')})`,
-			picture: ({ ref }) => sql`VALUES(${ref('User.picture')})`,
-		})
+		.onConflict((oc) =>
+			oc.column('id').doUpdateSet(({ ref }) => ({ name: ref('name'), picture: ref('picture') }))
+		)
 		.execute();
 
 	return user;

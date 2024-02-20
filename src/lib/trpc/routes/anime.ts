@@ -1,11 +1,12 @@
 import { PUBLIC_MAL_CLIENT_ID } from '$env/static/public';
 import { MALClient, type AnimeDetail } from '$lib/clients/myanimelist';
-import { db } from '$lib/server/db';
+import type { DB } from '$lib/server/schema';
 import { publicProcedure, router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import type { PaginatedData } from '$lib/trpc/types';
 import { isDateValid } from '$lib/utils/date';
 import { TRPCError, type inferAsyncReturnType } from '@trpc/server';
+import type { Kysely } from 'kysely';
 import { z } from 'zod';
 
 export const animeRoute = router({
@@ -15,8 +16,8 @@ export const animeRoute = router({
 				ids: z.coerce.number().int().array(),
 			})
 		)
-		.mutation(async ({ input }) => {
-			let animes = await getAnimesInfo({ ids: input.ids });
+		.mutation(async ({ input, ctx }) => {
+			let animes = await getAnimesInfo(ctx.db, { ids: input.ids });
 
 			// Fetch new animes from the MAL api
 			if (animes.length !== input.ids.length) {
@@ -40,7 +41,7 @@ export const animeRoute = router({
 				}
 
 				if (newAnimes.length > 0) {
-					await db
+					await ctx.db
 						.insertInto('Anime')
 						.values(
 							newAnimes.map((anime) => ({
@@ -76,14 +77,14 @@ export const animeRoute = router({
 				since: z.string().min(1),
 			})
 		)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const pictureModifiedSince = new Date(input.since);
 
 			if (!isDateValid(pictureModifiedSince)) {
 				return [];
 			}
 
-			return getAnimesInfo({ pictureModifiedSince });
+			return getAnimesInfo(ctx.db, { pictureModifiedSince });
 		}),
 	feed: authProcedure
 		.input(
@@ -93,7 +94,7 @@ export const animeRoute = router({
 			})
 		)
 		.query(async ({ input, ctx }) => {
-			const data = await db
+			const data = await ctx.db
 				.selectFrom('AnimeRecommendation')
 				.innerJoin('Follower', (join) =>
 					join
@@ -117,7 +118,7 @@ export const animeRoute = router({
 				.limit(input.limit)
 				.execute();
 
-			const result: PaginatedData<typeof data[number]> = {
+			const result: PaginatedData<(typeof data)[number]> = {
 				data,
 				hasNextPage: data.length >= input.limit,
 				nextPageToken: data.at(-1)?.id ?? 0,
@@ -134,7 +135,7 @@ type Filter = {
 	pictureModifiedSince?: Date;
 };
 
-async function getAnimesInfo(filter?: Filter) {
+async function getAnimesInfo(db: Kysely<DB>, filter?: Filter) {
 	const animes = await db
 		.selectFrom('Anime')
 		.select([

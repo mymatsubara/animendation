@@ -1,6 +1,5 @@
 import { mangaStatus, type MangaStatus } from '$lib/clients/myanimelist';
 import type { UserMangaListEdge } from '$lib/clients/myanimelist/generated/models/UserMangaListEdge';
-import { db } from '$lib/server/db';
 import { router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import { isDateValid } from '$lib/utils/date';
@@ -51,7 +50,7 @@ export const mangaListRouter = router({
 			const read =
 				input.status !== 'completed'
 					? undefined
-					: await db
+					: await ctx.db
 							.selectFrom('Manga')
 							.select(['volumes', 'chapters'])
 							.where('id', '=', input.mangaId)

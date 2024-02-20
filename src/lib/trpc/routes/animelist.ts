@@ -1,6 +1,5 @@
 import { animeStatus, type AnimeStatus } from '$lib/clients/myanimelist';
 import type { UserAnimeListEdge } from '$lib/clients/myanimelist/generated/models/UserAnimeListEdge';
-import { db } from '$lib/server/db';
 import { router } from '$lib/trpc';
 import { authProcedure } from '$lib/trpc/procedures';
 import { TRPCError } from '@trpc/server';
@@ -51,7 +50,7 @@ export const animelistRouter = router({
 				input.status !== 'completed'
 					? undefined
 					: (
-							await db
+							await ctx.db
 								.selectFrom('Anime')
 								.select('episodes')
 								.where('id', '=', input.animeId)

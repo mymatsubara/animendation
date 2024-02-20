@@ -18,6 +18,8 @@ export const authRoute = router({
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
+			return { ctx, input };
+
 			const malTokens = await MALOauth.getTokens({
 				clientId: PUBLIC_MAL_CLIENT_ID,
 				clientSecret: env.MAL_CLIENT_SECRET,
@@ -29,7 +31,7 @@ export const authRoute = router({
 			}
 
 			const client = new MALClient({ accessToken: malTokens.access_token });
-			const malUser = await upsertUser(client);
+			const malUser = await upsertUser(ctx.db, client);
 
 			const user: AuthUser = {
 				userId: malUser.id,

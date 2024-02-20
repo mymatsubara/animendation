@@ -1,6 +1,6 @@
 import { PUBLIC_MAL_CLIENT_ID } from '$env/static/public';
 import { MALClient, isSequel } from '$lib/clients/myanimelist';
-import { db } from '$lib/server/db';
+import { getDb } from '$lib/server/db';
 import type { SerieType } from '$lib/types';
 import { sql } from 'kysely';
 
@@ -32,6 +32,7 @@ async function seedSeries(type: SerieType) {
 	let offset = 0;
 	const limit = 500;
 	const client = new MALClient({ clientId: PUBLIC_MAL_CLIENT_ID });
+	const db = await getDb();
 
 	while (true) {
 		console.log(
@@ -55,27 +56,29 @@ async function seedSeries(type: SerieType) {
 						genres: anime.genres.join(','),
 					}))
 				)
-				.onDuplicateKeyUpdate({
-					createdAt: ({ ref }) => sql`VALUES(${ref('createdAt')})`,
-					genres: ({ ref }) => sql`VALUES(${ref('genres')})`,
-					mediaType: ({ ref }) => sql`VALUES(${ref('mediaType')})`,
-					status: ({ ref }) => sql`VALUES(${ref('status')})`,
-					title: ({ ref }) => sql`VALUES(${ref('title')})`,
-					updatedAt: ({ ref }) => sql`VALUES(${ref('updatedAt')})`,
-					endDate: ({ ref }) => sql`VALUES(${ref('endDate')})`,
-					nsfw: ({ ref }) => sql`VALUES(${ref('nsfw')})`,
-					pictureLarge: ({ ref }) => sql`VALUES(${ref('pictureLarge')})`,
-					pictureMedium: ({ ref }) => sql`VALUES(${ref('pictureMedium')})`,
-					startDate: ({ ref }) => sql`VALUES(${ref('startDate')})`,
-					episodes: ({ ref }) => sql`VALUES(${ref('episodes')})`,
-					season: ({ ref }) => sql`VALUES(${ref('season')})`,
-					seasonYear: ({ ref }) => sql`VALUES(${ref('seasonYear')})`,
-					source: ({ ref }) => sql`VALUES(${ref('source')})`,
-					largePictureUpdatedAt: ({ ref }) =>
-						sql`CASE WHEN VALUES(${ref('pictureLarge')}) = ${ref('pictureLarge')} THEN ${ref(
-							'largePictureUpdatedAt'
-						)} ELSE NOW() END`,
-				})
+				.onConflict((oc) =>
+					oc.column('id').doUpdateSet({
+						createdAt: ({ ref }) => ref('createdAt'),
+						genres: ({ ref }) => ref('genres'),
+						mediaType: ({ ref }) => ref('mediaType'),
+						status: ({ ref }) => ref('status'),
+						title: ({ ref }) => ref('title'),
+						updatedAt: ({ ref }) => ref('updatedAt'),
+						endDate: ({ ref }) => ref('endDate'),
+						nsfw: ({ ref }) => ref('nsfw'),
+						pictureLarge: ({ ref }) => ref('pictureLarge'),
+						pictureMedium: ({ ref }) => ref('pictureMedium'),
+						startDate: ({ ref }) => ref('startDate'),
+						episodes: ({ ref }) => ref('episodes'),
+						season: ({ ref }) => ref('season'),
+						seasonYear: ({ ref }) => ref('seasonYear'),
+						source: ({ ref }) => ref('source'),
+						largePictureUpdatedAt: ({ ref }) =>
+							sql`CASE WHEN ${ref('pictureLarge')} = ${ref('pictureLarge')} THEN ${ref(
+								'largePictureUpdatedAt'
+							)} ELSE NOW() END`,
+					})
+				)
 				.execute();
 
 			if (!page?.paging?.next) {
@@ -96,25 +99,27 @@ async function seedSeries(type: SerieType) {
 						genres: manga.genres.join(','),
 					}))
 				)
-				.onDuplicateKeyUpdate({
-					createdAt: ({ ref }) => sql`VALUES(${ref('createdAt')})`,
-					genres: ({ ref }) => sql`VALUES(${ref('genres')})`,
-					mediaType: ({ ref }) => sql`VALUES(${ref('mediaType')})`,
-					status: ({ ref }) => sql`VALUES(${ref('status')})`,
-					title: ({ ref }) => sql`VALUES(${ref('title')})`,
-					updatedAt: ({ ref }) => sql`VALUES(${ref('updatedAt')})`,
-					endDate: ({ ref }) => sql`VALUES(${ref('endDate')})`,
-					nsfw: ({ ref }) => sql`VALUES(${ref('nsfw')})`,
-					pictureLarge: ({ ref }) => sql`VALUES(${ref('pictureLarge')})`,
-					pictureMedium: ({ ref }) => sql`VALUES(${ref('pictureMedium')})`,
-					startDate: ({ ref }) => sql`VALUES(${ref('startDate')})`,
-					chapters: ({ ref }) => sql`VALUES(${ref('chapters')})`,
-					volumes: ({ ref }) => sql`VALUES(${ref('volumes')})`,
-					largePictureUpdatedAt: ({ ref }) =>
-						sql`CASE WHEN VALUES(${ref('pictureLarge')}) = ${ref('pictureLarge')} THEN ${ref(
-							'largePictureUpdatedAt'
-						)} ELSE NOW() END`,
-				})
+				.onConflict((oc) =>
+					oc.column('id').doUpdateSet({
+						createdAt: ({ ref }) => ref('createdAt'),
+						genres: ({ ref }) => ref('genres'),
+						mediaType: ({ ref }) => ref('mediaType'),
+						status: ({ ref }) => ref('status'),
+						title: ({ ref }) => ref('title'),
+						updatedAt: ({ ref }) => ref('updatedAt'),
+						endDate: ({ ref }) => ref('endDate'),
+						nsfw: ({ ref }) => ref('nsfw'),
+						pictureLarge: ({ ref }) => ref('pictureLarge'),
+						pictureMedium: ({ ref }) => ref('pictureMedium'),
+						startDate: ({ ref }) => ref('startDate'),
+						chapters: ({ ref }) => ref('chapters'),
+						volumes: ({ ref }) => ref('volumes'),
+						largePictureUpdatedAt: ({ ref }) =>
+							sql`CASE WHEN ${ref('pictureLarge')} = ${ref('pictureLarge')} THEN ${ref(
+								'largePictureUpdatedAt'
+							)} ELSE NOW() END`,
+					})
+				)
 				.execute();
 
 			if (!page?.paging?.next) {
@@ -127,6 +132,7 @@ async function seedSeries(type: SerieType) {
 }
 
 async function checkAnimesSequelRetry(maxRetries: number = 100) {
+	const db = getDb();
 	for (let i = 0; i < maxRetries; i++) {
 		try {
 			await checkAnimesSequel();
@@ -140,6 +146,7 @@ async function checkAnimesSequelRetry(maxRetries: number = 100) {
 }
 
 async function checkAnimesSequel() {
+	const db = await getDb();
 	let sequelCheck = new Map<number, boolean>();
 	const maxBackoff = 400;
 	const checked = new Set<number>();
@@ -188,6 +195,7 @@ async function checkAnimesSequel() {
 }
 
 async function saveSequelChecks(sequelCheck: Map<number, boolean>) {
+	const db = await getDb();
 	const checksToSave = sequelCheck.size;
 	console.log(`💾 Saving ${checksToSave} sequel checks to the database...`);
 

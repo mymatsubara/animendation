@@ -136,26 +136,43 @@ type Filter = {
 };
 
 async function getAnimesInfo(db: Kysely<DB>, filter?: Filter) {
-	const animes = await db
-		.selectFrom('Anime')
-		.select([
-			'id',
-			'title',
-			'mediaType',
-			'season',
-			'seasonYear',
-			'nsfw',
-			'genres',
-			'pictureLarge',
-			'isSequel',
-		])
-		.$if(!!filter?.ids, (qb) => qb.where('id', 'in', filter?.ids as number[]))
-		.$if(!!filter?.pictureModifiedSince, (qb) =>
-			qb
-				.where('largePictureUpdatedAt', '>=', filter?.pictureModifiedSince as Date)
-				.where('createdAt', '<=', filter?.pictureModifiedSince as Date)
-		)
-		.execute();
+	const chunkSize = 100;
+	const chunks = Math.ceil((filter?.ids?.length ?? 1) / chunkSize);
+	const animesChunks = await Promise.all(
+		new Array(chunks).fill(0).map((_, i) => {
+			const chunkStart = i * chunkSize;
+			const chunkEnd = Math.min(chunkStart + chunkSize, filter?.ids?.length ?? 0);
+
+			return db
+				.selectFrom('Anime')
+				.select([
+					'id',
+					'title',
+					'mediaType',
+					'season',
+					'seasonYear',
+					'nsfw',
+					'genres',
+					'pictureLarge',
+					'isSequel',
+				])
+				.$if(!!filter?.ids, (qb) =>
+					qb.where('id', 'in', filter?.ids?.slice(chunkStart, chunkEnd) as number[])
+				)
+				.$if(!!filter?.pictureModifiedSince, (qb) =>
+					qb
+						.where(
+							'largePictureUpdatedAt',
+							'>=',
+							filter?.pictureModifiedSince?.toISOString() as string
+						)
+						.where('createdAt', '<=', filter?.pictureModifiedSince?.toISOString() as string)
+				)
+				.execute();
+		})
+	);
+
+	const animes = animesChunks.flatMap((chunk) => chunk);
 
 	return animes.map((anime) => ({
 		...anime,

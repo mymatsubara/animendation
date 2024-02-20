@@ -26,10 +26,10 @@ export const animeStatus = [
 	'dropped',
 	'plan_to_watch',
 ] as const;
-export type AnimeStatus = typeof animeStatus[number];
+export type AnimeStatus = (typeof animeStatus)[number];
 
 export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read'] as const;
-export type MangaStatus = typeof mangaStatus[number];
+export type MangaStatus = (typeof mangaStatus)[number];
 
 type GetUserAnimelistOptions = {
 	fields?: 'list_status';
@@ -166,7 +166,7 @@ export class MALClient {
 		username: string,
 		options?: Omit<GetUserMangalistOptions, 'limit' | 'offset'>
 	): Promise<UserAnimeListEdge[]> {
-		const limit = 1000;
+		const limit = 900;
 		const opts = {
 			...options,
 			limit,
@@ -233,7 +233,7 @@ export class MALClient {
 			}
 
 			options.offset += options.limit;
-			options.limit = 1000;
+			options.limit = 900;
 		}
 
 		return result;

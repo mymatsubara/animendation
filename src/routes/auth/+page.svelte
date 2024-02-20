@@ -22,8 +22,6 @@
 			goto('/');
 		}
 
-		console.log({ code, state });
-
 		if (state !== expectedState?.state || !code) {
 			failAuth();
 		} else {
@@ -32,7 +30,6 @@
 					authCode: code,
 					codeVerifier: expectedState.codeVerifier,
 				});
-				console.log(authUser);
 
 				$user = authUser;
 

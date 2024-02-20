@@ -41,7 +41,7 @@ export const mangaRoute = router({
 				}
 
 				if (newMangas.length > 0) {
-					await db
+					await ctx.db
 						.insertInto('Manga')
 						.values(
 							newMangas.map((anime) => ({
@@ -134,19 +134,46 @@ type Filter = {
 };
 
 async function getMangaInfo(db: Kysely<DB>, filter?: Filter) {
-	const animes = await db
-		.selectFrom('Manga')
-		.select(['id', 'title', 'mediaType', 'nsfw', 'genres', 'pictureLarge', 'chapters', 'volumes'])
-		.$if(!!filter?.ids, (qb) => qb.where('id', 'in', filter?.ids as number[]))
-		.$if(!!filter?.pictureModifiedSince, (qb) =>
-			qb
-				.where('largePictureUpdatedAt', '>=', filter?.pictureModifiedSince as Date)
-				.where('createdAt', '<=', filter?.pictureModifiedSince as Date)
-		)
-		.execute();
+	const chunkSize = 100;
+	const chunks = Math.ceil((filter?.ids?.length ?? 1) / chunkSize);
 
-	return animes.map((anime) => ({
-		...anime,
-		genres: anime.genres.split(','),
+	const mangaChunks = await Promise.all(
+		new Array(chunks).fill(0).map((_, i) => {
+			const chunkStart = i * chunkSize;
+			const chunkEnd = Math.min(chunkStart + chunkSize, filter?.ids?.length ?? 0);
+
+			return db
+				.selectFrom('Manga')
+				.select([
+					'id',
+					'title',
+					'mediaType',
+					'nsfw',
+					'genres',
+					'pictureLarge',
+					'chapters',
+					'volumes',
+				])
+				.$if(!!filter?.ids, (qb) =>
+					qb.where('id', 'in', filter?.ids?.slice(chunkStart, chunkEnd) as number[])
+				)
+				.$if(!!filter?.pictureModifiedSince, (qb) =>
+					qb
+						.where(
+							'largePictureUpdatedAt',
+							'>=',
+							filter?.pictureModifiedSince?.toISOString() as string
+						)
+						.where('createdAt', '<=', filter?.pictureModifiedSince?.toISOString() as string)
+				)
+				.execute();
+		})
+	);
+
+	const mangas = mangaChunks.flatMap((chunk) => chunk);
+
+	return mangas.map((manga) => ({
+		...manga,
+		genres: manga.genres.split(','),
 	}));
 }

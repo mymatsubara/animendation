@@ -192,17 +192,6 @@ export const userRoute = router({
 			})
 		)
 		.query(async ({ ctx, input }) => {
-			const random = await ctx.db
-				.selectNoFrom(sql<number>`CEIL(RAND() * (select MAX(id) from User))`.as('id'))
-				.executeTakeFirst();
-
-			if (!random) {
-				throw new TRPCError({
-					code: 'INTERNAL_SERVER_ERROR',
-					message: 'Could not generate random id',
-				});
-			}
-
 			let limit = input.limit;
 			const createQuery = (cmp: '>=' | '<') =>
 				ctx.db
